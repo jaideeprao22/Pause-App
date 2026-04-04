@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0f2d5e"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="PAUSE App"/>
+<meta name="description" content="Think Before You Search — A validated digital tool for cyberchondria screening and management."/>
+<title>PAUSE App: Think Before You Search</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;0,9..40,900;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --navy: #0f2d5e;
+    --blue: #1a4a8a;
+    --sky: #2563eb;
+    --light-blue: #60b3ff;
+    --pale: #e8f0fe;
+    --bg: #f0f4f8;
+    --white: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --orange: #ef8c00;
+    --red: #ef4444;
+    --radius: 16px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html, body { height: 100%; overflow: hidden; background: var(--navy); }
+  body { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: white;
+    padding: calc(16px + var(--safe-top)) 20px 14px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 16px rgba(15,45,94,0.4);
+    z-index: 50;
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
+  .logo span { color: var(--light-blue); }
+  .logo-sub { font-size: 10px; opacity: 0.65; letter-spacing: 1px; margin-top: 3px; text-transform: uppercase; }
+  .back-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 600;
+    display: none;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    display: flex;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 8px 0 calc(8px + var(--safe-bottom));
+    flex-shrink: 0;
+    z-index: 50;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-top: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .nav-btn.active { border-top-color: var(--blue); }
+  .nav-btn .nav-icon { font-size: 20px; }
+  .nav-btn .nav-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .nav-btn.active .nav-label { color: var(--blue); }
+
+  /* SCROLLABLE CONTENT */
+  .screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; }
+  .screen.active { display: block; }
+  .screen-content { padding: 20px 16px calc(24px); }
+
+  /* CARDS */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #eaf1ff;
+  }
+  .hero-card {
+    background: linear-gradient(140deg, var(--navy) 0%, var(--blue) 100%);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 18px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    right: -30px;
+    top: -30px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+  .hero-title { font-size: 28px; font-weight: 900; line-height: 1.15; margin-bottom: 10px; font-family: 'DM Serif Display', serif; }
+  .hero-sub { font-size: 13px; opacity: 0.8; line-height: 1.65; margin-bottom: 22px; }
+
+  /* BUTTONS */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(26,74,138,0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .btn-primary:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(26,74,138,0.2); }
+  .btn-secondary {
+    background: white;
+    color: var(--blue);
+    border: 2px solid var(--blue);
+    border-radius: 14px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    transition: all 0.2s;
+    margin-top: 12px;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--muted);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    margin-top: 12px;
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* QUICK ACCESS */
+  .quick-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid #eaf1ff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-user-select: none;
+  }
+  .quick-card:active { transform: scale(0.98); background: var(--pale); }
+  .quick-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #e8f0fe, #dbeafe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .quick-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .quick-sub { font-size: 12px; color: var(--muted); }
+  .quick-arrow { margin-left: auto; color: #c4d4e8; font-size: 22px; font-weight: 300; }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 22px; }
+  .progress-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .progress-bar { height: 7px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--light-blue)); border-radius: 10px; transition: width 0.4s ease; }
+
+  /* QUESTION */
+  .q-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .q-text { font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.55; margin-bottom: 24px; }
+  .q-hint { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 14px; }
+  .likert-grid { display: flex; flex-direction: column; gap: 9px; }
+  .likert-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    font-family: inherit;
+    text-align: left;
+    transition: all 0.15s;
+    -webkit-user-select: none;
+  }
+  .likert-btn:active { transform: scale(0.98); border-color: var(--blue); background: var(--pale); }
+  .likert-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .q-nav { display: flex; justify-content: space-between; margin-top: 16px; gap: 10px; }
+  .q-nav-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: white;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .q-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* RESULTS */
+  .score-box {
+    border-radius: 18px;
+    padding: 28px 20px;
+    text-align: center;
+    margin-bottom: 18px;
+    border: 2px solid;
+  }
+  .score-num { font-size: 60px; font-weight: 900; color: var(--navy); line-height: 1; font-family: 'DM Serif Display', serif; }
+  .score-denom { font-size: 22px; color: var(--muted); font-weight: 500; }
+  .score-badge {
+    display: inline-block;
+    color: white;
+    border-radius: 30px;
+    padding: 7px 20px;
+    font-size: 14px;
+    font-weight: 800;
+    margin: 12px 0;
+    letter-spacing: 0.3px;
+  }
+  .score-desc { font-size: 14px; color: #374151; line-height: 1.65; }
+
+  /* SEVERITY SCALE */
+  .severity-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #f8fafc; }
+  .severity-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .severity-label { flex: 1; font-size: 14px; color: var(--text); }
+  .you-tag { font-size: 10px; background: var(--blue); color: white; border-radius: 10px; padding: 2px 8px; font-weight: 800; }
+
+  /* MODULES */
+  .module-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid #eaf1ff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-user-select: none;
+  }
+  .module-card:active { transform: scale(0.98); background: var(--pale); }
+  .module-icon { width: 50px; height: 50px; border-radius: 13px; background: linear-gradient(135deg,#e8f0fe,#dbeafe); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .module-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .module-meta { font-size: 12px; color: var(--muted); }
+  .module-arrow { margin-left: auto; color: #c4d4e8; font-size: 22px; }
+
+  /* EXERCISE CARD */
+  .exercise-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid #eaf1ff;
+    cursor: pointer;
+    -webkit-user-select: none;
+    transition: all 0.2s;
+  }
+  .exercise-card:active { transform: scale(0.98); background: var(--pale); }
+  .exercise-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .ex-icon { font-size: 26px; }
+  .ex-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+  .ex-duration { font-size: 11px; color: var(--blue); background: var(--pale); border-radius: 20px; padding: 3px 10px; font-weight: 700; margin-left: auto; }
+  .ex-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 200; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
+    padding-bottom: var(--safe-bottom);
+  }
+  .modal-overlay.open .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 10px; margin: 14px auto 0; }
+  .modal-header { padding: 16px 20px 12px; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
+  .modal-title { font-size: 20px; font-weight: 800; color: var(--navy); max-width: 80%; line-height: 1.3; }
+  .modal-close { background: #f1f5f9; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
+  .modal-body { overflow-y: auto; padding: 0 20px 24px; flex: 1; -webkit-overflow-scrolling: touch; }
+
+  /* MODULE CONTENT */
+  .content-section { margin-bottom: 22px; }
+  .content-heading { font-size: 13px; font-weight: 800; color: var(--blue); margin-bottom: 7px; letter-spacing: 0.3px; }
+  .content-text { font-size: 14px; color: #374151; line-height: 1.72; }
+
+  /* STEPS */
+  .step-row { display: flex; gap: 14px; margin-bottom: 18px; cursor: pointer; -webkit-user-select: none; }
+  .step-num {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .step-num.done { background: var(--green); color: white; }
+  .step-num.active { background: var(--blue); color: white; box-shadow: 0 2px 8px rgba(26,74,138,0.35); }
+  .step-num.pending { background: var(--border); color: var(--muted); }
+  .step-text { font-size: 14px; color: #374151; line-height: 1.65; padding-top: 4px; }
+  .step-text.done-text { opacity: 0.5; }
+  .step-text.active-text { font-weight: 600; color: var(--navy); }
+
+  /* INFO ROWS */
+  .info-row { display: flex; align-items: flex-start; gap: 14px; padding: 13px 0; border-bottom: 1px solid #f8fafc; }
+  .info-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+  .info-label { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 2px; }
+  .info-value { font-size: 14px; color: var(--text); line-height: 1.5; }
+
+  /* NOTICE */
+  .notice { border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+  .notice.blue { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .notice.red { background: #fef2f2; border: 1px solid #fecaca; }
+  .notice-title { font-size: 12px; font-weight: 800; margin-bottom: 5px; }
+  .notice.blue .notice-title { color: var(--blue); }
+  .notice.red .notice-title { color: #991b1b; }
+  .notice-text { font-size: 13px; color: #374151; line-height: 1.6; }
+
+  /* HISTORY */
+  .history-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .history-empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .history-item { background: white; border-radius: 14px; padding: 16px; margin-bottom: 10px; border: 1px solid #eaf1ff; display: flex; align-items: center; gap: 14px; }
+  .history-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .history-score { font-size: 22px; font-weight: 900; color: var(--navy); font-family: 'DM Serif Display', serif; }
+  .history-level { font-size: 12px; font-weight: 700; }
+  .history-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .history-score-col { text-align: right; margin-left: auto; }
+
+  /* INSTALL BANNER */
+  .install-banner {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: white;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: none;
+  }
+  .install-banner.show { display: flex; }
+  .install-text { flex: 1; font-size: 13px; font-weight: 600; }
+  .install-btn { background: white; color: var(--blue); border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit; }
+
+  /* DISCLAIMER */
+  .disclaimer-bar {
+    background: #fff9db;
+    border-top: 1px solid #fde68a;
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #92400e;
+    text-align: center;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- INSTALL BANNER -->
+  <div class="install-banner" id="installBanner">
+    <span style="font-size:20px">📲</span>
+    <span class="install-text">Install PAUSE App on your device</span>
+    <button class="install-btn" id="installBtn">Install</button>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-inner">
+      <div>
+        <div class="logo">PAUSE <span>App</span></div>
+        <div class="logo-sub">Think Before You Search</div>
+      </div>
+      <button class="back-btn" id="backBtn" onclick="goHome()">← Home</button>
+    </div>
+  </div>
+
+  <!-- SCREENS -->
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="screen-content">
+      <div class="hero-card">
+        <div class="hero-badge">CSS-15 Validated Screening Tool</div>
+        <div class="hero-title">Know Your Cyberchondria Score</div>
+        <div class="hero-sub">PAUSE App helps you screen, understand, and manage compulsive online health searching — in minutes.</div>
+        <button class="btn-primary" onclick="startAssessment()">Start Free Assessment →</button>
+      </div>
+
+      <div class="section-title">What Would You Like To Do?</div>
+
+      <div class="quick-card" onclick="startAssessment()">
+        <div class="quick-icon">📋</div>
+        <div>
+          <div class="quick-title">Assess Yourself</div>
+          <div class="quick-sub">CSS-15 validated screening · 5 minutes</div>
+        </div>
+        <div class="quick-arrow">›</div>
+      </div>
+
+      <div class="quick-card" onclick="showScreen('learn')">
+        <div class="quick-icon">📚</div>
+        <div>
+          <div class="quick-title">Learn About Cyberchondria</div>
+          <div class="quick-sub">4 psychoeducation modules</div>
+        </div>
+        <div class="quick-arrow">›</div>
+      </div>
+
+      <div class="quick-card" onclick="showScreen('exercises')">
+        <div class="quick-icon">🧘</div>
+        <div>
+          <div class="quick-title">Practice Coping Techniques</div>
+          <div class="quick-sub">4 CBT-based exercises</div>
+        </div>
+        <div class="quick-arrow">›</div>
+      </div>
+
+      <div class="quick-card" onclick="showScreen('history')">
+        <div class="quick-icon">📈</div>
+        <div>
+          <div class="quick-title">View My Progress</div>
+          <div class="quick-sub">Track scores over time</div>
+        </div>
+        <div class="quick-arrow">›</div>
+      </div>
+
+      <div class="notice blue">
+        <div class="notice-title">⚕️ Clinical Screening Tool</div>
+        <div class="notice-text">PAUSE App uses the validated CSS-15 (Cyberchondria Severity Scale). This tool supports screening and self-management. It does not replace professional clinical assessment.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSESSMENT -->
+  <div class="screen" id="screen-assessment">
+    <div class="screen-content">
+      <div class="progress-wrap">
+        <div class="progress-labels">
+          <span class="progress-label" id="qCounter">Question 1 of 15</span>
+          <span class="progress-label" id="qPercent">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-text" id="questionText"></div>
+        <div class="q-hint">How often does this apply to you?</div>
+        <div class="likert-grid" id="likertGrid"></div>
+      </div>
+
+      <div class="q-nav">
+        <button class="q-nav-btn" id="prevBtn" onclick="prevQuestion()" disabled>← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="screen-content">
+      <div class="score-box" id="scoreBox">
+        <div><span class="score-num" id="scoreNum">0</span><span class="score-denom">/75</span></div>
+        <div class="score-badge" id="scoreBadge">Loading...</div>
+        <div class="score-desc" id="scoreDesc"></div>
+      </div>
+
+      <div class="section-title">Score Guide</div>
+      <div class="card" id="severityScale"></div>
+
+      <div class="section-title">Your Next Steps</div>
+      <div class="card" id="nextSteps"></div>
+
+      <button class="btn-primary" onclick="showScreen('learn')">Explore Intervention Modules →</button>
+      <button class="btn-secondary" onclick="startAssessment()">Retake Assessment</button>
+      <button class="btn-ghost" onclick="goHome()">Return Home</button>
+    </div>
+  </div>
+
+  <!-- LEARN -->
+  <div class="screen" id="screen-learn">
+    <div class="screen-content">
+      <div class="section-title">Psychoeducation Modules</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">
+        Understanding cyberchondria is the first step to overcoming it. Complete all four modules for best results.
+      </p>
+      <div id="moduleList"></div>
+    </div>
+  </div>
+
+  <!-- EXERCISES -->
+  <div class="screen" id="screen-exercises">
+    <div class="screen-content">
+      <div class="section-title">CBT-Based Exercises</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">
+        Use these when you feel the urge to search, or as daily practice to reduce baseline health anxiety.
+      </p>
+      <div id="exerciseList"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="screen-history">
+    <div class="screen-content">
+      <div class="section-title">Assessment History</div>
+      <div id="historyContent"></div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="screen" id="screen-about">
+    <div class="screen-content">
+      <div class="card">
+        <div style="font-size:20px;font-weight:900;color:var(--navy);margin-bottom:6px;">PAUSE App</div>
+        <div style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:8px;">Think Before You Search</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.65;">A research-driven digital intervention for cyberchondria, developed at the intersection of community medicine and digital health.</div>
+      </div>
+
+      <div class="card">
+        <div class="info-row"><div class="info-icon">📊</div><div><div class="info-label">Screening Tool</div><div class="info-value">Cyberchondria Severity Scale (CSS-15)</div></div></div>
+        <div class="info-row"><div class="info-icon">🎓</div><div><div class="info-label">Evidence Base</div><div class="info-value">Cognitive Behavioural Therapy (CBT) & Metacognitive Therapy</div></div></div>
+        <div class="info-row"><div class="info-icon">🏥</div><div><div class="info-label">Target Setting</div><div class="info-value">Primary Healthcare, Community & Academic settings</div></div></div>
+        <div class="info-row"><div class="info-icon">👥</div><div><div class="info-label">Target Users</div><div class="info-value">General public, medical students, PHC patients</div></div></div>
+        <div class="info-row"><div class="info-icon">🔬</div><div><div class="info-label">Research Context</div><div class="info-value">Digital Health Interventions for Non-Communicable Diseases</div></div></div>
+        <div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Developed At</div><div class="info-value">Government Medical College, Maheshwaram, Telangana, India</div></div></div>
+        <div class="info-row"><div class="info-icon">📬</div><div><div class="info-label">Research Collaboration</div><div class="info-value">Open to validation studies & implementation partnerships</div></div></div>
+      </div>
+
+      <div class="notice blue">
+        <div class="notice-title">🤝 Researchers & Clinicians</div>
+        <div class="notice-text">If you are a researcher, institution, or clinician interested in collaborating on validation studies or clinical implementation of PAUSE App, we welcome your enquiry.</div>
+      </div>
+      <div class="notice red">
+        <div class="notice-title">⚕️ Clinical Disclaimer</div>
+        <div class="notice-text">PAUSE App is a screening and psychoeducation tool for educational purposes. It does not constitute clinical diagnosis or treatment. Individuals experiencing significant distress should consult a qualified mental health professional.</div>
+      </div>
+
+      <div style="text-align:center;padding:16px 0 8px;">
+        <div style="font-size:12px;color:var(--muted);">Version 1.0 · © 2026 PAUSE App</div>
+        <div style="font-size:11px;color:#c4d4e8;margin-top:4px;">Built on the CSS-15 · Norr et al., 2015</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER BAR -->
+  <div class="disclaimer-bar">⚕️ For educational use only — not a substitute for clinical advice</div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" onclick="showScreen('home')" data-screen="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('learn')" data-screen="learn">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Learn</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('exercises')" data-screen="exercises">
+      <span class="nav-icon">🧘</span>
+      <span class="nav-label">Practice</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('history')" data-screen="history">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Progress</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('about')" data-screen="about">
+      <span class="nav-icon">ℹ️</span>
+      <span class="nav-label">About</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODULE MODAL -->
+<div class="modal-overlay" id="moduleModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal('moduleModal')">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- EXERCISE MODAL -->
+<div class="modal-overlay" id="exerciseModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="exModalTitle"></div>
+      <button class="modal-close" onclick="closeModal('exerciseModal')">✕</button>
+    </div>
+    <div class="modal-body" id="exModalBody"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const QUESTIONS = [
+  "I search for health information online because I am worried about having a serious illness.",
+  "I spend a large amount of time searching for health information online.",
+  "I cannot stop myself from searching for health information online even when I want to.",
+  "I search for health information online even when I know it will make me feel worse.",
+  "I feel the need to check multiple websites to confirm health information.",
+  "After reading health information online, I feel more anxious than I did before.",
+  "I find it difficult to stop searching for health information once I have started.",
+  "When I notice any symptom, I immediately search for information online.",
+  "I check health information online multiple times a day.",
+  "My online health searching causes problems in my daily life or relationships.",
+  "I search for health conditions that I do not actually have any symptoms of.",
+  "I become more concerned about my health after searching for symptoms online.",
+  "People close to me have expressed concern about my online health searching.",
+  "I have tried to reduce my online health searching but find I cannot.",
+  "I feel temporary relief from anxiety when I find health information online, but the anxiety soon returns."
+];
+
+const LIKERT = ["Never","Rarely","Sometimes","Often","Always"];
+
+const SEVERITY = [
+  { min:15, max:30, level:"Minimal", color:"#10b981", bg:"#ecfdf5", border:"#6ee7b7",
+    desc:"Your online health searching appears to be within normal limits. Continue practising healthy digital habits and use PAUSE App periodically for check-ins.",
+    steps:["Maintain current healthy digital habits","Explore psychoeducation modules for prevention","Set a reminder to recheck in 8 weeks"] },
+  { min:31, max:45, level:"Mild", color:"#f59e0b", bg:"#fffbeb", border:"#fcd34d",
+    desc:"You show some signs of cyberchondria. Targeted strategies can help prevent escalation and improve your relationship with health information online.",
+    steps:["Complete all psychoeducation modules","Practice urge surfing daily","Implement the 5-minute search rule","Retake assessment in 4 weeks"] },
+  { min:46, max:60, level:"Moderate", color:"#ef8c00", bg:"#fff7ed", border:"#fdba74",
+    desc:"Your online health searching is causing meaningful distress. Structured intervention is recommended. Use PAUSE App modules and exercises regularly.",
+    steps:["Begin structured CBT exercises daily","Set browser time limits for health sites","Practice scheduled worry time","Consider speaking with a counsellor"] },
+  { min:61, max:75, level:"Severe", color:"#ef4444", bg:"#fef2f2", border:"#fca5a5",
+    desc:"Your cyberchondria is significantly impacting your wellbeing. In addition to using this app, please speak with a mental health professional.",
+    steps:["Seek professional mental health support","Practice all exercises in PAUSE App daily","Limit health searching to doctor visits only","Discuss health anxiety with your physician"] }
+];
+
+const MODULES = [
+  { icon:"🔍", title:"What is Cyberchondria?", sections:[
+    { h:"Definition", t:"Cyberchondria is the repeated online searching for health information that leads to escalating health anxiety. Unlike simple health curiosity, it creates a cycle where searching provides momentary relief but amplifies worry over time." },
+    { h:"How It Differs From Normal Searching", t:"Most people occasionally look up symptoms online. Cyberchondria is characterised by compulsive, distressing, and time-consuming searching that interferes with daily functioning and is driven by anxiety rather than information-seeking." },
+    { h:"How Common Is It?", t:"Studies report cyberchondria in 20–30% of internet users globally. It is particularly prevalent among medical students and healthcare workers, where health knowledge can paradoxically increase health anxiety." },
+    { h:"Why Searching Makes It Worse", t:"Search engines prioritise alarming content. Rare diseases appear as frequently as common ones. Each search session reinforces the neural pathway linking 'symptom → alarm', making the next episode more likely and more intense." },
+    { h:"When To Seek Help", t:"If health searching occupies more than 1 hour per day, causes significant distress, or is affecting relationships or work, professional support is recommended alongside self-help tools like PAUSE App." }
+  ]},
+  { icon:"🔄", title:"The Cyberchondria Cycle", sections:[
+    { h:"Stage 1 — Trigger", t:"A physical sensation, an ache, fatigue, or a health story heard from someone else triggers concern. This is the entry point into the cycle." },
+    { h:"Stage 2 — Search", t:"You turn to the internet for reassurance. The search feels rational and controlled. However, algorithms present worst-case scenarios, rare conditions, and alarming statistics prominently." },
+    { h:"Stage 3 — Escalation", t:"Initial results raise more questions. You search more specifically, click deeper, find increasingly concerning information, and your anxiety spikes higher than before you started." },
+    { h:"Stage 4 — Temporary Relief", t:"Eventually you find something reassuring, or exhaustion sets in. Anxiety temporarily drops. This relief acts as a powerful reward — reinforcing the searching behaviour." },
+    { h:"Stage 5 — Return", t:"Within hours or days, doubt returns: 'But what if that reassuring source was wrong?' The cycle begins again, each iteration faster and more intense than the last." },
+    { h:"Breaking The Cycle", t:"PAUSE App targets Stage 2 — the decision to search. By inserting a deliberate pause between trigger and search, you interrupt the cycle before escalation begins. This is the core mechanism of the intervention." }
+  ]},
+  { icon:"🧠", title:"CBT-Based Strategies", sections:[
+    { h:"Thought Challenging", t:"When anxious health thoughts arise, ask: What is the actual statistical probability of this diagnosis? What evidence do I have FOR and AGAINST the feared condition? What would I tell a close friend thinking this?" },
+    { h:"Search Postponement", t:"When the urge to search appears, set a 30-minute delay. Most urgent urges pass within 20 minutes. If you search after the delay, limit yourself to one reputable source (WHO, NHS, Mayo Clinic) for 5 minutes only." },
+    { h:"Worry Time Scheduling", t:"Schedule a specific 15-minute 'worry window' each day. When health worries arise outside this window, note them down and defer to your scheduled worry time. This contains anxiety rather than suppressing it." },
+    { h:"Behavioural Experiments", t:"Test your predictions. Before searching, write down what you fear you will find. After the delay period, check whether the feared outcome materialised. Track the accuracy of your health predictions over time — most will not come true." },
+    { h:"Attention Training", t:"Cyberchondria involves heightened selective attention to bodily sensations. Deliberately shift attention to external stimuli — sounds, textures, tasks — to reduce interoceptive focus and break the symptom-alarm cycle." }
+  ]},
+  { icon:"📱", title:"Digital Hygiene for Health", sections:[
+    { h:"Trusted Sources Only", t:"Bookmark and use only: WHO (who.int), NHS UK (nhs.uk), Mayo Clinic (mayoclinic.org), CDC (cdc.gov). These use evidence-based language and avoid sensationalism. Remove health anxiety forums from your bookmarks permanently." },
+    { h:"The 5-Minute Rule", t:"If you must search, set a visible 5-minute timer before you start. When it ends, close the browser regardless of where you are in the search. Practising stopping mid-search gradually weakens the compulsion loop." },
+    { h:"The 24-Hour Symptom Window", t:"When you notice a symptom, enforce a 24-hour no-search period. Most transient symptoms resolve within this time. If symptoms persist beyond 48 hours, consult a real clinician — not a search engine." },
+    { h:"App and Browser Controls", t:"Use browser extensions (Cold Turkey, StayFocusd) to limit daily access to symptom-checking websites. Set daily time limits. Remove health anxiety bookmarks and symptom checker apps from your home screen." },
+    { h:"The Doctor-First Rule", t:"Before any health internet search, ask: 'Is this worth a 10-minute call to my doctor?' If yes, call first. If no, the symptom likely doesn't warrant an internet search either. Your doctor is always a better source than Google." }
+  ]}
+];
+
+const EXERCISES = [
+  { icon:"🌿", title:"5-4-3-2-1 Grounding", duration:"3 minutes",
+    desc:"Interrupts the anxiety-search cycle by anchoring you to the present moment through your five senses.",
+    steps:["Name 5 things you can SEE right now — look around deliberately","Name 4 things you can physically TOUCH — feel their texture","Name 3 things you can HEAR — listen carefully","Name 2 things you can SMELL — notice subtle scents","Name 1 thing you can TASTE — be specific","Breathe slowly. Notice: your anxiety has reduced. The urge to search has diminished.","Repeat anytime a search urge appears."] },
+  { icon:"💨", title:"4-7-8 Breathing", duration:"4 minutes",
+    desc:"Activates the parasympathetic nervous system, directly countering the physiological anxiety response triggered by health searching.",
+    steps:["Sit comfortably with your back straight","Exhale completely through your mouth, making a whoosh sound","Close your mouth and inhale quietly through your nose for 4 counts","Hold your breath for 7 counts","Exhale completely through your mouth for 8 counts","This completes one cycle. Repeat 4 times.","Practise this whenever a search urge appears — do not search until you complete 4 cycles."] },
+  { icon:"⚖️", title:"Probability Reframing", duration:"5 minutes",
+    desc:"Corrects catastrophic thinking by applying statistical reasoning to health fears. Write your answers on paper for best effect.",
+    steps:["Write your specific health fear (e.g. 'This headache is a brain tumour')","Write: What % of people with this symptom actually have the feared condition?","Write: List 5 more common explanations for this symptom","Write: What would a doctor most likely tell me in their clinic?","Write: What evidence do I have that I am NOT seriously ill right now?","Read your answers back. Rate your fear from 0–10 now versus before.","Repeat this exercise every time a catastrophic health thought appears."] },
+  { icon:"🌊", title:"Urge Surfing", duration:"10 minutes",
+    desc:"Teaches you to observe search urges without acting on them, allowing them to naturally subside — like watching a wave rise and fall.",
+    steps:["Notice the urge to search. Do not act on it yet.","Rate the urge intensity: 0 (none) to 10 (overwhelming). Write it down.","Close your eyes. Observe the urge as if you are watching a wave on the ocean.","Notice where you feel it in your body: chest tightness, restlessness, anxiety.","Breathe slowly. Watch the wave without riding it. Do not search.","Every 2 minutes, re-rate the urge intensity and write it down.","Most urges peak at 5–7 minutes and dissolve within 10 minutes without action. Observe this happening."] }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentQ = 0;
+let answers = [];
+let currentExerciseStep = 0;
+let currentExercise = null;
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === name);
+  });
+  document.getElementById('backBtn').style.display =
+    (name === 'home' || name === 'assessment' || name === 'results') ? 'none' : 'block';
+  if (name === 'history') renderHistory();
+  window.scrollTo(0, 0);
+  document.getElementById('screen-' + name).scrollTop = 0;
+}
+
+function goHome() { showScreen('home'); }
+
+// ============================================================
+// ASSESSMENT
+// ============================================================
+function startAssessment() {
+  currentQ = 0;
+  answers = [];
+  renderQuestion();
+  document.getElementById('backBtn').style.display = 'none';
+  showScreen('assessment');
+}
+
+function renderQuestion() {
+  const pct = Math.round((currentQ / QUESTIONS.length) * 100);
+  document.getElementById('qCounter').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('qPercent').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('questionText').textContent = QUESTIONS[currentQ];
+  document.getElementById('prevBtn').disabled = currentQ === 0;
+
+  const grid = document.getElementById('likertGrid');
+  grid.innerHTML = '';
+  LIKERT.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'likert-btn';
+    btn.innerHTML = `<div class="likert-dot"></div><span>${label}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+}
+
+function selectAnswer(i) {
+  answers[currentQ] = i + 1;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    saveAndShowResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function saveAndShowResults() {
+  const total = answers.reduce((a, b) => a + b, 0);
+  const sev = getSeverity(total);
+  const record = { score: total, level: sev.level, color: sev.color, date: new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) };
+  const history = JSON.parse(localStorage.getItem('pauseHistory') || '[]');
+  history.unshift(record);
+  if (history.length > 20) history.splice(20);
+  localStorage.setItem('pauseHistory', JSON.stringify(history));
+  renderResults(total, sev);
+  showScreen('results');
+}
+
+// ============================================================
+// SEVERITY
+// ============================================================
+function getSeverity(score) {
+  return SEVERITY.find(s => score >= s.min && score <= s.max) || SEVERITY[3];
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+function renderResults(score, sev) {
+  document.getElementById('scoreNum').textContent = score;
+  const box = document.getElementById('scoreBox');
+  box.style.background = sev.bg;
+  box.style.borderColor = sev.border;
+  const badge = document.getElementById('scoreBadge');
+  badge.textContent = sev.level + ' Cyberchondria';
+  badge.style.background = sev.color;
+  document.getElementById('scoreDesc').textContent = sev.desc;
+
+  const scale = document.getElementById('severityScale');
+  scale.innerHTML = SEVERITY.map(s => `
+    <div class="severity-row">
+      <div class="severity-dot" style="background:${s.color}"></div>
+      <div class="severity-label"><strong>${s.level}</strong> — Score ${s.min}–${s.max}</div>
+      ${s.level === sev.level ? '<span class="you-tag">YOU</span>' : ''}
+    </div>`).join('');
+
+  const stepIcons = ['✅','📖','⏱️','👨‍⚕️'];
+  document.getElementById('nextSteps').innerHTML = sev.steps.map((step, i) => `
+    <div class="info-row">
+      <div class="info-icon">${stepIcons[i] || '➡️'}</div>
+      <div class="info-value">${step}</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// MODULES
+// ============================================================
+function renderModules() {
+  const completed = JSON.parse(localStorage.getItem('completedModules') || '[]');
+  document.getElementById('moduleList').innerHTML = MODULES.map((m, i) => `
+    <div class="module-card" onclick="openModule(${i})">
+      <div class="module-icon">${m.icon}</div>
+      <div>
+        <div class="module-title">${m.title}</div>
+        <div class="module-meta">${m.sections.length} sections${completed.includes(i) ? ' · ✅ Completed' : ''}</div>
+      </div>
+      <div class="module-arrow">›</div>
+    </div>`).join('');
+}
+
+function openModule(i) {
+  const mod = MODULES[i];
+  document.getElementById('modalTitle').textContent = mod.icon + ' ' + mod.title;
+  document.getElementById('modalBody').innerHTML = mod.sections.map(s => `
+    <div class="content-section">
+      <div class="content-heading">${s.h}</div>
+      <div class="content-text">${s.t}</div>
+    </div>`).join('') +
+    `<button class="btn-primary" onclick="markModuleDone(${i});closeModal('moduleModal')">✓ Mark Complete</button>`;
+  openModal('moduleModal');
+}
+
+function markModuleDone(i) {
+  const completed = JSON.parse(localStorage.getItem('completedModules') || '[]');
+  if (!completed.includes(i)) completed.push(i);
+  localStorage.setItem('completedModules', JSON.stringify(completed));
+  renderModules();
+}
+
+// ============================================================
+// EXERCISES
+// ============================================================
+function renderExercises() {
+  document.getElementById('exerciseList').innerHTML = EXERCISES.map((ex, i) => `
+    <div class="exercise-card" onclick="openExercise(${i})">
+      <div class="exercise-header">
+        <div class="ex-icon">${ex.icon}</div>
+        <div class="ex-title">${ex.title}</div>
+        <div class="ex-duration">${ex.duration}</div>
+      </div>
+      <div class="ex-desc">${ex.desc}</div>
+    </div>`).join('');
+}
+
+function openExercise(i) {
+  currentExercise = EXERCISES[i];
+  currentExerciseStep = 0;
+  document.getElementById('exModalTitle').textContent = currentExercise.icon + ' ' + currentExercise.title;
+  renderExerciseSteps();
+  openModal('exerciseModal');
+}
+
+function renderExerciseSteps() {
+  const ex = currentExercise;
+  document.getElementById('exModalBody').innerHTML =
+    `<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;">${ex.desc}</p>
+     <div class="section-title">Steps — tap to progress</div>` +
+    ex.steps.map((step, i) => {
+      const done = i < currentExerciseStep;
+      const active = i === currentExerciseStep;
+      return `<div class="step-row" onclick="if(${active}) nextStep()">
+        <div class="step-num ${done?'done':active?'active':'pending'}">${done?'✓':i+1}</div>
+        <div class="step-text ${done?'done-text':active?'active-text':''}">${step}</div>
+      </div>`;
+    }).join('') +
+    (currentExerciseStep < ex.steps.length
+      ? `<button class="btn-primary" onclick="nextStep()" style="margin-top:16px">
+          ${currentExerciseStep === ex.steps.length - 1 ? '✓ Complete Exercise' : 'Next Step →'}</button>`
+      : `<button class="btn-success" onclick="closeModal('exerciseModal')">✓ Exercise Complete!</button>`);
+}
+
+function nextStep() {
+  if (currentExerciseStep < currentExercise.steps.length) {
+    currentExerciseStep++;
+    renderExerciseSteps();
+  }
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem('pauseHistory') || '[]');
+  const container = document.getElementById('historyContent');
+  if (!history.length) {
+    container.innerHTML = `<div class="history-empty">
+      <div class="history-empty-icon">📋</div>
+      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px;">No Assessments Yet</div>
+      <div style="font-size:14px;line-height:1.6;">Complete your first CSS-15 assessment to begin tracking your progress over time.</div>
+      <button class="btn-primary" onclick="startAssessment()" style="margin-top:20px">Take Assessment Now</button>
+    </div>`;
+    return;
+  }
+  container.innerHTML =
+    `<div class="notice blue" style="margin-bottom:16px;">
+      <div class="notice-title">📊 ${history.length} Assessment${history.length>1?'s':''} Recorded</div>
+      <div class="notice-text">Your scores are stored privately on this device. Track trends over weeks to measure improvement.</div>
+    </div>` +
+    history.map(r => `
+    <div class="history-item">
+      <div class="history-dot" style="background:${r.color}"></div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:${r.color}">${r.level} Cyberchondria</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.date}</div>
+      </div>
+      <div class="history-score-col">
+        <div class="history-score">${r.score}</div>
+        <div style="font-size:11px;color:var(--muted)">/75</div>
+      </div>
+    </div>`).join('') +
+    `<button class="btn-secondary" onclick="if(confirm('Clear all history?')){localStorage.removeItem('pauseHistory');renderHistory()}" style="margin-top:8px">Clear History</button>`;
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+// ============================================================
+// PWA INSTALL
+// ============================================================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') document.getElementById('installBanner').classList.remove('show');
+  deferredPrompt = null;
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Pause-App/sw.js').catch(() => {});
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderModules();
+renderExercises();
+</script>
+</body>
+</html>
