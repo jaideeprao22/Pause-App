@@ -3,1088 +3,1292 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<meta name="theme-color" content="#0f2d5e"/>
+<meta name="theme-color" content="#0a1628"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PAUSE App"/>
-<meta name="description" content="Think Before You Search — A validated digital tool for cyberchondria screening and management."/>
-<title>PAUSE App: Think Before You Search</title>
+<meta name="description" content="Multi-disorder digital addiction screening platform with validated psychometric instruments."/>
+<title>PAUSE App — Digital Wellness Platform</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;0,9..40,900;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  :root {
-    --navy: #0f2d5e;
-    --blue: #1a4a8a;
-    --sky: #2563eb;
-    --light-blue: #60b3ff;
-    --pale: #e8f0fe;
-    --bg: #f0f4f8;
-    --white: #ffffff;
-    --text: #1e293b;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --green: #10b981;
-    --yellow: #f59e0b;
-    --orange: #ef8c00;
-    --red: #ef4444;
-    --radius: 16px;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  html, body { height: 100%; overflow: hidden; background: var(--navy); }
-  body { font-family: 'DM Sans', sans-serif; color: var(--text); }
-  #app {
-    max-width: 480px;
-    margin: 0 auto;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    position: relative;
-    overflow: hidden;
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+--navy:#0a1628;
+--navy2:#0f2040;
+--blue:#1a3a6e;
+--accent:#3d6fff;
+--accent2:#60b3ff;
+--teal:#00c9a7;
+--gold:#f5a623;
+--red:#ff4757;
+--orange:#ff6b35;
+--purple:#7c5cbf;
+--green:#2ecc71;
+--bg:#f0f4ff;
+--card:#ffffff;
+--text:#0a1628;
+--muted:#64748b;
+--border:#e2e8f0;
+--radius:18px;
+--safe-top:env(safe-area-inset-top,0px);
+--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM Sans',sans-serif}
+#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
 
-  /* HEADER */
-  .header {
-    background: linear-gradient(135deg, var(--navy), var(--blue));
-    color: white;
-    padding: calc(16px + var(--safe-top)) 20px 14px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 16px rgba(15,45,94,0.4);
-    z-index: 50;
-  }
-  .header-inner { display: flex; align-items: center; justify-content: space-between; }
-  .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
-  .logo span { color: var(--light-blue); }
-  .logo-sub { font-size: 10px; opacity: 0.65; letter-spacing: 1px; margin-top: 3px; text-transform: uppercase; }
-  .back-btn {
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    font-weight: 600;
-    display: none;
-  }
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:calc(14px + var(--safe-top)) 20px 14px;flex-shrink:0;z-index:50;position:relative;overflow:hidden}
+.header::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(61,111,255,0.08);border-radius:50%}
+.header-inner{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.logo span{color:var(--accent2)}
+.logo-sub{font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:2px;font-weight:400}
+.back-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:10px;padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer;font-weight:600;display:none;transition:all 0.2s}
+.dws-pill{background:rgba(61,111,255,0.2);border:1px solid rgba(61,111,255,0.3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--accent2);cursor:pointer}
 
-  /* BOTTOM NAV */
-  .bottom-nav {
-    display: flex;
-    background: white;
-    border-top: 1px solid var(--border);
-    padding: 8px 0 calc(8px + var(--safe-bottom));
-    flex-shrink: 0;
-    z-index: 50;
-  }
-  .nav-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 6px 4px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    border-top: 2px solid transparent;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-  .nav-btn.active { border-top-color: var(--blue); }
-  .nav-btn .nav-icon { font-size: 20px; }
-  .nav-btn .nav-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--muted);
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-  }
-  .nav-btn.active .nav-label { color: var(--blue); }
+/* NAV */
+.bottom-nav{display:flex;background:#fff;border-top:1px solid var(--border);padding:6px 0 calc(6px + var(--safe-bottom));flex-shrink:0;z-index:50}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;background:none;border:none;cursor:pointer;border-top:2px solid transparent;transition:all 0.2s;font-family:inherit}
+.nav-btn.active{border-top-color:var(--accent)}
+.nav-icon{font-size:18px}
+.nav-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase}
+.nav-btn.active .nav-label{color:var(--accent)}
 
-  /* SCROLLABLE CONTENT */
-  .screen { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; }
-  .screen.active { display: block; }
-  .screen-content { padding: 20px 16px calc(24px); }
+/* SCREENS */
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none}
+.screen.active{display:block}
+.screen-content{padding:16px 14px calc(20px)}
 
-  /* CARDS */
-  .card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 14px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    border: 1px solid #eaf1ff;
-  }
-  .hero-card {
-    background: linear-gradient(140deg, var(--navy) 0%, var(--blue) 100%);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 18px;
-    color: white;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-card::before {
-    content: '';
-    position: absolute;
-    right: -30px;
-    top: -30px;
-    width: 160px;
-    height: 160px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%;
-  }
-  .hero-badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    margin-bottom: 14px;
-  }
-  .hero-title { font-size: 28px; font-weight: 900; line-height: 1.15; margin-bottom: 10px; font-family: 'DM Serif Display', serif; }
-  .hero-sub { font-size: 13px; opacity: 0.8; line-height: 1.65; margin-bottom: 22px; }
+/* CARDS */
+.card{background:#fff;border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:0 2px 12px rgba(10,22,40,0.06);border:1px solid rgba(226,232,240,0.8)}
+.hero-card{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);border-radius:22px;padding:22px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;right:-50px;top:-50px;width:200px;height:200px;background:rgba(255,255,255,0.04);border-radius:50%}
+.hero-card::after{content:'';position:absolute;left:-30px;bottom:-60px;width:150px;height:150px;background:rgba(61,111,255,0.1);border-radius:50%}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;letter-spacing:0.5px;margin-bottom:14px;position:relative;z-index:1}
+.hero-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;line-height:1.25;margin-bottom:8px;position:relative;z-index:1}
+.hero-sub{font-size:13px;opacity:0.75;line-height:1.6;margin-bottom:18px;position:relative;z-index:1}
 
-  /* BUTTONS */
-  .btn-primary {
-    background: linear-gradient(135deg, var(--blue), var(--sky));
-    color: white;
-    border: none;
-    border-radius: 14px;
-    padding: 16px 24px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    font-family: inherit;
-    box-shadow: 0 4px 14px rgba(26,74,138,0.3);
-    transition: transform 0.1s, box-shadow 0.1s;
-    letter-spacing: 0.2px;
-  }
-  .btn-primary:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(26,74,138,0.2); }
-  .btn-secondary {
-    background: white;
-    color: var(--blue);
-    border: 2px solid var(--blue);
-    border-radius: 14px;
-    padding: 14px 24px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    font-family: inherit;
-    transition: all 0.2s;
-    margin-top: 12px;
-  }
-  .btn-ghost {
-    background: none;
-    color: var(--muted);
-    border: none;
-    border-radius: 14px;
-    padding: 14px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    font-family: inherit;
-    margin-top: 8px;
-  }
-  .btn-success {
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: white;
-    border: none;
-    border-radius: 14px;
-    padding: 16px 24px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    font-family: inherit;
-    margin-top: 12px;
-  }
+/* BUTTONS */
+.btn-primary{background:linear-gradient(135deg,var(--accent),#2952cc);color:#fff;border:none;border-radius:14px;padding:15px 22px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;transition:all 0.15s;letter-spacing:0.2px;position:relative;z-index:1}
+.btn-primary:active{transform:scale(0.98);opacity:0.9}
+.btn-secondary{background:#fff;color:var(--accent);border:2px solid var(--accent);border-radius:14px;padding:13px 22px;font-size:14px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;transition:all 0.2s;margin-top:10px}
+.btn-ghost{background:none;color:var(--muted);border:none;border-radius:14px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;margin-top:6px}
+.btn-teal{background:linear-gradient(135deg,#00c9a7,#00a085);color:#fff;border:none;border-radius:14px;padding:15px 22px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;margin-top:10px}
 
-  /* SECTION TITLE */
-  .section-title {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--muted);
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
+/* SECTION */
+.section-label{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
 
-  /* QUICK ACCESS */
-  .quick-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: white;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 10px;
-    border: 1px solid #eaf1ff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-user-select: none;
-  }
-  .quick-card:active { transform: scale(0.98); background: var(--pale); }
-  .quick-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 13px;
-    background: linear-gradient(135deg, #e8f0fe, #dbeafe);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-  }
-  .quick-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
-  .quick-sub { font-size: 12px; color: var(--muted); }
-  .quick-arrow { margin-left: auto; color: #c4d4e8; font-size: 22px; font-weight: 300; }
+/* DISORDER CARDS */
+.disorder-card{display:flex;align-items:center;gap:14px;background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(10,22,40,0.05);border:1px solid var(--border);cursor:pointer;transition:all 0.2s}
+.disorder-card:active{transform:scale(0.98)}
+.disorder-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.disorder-info{flex:1;min-width:0}
+.disorder-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.disorder-meta{font-size:11px;color:var(--muted)}
+.disorder-score{text-align:right;flex-shrink:0}
+.disorder-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
 
-  /* PROGRESS */
-  .progress-wrap { margin-bottom: 22px; }
-  .progress-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
-  .progress-label { font-size: 12px; color: var(--muted); font-weight: 600; }
-  .progress-bar { height: 7px; background: var(--border); border-radius: 10px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--light-blue)); border-radius: 10px; transition: width 0.4s ease; }
+/* DWS CIRCLE */
+.dws-container{display:flex;flex-direction:column;align-items:center;padding:20px 0 10px}
+.dws-circle{width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--blue));display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(10,22,40,0.3);margin-bottom:12px;position:relative}
+.dws-number{font-family:'Syne',sans-serif;font-size:38px;font-weight:700;color:#fff;line-height:1}
+.dws-label{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.dws-status{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;text-align:center;margin-bottom:4px}
+.dws-sub{font-size:12px;color:var(--muted);text-align:center}
 
-  /* QUESTION */
-  .q-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-  .q-text { font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.55; margin-bottom: 24px; }
-  .q-hint { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 14px; }
-  .likert-grid { display: flex; flex-direction: column; gap: 9px; }
-  .likert-btn {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
-    background: white;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-    font-family: inherit;
-    text-align: left;
-    transition: all 0.15s;
-    -webkit-user-select: none;
-  }
-  .likert-btn:active { transform: scale(0.98); border-color: var(--blue); background: var(--pale); }
-  .likert-dot {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    flex-shrink: 0;
-    transition: all 0.15s;
-  }
-  .q-nav { display: flex; justify-content: space-between; margin-top: 16px; gap: 10px; }
-  .q-nav-btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
-    background: white;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-  .q-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* IMPACT BARS */
+.impact-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.impact-label{font-size:12px;font-weight:600;color:var(--text);width:90px;flex-shrink:0}
+.impact-bar-bg{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.impact-bar-fill{height:100%;border-radius:4px;transition:width 0.8s ease}
+.impact-value{font-size:11px;font-weight:700;width:55px;text-align:right;flex-shrink:0}
 
-  /* RESULTS */
-  .score-box {
-    border-radius: 18px;
-    padding: 28px 20px;
-    text-align: center;
-    margin-bottom: 18px;
-    border: 2px solid;
-  }
-  .score-num { font-size: 60px; font-weight: 900; color: var(--navy); line-height: 1; font-family: 'DM Serif Display', serif; }
-  .score-denom { font-size: 22px; color: var(--muted); font-weight: 500; }
-  .score-badge {
-    display: inline-block;
-    color: white;
-    border-radius: 30px;
-    padding: 7px 20px;
-    font-size: 14px;
-    font-weight: 800;
-    margin: 12px 0;
-    letter-spacing: 0.3px;
-  }
-  .score-desc { font-size: 14px; color: #374151; line-height: 1.65; }
+/* ASSESSMENT */
+.q-header{padding:16px 14px 0}
+.q-progress-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:16px;overflow:hidden}
+.q-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:2px;transition:width 0.3s}
+.q-scale-info{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.q-number{font-size:11px;color:var(--muted);margin-bottom:8px}
+.q-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:24px;padding:0 14px}
+.q-options{padding:0 14px;display:flex;flex-direction:column;gap:10px}
+.q-option{background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px 18px;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;transition:all 0.15s;text-align:left;font-family:inherit;display:flex;align-items:center;justify-content:space-between}
+.q-option:active,.q-option.selected{border-color:var(--accent);background:rgba(61,111,255,0.06);color:var(--accent)}
+.q-option-label{font-size:11px;color:var(--muted);font-weight:600}
+.q-nav{display:flex;gap:10px;padding:16px 14px;margin-top:auto}
+.q-prev{flex:0 0 48px;background:#fff;border:2px solid var(--border);border-radius:12px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
 
-  /* SEVERITY SCALE */
-  .severity-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #f8fafc; }
-  .severity-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-  .severity-label { flex: 1; font-size: 14px; color: var(--text); }
-  .you-tag { font-size: 10px; background: var(--blue); color: white; border-radius: 10px; padding: 2px 8px; font-weight: 800; }
+/* RESULTS */
+.result-disorder-row{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border)}
+.result-disorder-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.result-disorder-name{font-size:13px;font-weight:700;color:var(--text)}
+.result-level{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.result-bar-bg{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.result-bar-fill{height:100%;border-radius:3px}
+.result-score-text{font-size:10px;color:var(--muted)}
+.explain-btn{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:0;margin-top:6px}
 
-  /* MODULES */
-  .module-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: white;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 10px;
-    border: 1px solid #eaf1ff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-user-select: none;
-  }
-  .module-card:active { transform: scale(0.98); background: var(--pale); }
-  .module-icon { width: 50px; height: 50px; border-radius: 13px; background: linear-gradient(135deg,#e8f0fe,#dbeafe); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
-  .module-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
-  .module-meta { font-size: 12px; color: var(--muted); }
-  .module-arrow { margin-left: auto; color: #c4d4e8; font-size: 22px; }
+/* SHARE CARD */
+.share-card{background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:20px;padding:20px;color:#fff;margin-bottom:14px;text-align:center}
+.share-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;opacity:0.7;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+.share-score{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;line-height:1}
+.share-status{font-size:14px;opacity:0.8;margin-top:4px}
+.share-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+.share-tag{background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600}
 
-  /* EXERCISE CARD */
-  .exercise-card {
-    background: white;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 10px;
-    border: 1px solid #eaf1ff;
-    cursor: pointer;
-    -webkit-user-select: none;
-    transition: all 0.2s;
-  }
-  .exercise-card:active { transform: scale(0.98); background: var(--pale); }
-  .exercise-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-  .ex-icon { font-size: 26px; }
-  .ex-title { font-size: 15px; font-weight: 700; color: var(--navy); }
-  .ex-duration { font-size: 11px; color: var(--blue); background: var(--pale); border-radius: 20px; padding: 3px 10px; font-weight: 700; margin-left: auto; }
-  .ex-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+/* CHALLENGE */
+.challenge-day{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s}
+.challenge-check{width:28px;height:28px;border-radius:8px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all 0.2s}
+.challenge-check.done{background:var(--teal);border-color:var(--teal);color:#fff}
+.challenge-text{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.challenge-day-label{font-size:10px;font-weight:700;color:var(--muted);text-align:right;flex-shrink:0}
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-    z-index: 200; display: flex; align-items: flex-end;
-    opacity: 0; pointer-events: none; transition: opacity 0.25s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal-sheet {
-    background: white;
-    border-radius: 24px 24px 0 0;
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
-    padding-bottom: var(--safe-bottom);
-  }
-  .modal-overlay.open .modal-sheet { transform: translateY(0); }
-  .modal-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 10px; margin: 14px auto 0; }
-  .modal-header { padding: 16px 20px 12px; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
-  .modal-title { font-size: 20px; font-weight: 800; color: var(--navy); max-width: 80%; line-height: 1.3; }
-  .modal-close { background: #f1f5f9; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
-  .modal-body { overflow-y: auto; padding: 0 20px 24px; flex: 1; -webkit-overflow-scrolling: touch; }
+/* MODAL */
+.modal-overlay{position:absolute;inset:0;background:rgba(10,22,40,0.7);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:#fff;border-radius:24px 24px 0 0;padding:20px;width:100%;max-height:85%;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px}
 
-  /* MODULE CONTENT */
-  .content-section { margin-bottom: 22px; }
-  .content-heading { font-size: 13px; font-weight: 800; color: var(--blue); margin-bottom: 7px; letter-spacing: 0.3px; }
-  .content-text { font-size: 14px; color: #374151; line-height: 1.72; }
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:16px;background:var(--border);border-radius:12px;padding:4px}
+.tab{flex:1;padding:8px;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit;background:none;color:var(--muted);transition:all 0.2s}
+.tab.active{background:#fff;color:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,0.08)}
 
-  /* STEPS */
-  .step-row { display: flex; gap: 14px; margin-bottom: 18px; cursor: pointer; -webkit-user-select: none; }
-  .step-num {
-    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;
-    transition: all 0.2s;
-  }
-  .step-num.done { background: var(--green); color: white; }
-  .step-num.active { background: var(--blue); color: white; box-shadow: 0 2px 8px rgba(26,74,138,0.35); }
-  .step-num.pending { background: var(--border); color: var(--muted); }
-  .step-text { font-size: 14px; color: #374151; line-height: 1.65; padding-top: 4px; }
-  .step-text.done-text { opacity: 0.5; }
-  .step-text.active-text { font-weight: 600; color: var(--navy); }
+/* NOTICE */
+.notice{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6}
+.notice.blue{background:rgba(61,111,255,0.08);border:1px solid rgba(61,111,255,0.2);color:var(--accent)}
+.notice.yellow{background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);color:#b07d00}
+.notice-title{font-weight:700;margin-bottom:3px;font-size:13px}
 
-  /* INFO ROWS */
-  .info-row { display: flex; align-items: flex-start; gap: 14px; padding: 13px 0; border-bottom: 1px solid #f8fafc; }
-  .info-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; margin-top: 1px; }
-  .info-label { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 2px; }
-  .info-value { font-size: 14px; color: var(--text); line-height: 1.5; }
+/* HISTORY */
+.history-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border)}
+.history-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.history-score{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
 
-  /* NOTICE */
-  .notice { border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
-  .notice.blue { background: #eff6ff; border: 1px solid #bfdbfe; }
-  .notice.red { background: #fef2f2; border: 1px solid #fecaca; }
-  .notice-title { font-size: 12px; font-weight: 800; margin-bottom: 5px; }
-  .notice.blue .notice-title { color: var(--blue); }
-  .notice.red .notice-title { color: #991b1b; }
-  .notice-text { font-size: 13px; color: #374151; line-height: 1.6; }
+/* INSTALL BANNER */
+.install-banner{background:linear-gradient(135deg,var(--accent),#2952cc);color:#fff;padding:10px 16px;display:none;align-items:center;gap:10px;flex-shrink:0}
+.install-banner.show{display:flex}
+.install-text{flex:1;font-size:12px;font-weight:600}
+.install-btn{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
 
-  /* HISTORY */
-  .history-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
-  .history-empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .history-item { background: white; border-radius: 14px; padding: 16px; margin-bottom: 10px; border: 1px solid #eaf1ff; display: flex; align-items: center; gap: 14px; }
-  .history-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-  .history-score { font-size: 22px; font-weight: 900; color: var(--navy); font-family: 'DM Serif Display', serif; }
-  .history-level { font-size: 12px; font-weight: 700; }
-  .history-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .history-score-col { text-align: right; margin-left: auto; }
+/* SCROLLBAR */
+::-webkit-scrollbar{width:0}
 
-  /* INSTALL BANNER */
-  .install-banner {
-    background: linear-gradient(135deg, var(--navy), var(--blue));
-    color: white;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: none;
-  }
-  .install-banner.show { display: flex; }
-  .install-text { flex: 1; font-size: 13px; font-weight: 600; }
-  .install-btn { background: white; color: var(--blue); border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit; }
+/* ANIMATIONS */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn 0.3s ease forwards}
 
-  /* DISCLAIMER */
-  .disclaimer-bar {
-    background: #fff9db;
-    border-top: 1px solid #fde68a;
-    padding: 8px 16px;
-    font-size: 11px;
-    color: #92400e;
-    text-align: center;
-    flex-shrink: 0;
-    font-weight: 600;
-  }
+/* BENCHMARK */
+.benchmark-bar{margin-top:8px}
+.benchmark-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+.benchmark-track{height:12px;background:var(--border);border-radius:6px;position:relative;overflow:hidden}
+.benchmark-avg{position:absolute;top:0;height:100%;background:rgba(100,116,139,0.3);border-radius:6px}
+.benchmark-you{position:absolute;top:0;height:100%;background:var(--accent);border-radius:6px;transition:width 1s ease}
+.benchmark-text{font-size:11px;color:var(--muted);margin-top:6px;text-align:center}
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- INSTALL BANNER -->
-  <div class="install-banner" id="installBanner">
-    <span style="font-size:20px">📲</span>
-    <span class="install-text">Install PAUSE App on your device</span>
-    <button class="install-btn" id="installBtn">Install</button>
-  </div>
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <div class="install-text">📱 Install PAUSE App on your device</div>
+  <button class="install-btn" id="installBtn">Install</button>
+</div>
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-inner">
-      <div>
-        <div class="logo">PAUSE <span>App</span></div>
-        <div class="logo-sub">Think Before You Search</div>
-      </div>
-      <button class="back-btn" id="backBtn" onclick="goHome()">← Home</button>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="logo"><span>PAUSE</span> App</div>
+      <div class="logo-sub">Digital Wellness Platform</div>
     </div>
-  </div>
-
-  <!-- SCREENS -->
-
-  <!-- HOME -->
-  <div class="screen active" id="screen-home">
-    <div class="screen-content">
-      <div class="hero-card">
-        <div class="hero-badge">CSS-15 Validated Screening Tool</div>
-        <div class="hero-title">Know Your Cyberchondria Score</div>
-        <div class="hero-sub">PAUSE App helps you screen, understand, and manage compulsive online health searching — in minutes.</div>
-        <button class="btn-primary" onclick="startAssessment()">Start Free Assessment →</button>
-      </div>
-
-      <div class="section-title">What Would You Like To Do?</div>
-
-      <div class="quick-card" onclick="startAssessment()">
-        <div class="quick-icon">📋</div>
-        <div>
-          <div class="quick-title">Assess Yourself</div>
-          <div class="quick-sub">CSS-15 validated screening · 5 minutes</div>
-        </div>
-        <div class="quick-arrow">›</div>
-      </div>
-
-      <div class="quick-card" onclick="showScreen('learn')">
-        <div class="quick-icon">📚</div>
-        <div>
-          <div class="quick-title">Learn About Cyberchondria</div>
-          <div class="quick-sub">4 psychoeducation modules</div>
-        </div>
-        <div class="quick-arrow">›</div>
-      </div>
-
-      <div class="quick-card" onclick="showScreen('exercises')">
-        <div class="quick-icon">🧘</div>
-        <div>
-          <div class="quick-title">Practice Coping Techniques</div>
-          <div class="quick-sub">4 CBT-based exercises</div>
-        </div>
-        <div class="quick-arrow">›</div>
-      </div>
-
-      <div class="quick-card" onclick="showScreen('history')">
-        <div class="quick-icon">📈</div>
-        <div>
-          <div class="quick-title">View My Progress</div>
-          <div class="quick-sub">Track scores over time</div>
-        </div>
-        <div class="quick-arrow">›</div>
-      </div>
-
-      <div class="notice blue">
-        <div class="notice-title">⚕️ Clinical Screening Tool</div>
-        <div class="notice-text">PAUSE App uses the validated CSS-15 (Cyberchondria Severity Scale). This tool supports screening and self-management. It does not replace professional clinical assessment.</div>
-      </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
+      <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
     </div>
-  </div>
-
-  <!-- ASSESSMENT -->
-  <div class="screen" id="screen-assessment">
-    <div class="screen-content">
-      <div class="progress-wrap">
-        <div class="progress-labels">
-          <span class="progress-label" id="qCounter">Question 1 of 15</span>
-          <span class="progress-label" id="qPercent">0%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      </div>
-
-      <div class="q-card">
-        <div class="q-text" id="questionText"></div>
-        <div class="q-hint">How often does this apply to you?</div>
-        <div class="likert-grid" id="likertGrid"></div>
-      </div>
-
-      <div class="q-nav">
-        <button class="q-nav-btn" id="prevBtn" onclick="prevQuestion()" disabled>← Back</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- RESULTS -->
-  <div class="screen" id="screen-results">
-    <div class="screen-content">
-      <div class="score-box" id="scoreBox">
-        <div><span class="score-num" id="scoreNum">0</span><span class="score-denom">/75</span></div>
-        <div class="score-badge" id="scoreBadge">Loading...</div>
-        <div class="score-desc" id="scoreDesc"></div>
-      </div>
-
-      <div class="section-title">Score Guide</div>
-      <div class="card" id="severityScale"></div>
-
-      <div class="section-title">Your Next Steps</div>
-      <div class="card" id="nextSteps"></div>
-
-      <button class="btn-primary" onclick="showScreen('learn')">Explore Intervention Modules →</button>
-      <button class="btn-secondary" onclick="startAssessment()">Retake Assessment</button>
-      <button class="btn-ghost" onclick="goHome()">Return Home</button>
-    </div>
-  </div>
-
-  <!-- LEARN -->
-  <div class="screen" id="screen-learn">
-    <div class="screen-content">
-      <div class="section-title">Psychoeducation Modules</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">
-        Understanding cyberchondria is the first step to overcoming it. Complete all four modules for best results.
-      </p>
-      <div id="moduleList"></div>
-    </div>
-  </div>
-
-  <!-- EXERCISES -->
-  <div class="screen" id="screen-exercises">
-    <div class="screen-content">
-      <div class="section-title">CBT-Based Exercises</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">
-        Use these when you feel the urge to search, or as daily practice to reduce baseline health anxiety.
-      </p>
-      <div id="exerciseList"></div>
-    </div>
-  </div>
-
-  <!-- HISTORY -->
-  <div class="screen" id="screen-history">
-    <div class="screen-content">
-      <div class="section-title">Assessment History</div>
-      <div id="historyContent"></div>
-    </div>
-  </div>
-
-  <!-- ABOUT -->
-  <div class="screen" id="screen-about">
-    <div class="screen-content">
-      <div class="card">
-        <div style="font-size:20px;font-weight:900;color:var(--navy);margin-bottom:6px;">PAUSE App</div>
-        <div style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:8px;">Think Before You Search</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.65;">A research-driven digital intervention for cyberchondria, developed at the intersection of community medicine and digital health.</div>
-      </div>
-
-      <div class="card">
-        <div class="info-row"><div class="info-icon">📊</div><div><div class="info-label">Screening Tool</div><div class="info-value">Cyberchondria Severity Scale (CSS-15)</div></div></div>
-        <div class="info-row"><div class="info-icon">🎓</div><div><div class="info-label">Evidence Base</div><div class="info-value">Cognitive Behavioural Therapy (CBT) & Metacognitive Therapy</div></div></div>
-        <div class="info-row"><div class="info-icon">🏥</div><div><div class="info-label">Target Setting</div><div class="info-value">Primary Healthcare, Community & Academic settings</div></div></div>
-        <div class="info-row"><div class="info-icon">👥</div><div><div class="info-label">Target Users</div><div class="info-value">General public, medical students, PHC patients</div></div></div>
-        <div class="info-row"><div class="info-icon">🔬</div><div><div class="info-label">Research Context</div><div class="info-value">Digital Health Interventions for Non-Communicable Diseases</div></div></div>
-        <div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Developed At</div><div class="info-value">Government Medical College, Maheshwaram, Telangana, India</div></div></div>
-        <div class="info-row"><div class="info-icon">📬</div><div><div class="info-label">Research Collaboration</div><div class="info-value">Open to validation studies & implementation partnerships</div></div></div>
-      </div>
-
-      <div class="notice blue">
-        <div class="notice-title">🤝 Researchers & Clinicians</div>
-        <div class="notice-text">If you are a researcher, institution, or clinician interested in collaborating on validation studies or clinical implementation of PAUSE App, we welcome your enquiry.</div>
-      </div>
-      <div class="notice red">
-        <div class="notice-title">⚕️ Clinical Disclaimer</div>
-        <div class="notice-text">PAUSE App is a screening and psychoeducation tool for educational purposes. It does not constitute clinical diagnosis or treatment. Individuals experiencing significant distress should consult a qualified mental health professional.</div>
-      </div>
-
-      <div style="text-align:center;padding:16px 0 8px;">
-        <div style="font-size:12px;color:var(--muted);">Version 1.0 · © 2026 PAUSE App</div>
-        <div style="font-size:11px;color:#c4d4e8;margin-top:4px;">Built on the CSS-15 · Norr et al., 2015</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DISCLAIMER BAR -->
-  <div class="disclaimer-bar">⚕️ For educational use only — not a substitute for clinical advice</div>
-
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav" id="bottomNav">
-    <button class="nav-btn active" onclick="showScreen('home')" data-screen="home">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">Home</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('learn')" data-screen="learn">
-      <span class="nav-icon">📚</span>
-      <span class="nav-label">Learn</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('exercises')" data-screen="exercises">
-      <span class="nav-icon">🧘</span>
-      <span class="nav-label">Practice</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('history')" data-screen="history">
-      <span class="nav-icon">📈</span>
-      <span class="nav-label">Progress</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('about')" data-screen="about">
-      <span class="nav-icon">ℹ️</span>
-      <span class="nav-label">About</span>
-    </button>
   </div>
 </div>
 
-<!-- MODULE MODAL -->
-<div class="modal-overlay" id="moduleModal">
+<!-- SCREENS -->
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+<div class="screen-content">
+
+  <div class="hero-card fade-in">
+    <div class="hero-badge">🔬 6 Validated Scales</div>
+    <div class="hero-title">Your Digital Health, Measured Scientifically</div>
+    <div class="hero-sub">Screen for 6 digital-age behavioral disorders using internationally validated psychometric instruments.</div>
+    <button class="btn-primary" onclick="showScreen('screen-assess-menu')">Start Full Assessment →</button>
+    <button class="btn-secondary" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#fff;margin-top:10px" onclick="showScreen('screen-quick')">⚡ Quick Impact Scan (5 min)</button>
+  </div>
+
+  <div class="section-label">Screen a Specific Disorder</div>
+  <div id="home-disorder-list"></div>
+
+  <div class="section-label" style="margin-top:4px">Your Digital Wellness Score</div>
+  <div class="card" style="text-align:center;padding:20px" id="home-dws-card">
+    <div style="font-size:32px;font-weight:800;font-family:'Syne',sans-serif;color:var(--muted)" id="home-dws-num">--</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Complete an assessment to see your score</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ASSESSMENT MENU -->
+<div class="screen" id="screen-assess-menu">
+<div class="screen-content">
+  <div class="notice blue"><div class="notice-title">📋 Full Assessment</div>Complete all 6 disorder screens + 4 health impact modules. Takes 20-25 minutes. You can save and continue later.</div>
+  <div class="section-label">6 Disorder Screens</div>
+  <div id="assess-menu-list"></div>
+  <div class="section-label" style="margin-top:4px">4 Health Impact Modules</div>
+  <div id="assess-impact-list"></div>
+  <button class="btn-primary" style="margin-top:8px" onclick="startFullAssessment()">Begin Full Assessment →</button>
+</div>
+</div>
+
+<!-- QUICK SCAN -->
+<div class="screen" id="screen-quick">
+<div class="screen-content">
+  <div class="notice blue"><div class="notice-title">⚡ Quick Impact Scan</div>Answer 20 questions about how digital use affects your daily life. No disorder diagnosis — just health impact. Takes 5 minutes.</div>
+  <div class="section-label">4 Impact Domains</div>
+  <div id="quick-impact-list"></div>
+  <button class="btn-primary" style="margin-top:8px" onclick="startQuickScan()">Start Quick Scan →</button>
+</div>
+</div>
+
+<!-- ASSESSMENT (questions) -->
+<div class="screen" id="screen-assessment">
+  <div class="q-header">
+    <div class="q-progress-bar"><div class="q-progress-fill" id="qProgressFill" style="width:0%"></div></div>
+    <div class="q-scale-info" id="qScaleInfo"></div>
+    <div class="q-number" id="qNumber"></div>
+  </div>
+  <div class="q-text" id="qText"></div>
+  <div class="q-options" id="qOptions"></div>
+  <div class="q-nav">
+    <button class="q-prev" id="qPrevBtn" onclick="prevQuestion()">←</button>
+    <button class="btn-primary" style="flex:1" id="qNextBtn" onclick="nextQuestion()">Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screen-results">
+<div class="screen-content">
+
+  <!-- Share Card -->
+  <div class="share-card" id="shareCard">
+    <div class="share-title">Digital Wellness Score</div>
+    <div class="share-score" id="resultDWSNum">--</div>
+    <div class="share-status" id="resultDWSStatus">--</div>
+    <div class="share-tags" id="shareTags"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchResultTab('disorders')">Disorders</button>
+    <button class="tab" onclick="switchResultTab('impact')">Health Impact</button>
+    <button class="tab" onclick="switchResultTab('actions')">Actions</button>
+  </div>
+
+  <div id="result-tab-disorders">
+    <div class="section-label">Disorder Screening Results</div>
+    <div id="resultDisorderList"></div>
+  </div>
+
+  <div id="result-tab-impact" style="display:none">
+    <div class="section-label">Health Impact Report</div>
+    <div class="card" id="resultImpactCard"></div>
+  </div>
+
+  <div id="result-tab-actions" style="display:none">
+    <div class="section-label">Your Personalized Action Plan</div>
+    <div id="resultActionPlan"></div>
+  </div>
+
+  <button class="btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px">← Back to Home</button>
+  <button class="btn-ghost" onclick="shareResults()">📤 Share My Score</button>
+</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="screen" id="screen-progress">
+<div class="screen-content">
+  <div class="section-label">Assessment History</div>
+  <div id="progressHistory"></div>
+  <div class="section-label" style="margin-top:4px">7-Day Detox Challenge</div>
+  <div id="challengeList"></div>
+</div>
+</div>
+
+<!-- ABOUT -->
+<div class="screen" id="screen-about">
+<div class="screen-content">
+  <div class="card">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:12px">About PAUSE App</div>
+    <p style="font-size:13px;line-height:1.7;color:var(--muted)">PAUSE App is a multi-disorder digital addiction screening platform developed at Government Medical College, Maheshwaram, Telangana, India.</p>
+    <div style="margin-top:16px">
+      <div class="section-label">Validated Instruments Used</div>
+      <div id="aboutScaleList"></div>
+    </div>
+    <div style="margin-top:14px" class="notice yellow">
+      <div class="notice-title">⚠️ Clinical Disclaimer</div>
+      This app is for educational screening only. It does not constitute clinical diagnosis or treatment. Individuals experiencing significant distress should consult a qualified mental health professional.
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px">Developed At</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6">Department of Community Medicine<br>Government Medical College, Maheshwaram<br>Rangareddy District, Telangana, India</p>
+  </div>
+</div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showScreen('screen-home')">
+    <div class="nav-icon">🏠</div><div class="nav-label">Home</div>
+  </button>
+  <button class="nav-btn" onclick="showScreen('screen-assess-menu')">
+    <div class="nav-icon">📋</div><div class="nav-label">Assess</div>
+  </button>
+  <button class="nav-btn" onclick="showScreen('screen-progress')">
+    <div class="nav-icon">📈</div><div class="nav-label">Progress</div>
+  </button>
+  <button class="nav-btn" onclick="showScreen('screen-about')">
+    <div class="nav-icon">ℹ️</div><div class="nav-label">About</div>
+  </button>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="explainModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle"></div>
-      <button class="modal-close" onclick="closeModal('moduleModal')">✕</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-title" id="explainTitle"></div>
+    <div id="explainBody" style="font-size:14px;line-height:1.7;color:var(--muted)"></div>
+    <button class="btn-primary" style="margin-top:16px" onclick="closeModal('explainModal')">Got it</button>
   </div>
 </div>
 
-<!-- EXERCISE MODAL -->
-<div class="modal-overlay" id="exerciseModal">
+<div class="modal-overlay" id="dwsModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="exModalTitle"></div>
-      <button class="modal-close" onclick="closeModal('exerciseModal')">✕</button>
+    <div class="dws-container">
+      <div class="dws-circle">
+        <div class="dws-number" id="modalDWSNum">--</div>
+        <div class="dws-label">out of 100</div>
+      </div>
+      <div class="dws-status" id="modalDWSStatus">Not assessed yet</div>
+      <div class="dws-sub" id="modalDWSSub">Complete an assessment to see your score</div>
     </div>
-    <div class="modal-body" id="exModalBody"></div>
+    <div style="margin-top:12px" id="modalDWSBreakdown"></div>
+    <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Close</button>
   </div>
 </div>
+
+</div><!-- /app -->
 
 <script>
 // ============================================================
-// DATA
+// DATA — 6 VALIDATED SCALES + 4 IMPACT MODULES
 // ============================================================
-const QUESTIONS = [
-  "I search for health information online because I am worried about having a serious illness.",
-  "I spend a large amount of time searching for health information online.",
-  "I cannot stop myself from searching for health information online even when I want to.",
-  "I search for health information online even when I know it will make me feel worse.",
-  "I feel the need to check multiple websites to confirm health information.",
-  "After reading health information online, I feel more anxious than I did before.",
-  "I find it difficult to stop searching for health information once I have started.",
-  "When I notice any symptom, I immediately search for information online.",
-  "I check health information online multiple times a day.",
-  "My online health searching causes problems in my daily life or relationships.",
-  "I search for health conditions that I do not actually have any symptoms of.",
-  "I become more concerned about my health after searching for symptoms online.",
-  "People close to me have expressed concern about my online health searching.",
-  "I have tried to reduce my online health searching but find I cannot.",
-  "I feel temporary relief from anxiety when I find health information online, but the anxiety soon returns."
+const DISORDERS = [
+  {
+    id:'cyberchondria',
+    name:'Cyberchondria',
+    icon:'🔍',
+    color:'#3d6fff',
+    bg:'rgba(61,111,255,0.1)',
+    scale:'CSS-15',
+    scaleRef:'Norr et al., 2015 · Cyberchondria Severity Scale',
+    items:15,
+    maxScore:75,
+    questions:[
+      {t:"I search online for health information about symptoms I am experiencing.",r:false},
+      {t:"I find it difficult to stop searching online for health information once I start.",r:false},
+      {t:"I feel more anxious about my health after searching online for medical information.",r:false},
+      {t:"I search online for health information repeatedly throughout the day.",r:false},
+      {t:"I search for health information online even when I don't have any symptoms.",r:false},
+      {t:"Online health searches cause me significant distress.",r:false},
+      {t:"I seek reassurance from others after finding health information online.",r:false},
+      {t:"I find that online health searches confirm my worst fears about my health.",r:false},
+      {t:"I avoid certain websites after finding disturbing health information online.",r:false},
+      {t:"I feel compelled to look up more health information even when I know it will make me anxious.",r:false},
+      {t:"Online health searching interferes with my daily activities.",r:false},
+      {t:"I have difficulty controlling how much time I spend searching for health information online.",r:false},
+      {t:"I feel worse about my health after conducting online health searches.",r:false},
+      {t:"My online health searches lead me to believe I have serious illnesses.",r:false},
+      {t:"I spend hours searching online for information about symptoms or diseases.",r:false}
+    ],
+    options:["Never","Rarely","Sometimes","Often","Very Often"],
+    optionValues:[1,2,3,4,5],
+    levels:[
+      {min:15,max:30,label:'Minimal',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your health searching behavior is within normal limits.'},
+      {min:31,max:45,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of excessive health searching. Monitor your habits.'},
+      {min:46,max:60,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Significant cyberchondria. Your online health searching is causing distress.'},
+      {min:61,max:75,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe cyberchondria. Please consider speaking with a mental health professional.'}
+    ]
+  },
+  {
+    id:'socialmedia',
+    name:'Social Media Addiction',
+    icon:'📱',
+    color:'#7c5cbf',
+    bg:'rgba(124,92,191,0.1)',
+    scale:'BSMAS',
+    scaleRef:'Andreassen et al., 2016 · Bergen Social Media Addiction Scale',
+    items:6,
+    maxScore:30,
+    questions:[
+      {t:"How often in the past year have you spent a lot of time thinking about social media or planning to use it?",r:false},
+      {t:"How often in the past year have you felt an urge to use social media more and more?",r:false},
+      {t:"How often in the past year have you used social media to forget about personal problems?",r:false},
+      {t:"How often in the past year have you tried to cut down on social media use without success?",r:false},
+      {t:"How often in the past year have you become restless or troubled if you were unable to use social media?",r:false},
+      {t:"How often in the past year have you used social media so much that it has had a negative impact on your job or studies?",r:false}
+    ],
+    options:["Very Rarely","Rarely","Sometimes","Often","Very Often"],
+    optionValues:[1,2,3,4,5],
+    levels:[
+      {min:6,max:12,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your social media use appears healthy and balanced.'},
+      {min:13,max:18,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some addictive patterns present. Be mindful of usage habits.'},
+      {min:19,max:24,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate social media addiction. Consider usage limits.'},
+      {min:25,max:30,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe social media addiction affecting your daily life.'}
+    ]
+  },
+  {
+    id:'shortform',
+    name:'Short-Form Video Addiction',
+    icon:'🎬',
+    color:'#ff4757',
+    bg:'rgba(255,71,87,0.1)',
+    scale:'SVAS-6',
+    scaleRef:'Zhang et al., 2022 · Short-Form Video Addiction Scale · Frontiers in Psychology',
+    items:6,
+    maxScore:30,
+    questions:[
+      {t:"I spend more time watching short videos (TikTok, Reels, Shorts) than I intend to.",r:false},
+      {t:"I feel restless or irritable when I cannot watch short videos.",r:false},
+      {t:"I have tried to reduce my short video watching but failed.",r:false},
+      {t:"Short video watching has negatively affected my work, study, or relationships.",r:false},
+      {t:"I use short videos to escape problems or relieve negative feelings.",r:false},
+      {t:"I continue watching short videos despite knowing it is harming me.",r:false}
+    ],
+    options:["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"],
+    optionValues:[1,2,3,4,5],
+    levels:[
+      {min:6,max:12,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your short video consumption is within healthy limits.'},
+      {min:13,max:18,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of problematic short video use.'},
+      {min:19,max:24,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate addiction to short-form video content.'},
+      {min:25,max:30,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe short-form video addiction significantly impacting your life.'}
+    ]
+  },
+  {
+    id:'gaming',
+    name:'Gaming Disorder',
+    icon:'🎮',
+    color:'#2ecc71',
+    bg:'rgba(46,204,113,0.1)',
+    scale:'IGDS9-SF',
+    scaleRef:'Pontes & Griffiths, 2015 · Internet Gaming Disorder Scale Short Form · WHO ICD-11 aligned',
+    items:9,
+    maxScore:45,
+    questions:[
+      {t:"I think about gaming most of the time — even when I am not playing.",r:false},
+      {t:"I feel sad, anxious, or irritable when I try to reduce or stop gaming.",r:false},
+      {t:"I feel the need to spend increasing amounts of time playing games.",r:false},
+      {t:"I have unsuccessfully tried to control, cut back, or stop gaming.",r:false},
+      {t:"I have lost interest in hobbies or other activities because of gaming.",r:false},
+      {t:"I continue gaming despite knowing it is causing problems in my life.",r:false},
+      {t:"I deceive family members or others about how much I game.",r:false},
+      {t:"I game to escape negative moods or relieve stress.",r:false},
+      {t:"I have jeopardized or lost a relationship, job, or opportunity because of gaming.",r:false}
+    ],
+    options:["Never","Rarely","Sometimes","Often","Very Often"],
+    optionValues:[1,2,3,4,5],
+    levels:[
+      {min:9,max:18,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your gaming habits appear healthy.'},
+      {min:19,max:27,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some gaming disorder symptoms present.'},
+      {min:28,max:36,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate gaming disorder. Gaming is interfering with daily life.'},
+      {min:37,max:45,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe gaming disorder. Professional support recommended.'}
+    ]
+  },
+  {
+    id:'ai',
+    name:'AI Dependency',
+    icon:'🤖',
+    color:'#00c9a7',
+    bg:'rgba(0,201,167,0.1)',
+    scale:'PCGUS',
+    scaleRef:'Problematic ChatGPT Use Scale, 2025 · Int. J. Mental Health & Addiction · ⚠️ Turkish sample only — interpret with caution',
+    items:9,
+    maxScore:45,
+    questions:[
+      {t:"I think about using AI chatbots (ChatGPT, Gemini, etc.) even when I am not using them.",r:false},
+      {t:"I feel anxious or restless when I cannot access AI chatbots.",r:false},
+      {t:"I find myself using AI chatbots for longer than I originally planned.",r:false},
+      {t:"I use AI chatbots to cope with stress, anxiety, or loneliness.",r:false},
+      {t:"I have tried to reduce my AI chatbot use but found it difficult.",r:false},
+      {t:"My use of AI chatbots has negatively affected my ability to think independently.",r:false},
+      {t:"I prefer asking AI chatbots over consulting people or books.",r:false},
+      {t:"I feel more comfortable sharing problems with AI chatbots than with people.",r:false},
+      {t:"My reliance on AI chatbots has affected my relationships or work performance.",r:false}
+    ],
+    options:["Never","Rarely","Sometimes","Often","Very Often"],
+    optionValues:[1,2,3,4,5],
+    levels:[
+      {min:9,max:18,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your AI tool use appears balanced and healthy.'},
+      {min:19,max:27,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of over-reliance on AI tools.'},
+      {min:28,max:36,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate AI dependency affecting independent thinking.'},
+      {min:37,max:45,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe AI dependency. Consider reducing reliance on AI tools.'}
+    ]
+  },
+  {
+    id:'workaddiction',
+    name:'Digital Work Addiction',
+    icon:'💼',
+    color:'#ff6b35',
+    bg:'rgba(255,107,53,0.1)',
+    scale:'BWAS',
+    scaleRef:'Andreassen et al., 2012 · Bergen Work Addiction Scale · Validated multiple countries',
+    items:7,
+    maxScore:35,
+    questions:[
+      {t:"I think about how I can free up more time to work online.",r:false},
+      {t:"I spend much more time working digitally than I originally intended.",r:false},
+      {t:"I work online to reduce feelings of guilt, anxiety, helplessness, or depression.",r:false},
+      {t:"I have been told by others to reduce my digital work but ignored their advice.",r:false},
+      {t:"I become stressed if I am unable to check emails or work online.",r:false},
+      {t:"I deprioritize hobbies, leisure, and exercise because of digital work.",r:false},
+      {t:"I work so much digitally that it has negatively influenced my health.",r:false}
+    ],
+    options:["Never","Rarely","Sometimes","Often","Always"],
+    optionValues:[1,2,3,4,5],
+    levels:[
+      {min:7,max:14,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your digital work habits appear healthy.'},
+      {min:15,max:21,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of excessive digital work engagement.'},
+      {min:22,max:28,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate work addiction affecting personal life.'},
+      {min:29,max:35,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe digital work addiction. Work is dominating your life.'}
+    ]
+  }
 ];
 
-const LIKERT = ["Never","Rarely","Sometimes","Often","Always"];
-
-const SEVERITY = [
-  { min:15, max:30, level:"Minimal", color:"#10b981", bg:"#ecfdf5", border:"#6ee7b7",
-    desc:"Your online health searching appears to be within normal limits. Continue practising healthy digital habits and use PAUSE App periodically for check-ins.",
-    steps:["Maintain current healthy digital habits","Explore psychoeducation modules for prevention","Set a reminder to recheck in 8 weeks"] },
-  { min:31, max:45, level:"Mild", color:"#f59e0b", bg:"#fffbeb", border:"#fcd34d",
-    desc:"You show some signs of cyberchondria. Targeted strategies can help prevent escalation and improve your relationship with health information online.",
-    steps:["Complete all psychoeducation modules","Practice urge surfing daily","Implement the 5-minute search rule","Retake assessment in 4 weeks"] },
-  { min:46, max:60, level:"Moderate", color:"#ef8c00", bg:"#fff7ed", border:"#fdba74",
-    desc:"Your online health searching is causing meaningful distress. Structured intervention is recommended. Use PAUSE App modules and exercises regularly.",
-    steps:["Begin structured CBT exercises daily","Set browser time limits for health sites","Practice scheduled worry time","Consider speaking with a counsellor"] },
-  { min:61, max:75, level:"Severe", color:"#ef4444", bg:"#fef2f2", border:"#fca5a5",
-    desc:"Your cyberchondria is significantly impacting your wellbeing. In addition to using this app, please speak with a mental health professional.",
-    steps:["Seek professional mental health support","Practice all exercises in PAUSE App daily","Limit health searching to doctor visits only","Discuss health anxiety with your physician"] }
+const IMPACT_MODULES = [
+  {
+    id:'sleep',
+    name:'Sleep Disruption',
+    icon:'😴',
+    color:'#7c5cbf',
+    questions:[
+      "I use my phone or device immediately before sleeping.",
+      "My bedtime is delayed because of digital activities.",
+      "I wake up during the night to check my phone or notifications.",
+      "I feel tired during the day because of late-night device use.",
+      "Notifications or digital activity disturb my sleep quality."
+    ]
+  },
+  {
+    id:'attention',
+    name:'Attention & Focus',
+    icon:'🧠',
+    color:'#3d6fff',
+    questions:[
+      "I find it difficult to concentrate on long tasks without checking my phone.",
+      "I frequently switch between apps or digital tasks.",
+      "Notifications interrupt my focus and concentration.",
+      "I lose concentration easily after checking my phone or social media.",
+      "I struggle to read long articles or books without getting distracted."
+    ]
+  },
+  {
+    id:'productivity',
+    name:'Productivity',
+    icon:'⚡',
+    color:'#f5a623',
+    questions:[
+      "Digital distractions interrupt my work or study regularly.",
+      "I check my phone while working or studying.",
+      "I postpone important tasks because of online activities.",
+      "My overall productivity has decreased due to digital distractions.",
+      "I struggle to complete tasks without checking my phone or apps."
+    ]
+  },
+  {
+    id:'emotional',
+    name:'Emotional Health',
+    icon:'❤️',
+    color:'#ff4757',
+    questions:[
+      "I feel anxious or unsettled when I cannot access my phone.",
+      "I feel stressed by constant notifications and digital demands.",
+      "My mood is affected by social media activity or online interactions.",
+      "I feel mentally exhausted after prolonged screen use.",
+      "Digital activity sometimes makes me feel overwhelmed or hopeless."
+    ]
+  }
 ];
 
-const MODULES = [
-  { icon:"🔍", title:"What is Cyberchondria?", sections:[
-    { h:"Definition", t:"Cyberchondria is the repeated online searching for health information that leads to escalating health anxiety. Unlike simple health curiosity, it creates a cycle where searching provides momentary relief but amplifies worry over time." },
-    { h:"How It Differs From Normal Searching", t:"Most people occasionally look up symptoms online. Cyberchondria is characterised by compulsive, distressing, and time-consuming searching that interferes with daily functioning and is driven by anxiety rather than information-seeking." },
-    { h:"How Common Is It?", t:"Studies report cyberchondria in 20–30% of internet users globally. It is particularly prevalent among medical students and healthcare workers, where health knowledge can paradoxically increase health anxiety." },
-    { h:"Why Searching Makes It Worse", t:"Search engines prioritise alarming content. Rare diseases appear as frequently as common ones. Each search session reinforces the neural pathway linking 'symptom → alarm', making the next episode more likely and more intense." },
-    { h:"When To Seek Help", t:"If health searching occupies more than 1 hour per day, causes significant distress, or is affecting relationships or work, professional support is recommended alongside self-help tools like PAUSE App." }
-  ]},
-  { icon:"🔄", title:"The Cyberchondria Cycle", sections:[
-    { h:"Stage 1 — Trigger", t:"A physical sensation, an ache, fatigue, or a health story heard from someone else triggers concern. This is the entry point into the cycle." },
-    { h:"Stage 2 — Search", t:"You turn to the internet for reassurance. The search feels rational and controlled. However, algorithms present worst-case scenarios, rare conditions, and alarming statistics prominently." },
-    { h:"Stage 3 — Escalation", t:"Initial results raise more questions. You search more specifically, click deeper, find increasingly concerning information, and your anxiety spikes higher than before you started." },
-    { h:"Stage 4 — Temporary Relief", t:"Eventually you find something reassuring, or exhaustion sets in. Anxiety temporarily drops. This relief acts as a powerful reward — reinforcing the searching behaviour." },
-    { h:"Stage 5 — Return", t:"Within hours or days, doubt returns: 'But what if that reassuring source was wrong?' The cycle begins again, each iteration faster and more intense than the last." },
-    { h:"Breaking The Cycle", t:"PAUSE App targets Stage 2 — the decision to search. By inserting a deliberate pause between trigger and search, you interrupt the cycle before escalation begins. This is the core mechanism of the intervention." }
-  ]},
-  { icon:"🧠", title:"CBT-Based Strategies", sections:[
-    { h:"Thought Challenging", t:"When anxious health thoughts arise, ask: What is the actual statistical probability of this diagnosis? What evidence do I have FOR and AGAINST the feared condition? What would I tell a close friend thinking this?" },
-    { h:"Search Postponement", t:"When the urge to search appears, set a 30-minute delay. Most urgent urges pass within 20 minutes. If you search after the delay, limit yourself to one reputable source (WHO, NHS, Mayo Clinic) for 5 minutes only." },
-    { h:"Worry Time Scheduling", t:"Schedule a specific 15-minute 'worry window' each day. When health worries arise outside this window, note them down and defer to your scheduled worry time. This contains anxiety rather than suppressing it." },
-    { h:"Behavioural Experiments", t:"Test your predictions. Before searching, write down what you fear you will find. After the delay period, check whether the feared outcome materialised. Track the accuracy of your health predictions over time — most will not come true." },
-    { h:"Attention Training", t:"Cyberchondria involves heightened selective attention to bodily sensations. Deliberately shift attention to external stimuli — sounds, textures, tasks — to reduce interoceptive focus and break the symptom-alarm cycle." }
-  ]},
-  { icon:"📱", title:"Digital Hygiene for Health", sections:[
-    { h:"Trusted Sources Only", t:"Bookmark and use only: WHO (who.int), NHS UK (nhs.uk), Mayo Clinic (mayoclinic.org), CDC (cdc.gov). These use evidence-based language and avoid sensationalism. Remove health anxiety forums from your bookmarks permanently." },
-    { h:"The 5-Minute Rule", t:"If you must search, set a visible 5-minute timer before you start. When it ends, close the browser regardless of where you are in the search. Practising stopping mid-search gradually weakens the compulsion loop." },
-    { h:"The 24-Hour Symptom Window", t:"When you notice a symptom, enforce a 24-hour no-search period. Most transient symptoms resolve within this time. If symptoms persist beyond 48 hours, consult a real clinician — not a search engine." },
-    { h:"App and Browser Controls", t:"Use browser extensions (Cold Turkey, StayFocusd) to limit daily access to symptom-checking websites. Set daily time limits. Remove health anxiety bookmarks and symptom checker apps from your home screen." },
-    { h:"The Doctor-First Rule", t:"Before any health internet search, ask: 'Is this worth a 10-minute call to my doctor?' If yes, call first. If no, the symptom likely doesn't warrant an internet search either. Your doctor is always a better source than Google." }
-  ]}
-];
+const IMPACT_OPTIONS = ["Never","Rarely","Sometimes","Often","Always"];
+const IMPACT_OPTION_VALUES = [0,1,2,3,4];
 
-const EXERCISES = [
-  { icon:"🌿", title:"5-4-3-2-1 Grounding", duration:"3 minutes",
-    desc:"Interrupts the anxiety-search cycle by anchoring you to the present moment through your five senses.",
-    steps:["Name 5 things you can SEE right now — look around deliberately","Name 4 things you can physically TOUCH — feel their texture","Name 3 things you can HEAR — listen carefully","Name 2 things you can SMELL — notice subtle scents","Name 1 thing you can TASTE — be specific","Breathe slowly. Notice: your anxiety has reduced. The urge to search has diminished.","Repeat anytime a search urge appears."] },
-  { icon:"💨", title:"4-7-8 Breathing", duration:"4 minutes",
-    desc:"Activates the parasympathetic nervous system, directly countering the physiological anxiety response triggered by health searching.",
-    steps:["Sit comfortably with your back straight","Exhale completely through your mouth, making a whoosh sound","Close your mouth and inhale quietly through your nose for 4 counts","Hold your breath for 7 counts","Exhale completely through your mouth for 8 counts","This completes one cycle. Repeat 4 times.","Practise this whenever a search urge appears — do not search until you complete 4 cycles."] },
-  { icon:"⚖️", title:"Probability Reframing", duration:"5 minutes",
-    desc:"Corrects catastrophic thinking by applying statistical reasoning to health fears. Write your answers on paper for best effect.",
-    steps:["Write your specific health fear (e.g. 'This headache is a brain tumour')","Write: What % of people with this symptom actually have the feared condition?","Write: List 5 more common explanations for this symptom","Write: What would a doctor most likely tell me in their clinic?","Write: What evidence do I have that I am NOT seriously ill right now?","Read your answers back. Rate your fear from 0–10 now versus before.","Repeat this exercise every time a catastrophic health thought appears."] },
-  { icon:"🌊", title:"Urge Surfing", duration:"10 minutes",
-    desc:"Teaches you to observe search urges without acting on them, allowing them to naturally subside — like watching a wave rise and fall.",
-    steps:["Notice the urge to search. Do not act on it yet.","Rate the urge intensity: 0 (none) to 10 (overwhelming). Write it down.","Close your eyes. Observe the urge as if you are watching a wave on the ocean.","Notice where you feel it in your body: chest tightness, restlessness, anxiety.","Breathe slowly. Watch the wave without riding it. Do not search.","Every 2 minutes, re-rate the urge intensity and write it down.","Most urges peak at 5–7 minutes and dissolve within 10 minutes without action. Observe this happening."] }
+const CHALLENGES = [
+  "No social media before 9am",
+  "Phone-free meals today",
+  "No screens after 10pm",
+  "Check emails only 3 times today",
+  "Take a 30-min walk without your phone",
+  "Delete one app you use compulsively",
+  "Share your PAUSE score with a friend"
 ];
 
 // ============================================================
 // STATE
 // ============================================================
-let currentQ = 0;
-let answers = [];
-let currentExerciseStep = 0;
-let currentExercise = null;
+let currentScreen = 'screen-home';
+let screenHistory = [];
+let assessMode = 'full'; // 'full' | 'quick' | 'single'
+let singleDisorderIdx = -1;
 
-// ============================================================
-// NAVIGATION
-// ============================================================
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.screen === name);
-  });
-  document.getElementById('backBtn').style.display =
-    (name === 'home' || name === 'assessment' || name === 'results') ? 'none' : 'block';
-  if (name === 'history') renderHistory();
-  window.scrollTo(0, 0);
-  document.getElementById('screen-' + name).scrollTop = 0;
-}
+// Assessment state
+let allQuestions = [];
+let allAnswers = [];
+let currentQIdx = 0;
+let questionMeta = []; // {type:'disorder'|'impact', idx, qIdx}
 
-function goHome() { showScreen('home'); }
-
-// ============================================================
-// ASSESSMENT
-// ============================================================
-function startAssessment() {
-  currentQ = 0;
-  answers = [];
-  renderQuestion();
-  document.getElementById('backBtn').style.display = 'none';
-  showScreen('assessment');
-}
-
-function renderQuestion() {
-  const pct = Math.round((currentQ / QUESTIONS.length) * 100);
-  document.getElementById('qCounter').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
-  document.getElementById('qPercent').textContent = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('questionText').textContent = QUESTIONS[currentQ];
-  document.getElementById('prevBtn').disabled = currentQ === 0;
-
-  const grid = document.getElementById('likertGrid');
-  grid.innerHTML = '';
-  LIKERT.forEach((label, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'likert-btn';
-    btn.innerHTML = `<div class="likert-dot"></div><span>${label}</span>`;
-    btn.onclick = () => selectAnswer(i);
-    grid.appendChild(btn);
-  });
-}
-
-function selectAnswer(i) {
-  answers[currentQ] = i + 1;
-  if (currentQ < QUESTIONS.length - 1) {
-    currentQ++;
-    renderQuestion();
-  } else {
-    saveAndShowResults();
-  }
-}
-
-function prevQuestion() {
-  if (currentQ > 0) { currentQ--; renderQuestion(); }
-}
-
-function saveAndShowResults() {
-  const total = answers.reduce((a, b) => a + b, 0);
-  const sev = getSeverity(total);
-  const record = { score: total, level: sev.level, color: sev.color, date: new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) };
-  const history = JSON.parse(localStorage.getItem('pauseHistory') || '[]');
-  history.unshift(record);
-  if (history.length > 20) history.splice(20);
-  localStorage.setItem('pauseHistory', JSON.stringify(history));
-  renderResults(total, sev);
-  showScreen('results');
-}
-
-// ============================================================
-// SEVERITY
-// ============================================================
-function getSeverity(score) {
-  return SEVERITY.find(s => score >= s.min && score <= s.max) || SEVERITY[3];
-}
-
-// ============================================================
-// RESULTS
-// ============================================================
-function renderResults(score, sev) {
-  document.getElementById('scoreNum').textContent = score;
-  const box = document.getElementById('scoreBox');
-  box.style.background = sev.bg;
-  box.style.borderColor = sev.border;
-  const badge = document.getElementById('scoreBadge');
-  badge.textContent = sev.level + ' Cyberchondria';
-  badge.style.background = sev.color;
-  document.getElementById('scoreDesc').textContent = sev.desc;
-
-  const scale = document.getElementById('severityScale');
-  scale.innerHTML = SEVERITY.map(s => `
-    <div class="severity-row">
-      <div class="severity-dot" style="background:${s.color}"></div>
-      <div class="severity-label"><strong>${s.level}</strong> — Score ${s.min}–${s.max}</div>
-      ${s.level === sev.level ? '<span class="you-tag">YOU</span>' : ''}
-    </div>`).join('');
-
-  const stepIcons = ['✅','📖','⏱️','👨‍⚕️'];
-  document.getElementById('nextSteps').innerHTML = sev.steps.map((step, i) => `
-    <div class="info-row">
-      <div class="info-icon">${stepIcons[i] || '➡️'}</div>
-      <div class="info-value">${step}</div>
-    </div>`).join('');
-}
-
-// ============================================================
-// MODULES
-// ============================================================
-function renderModules() {
-  const completed = JSON.parse(localStorage.getItem('completedModules') || '[]');
-  document.getElementById('moduleList').innerHTML = MODULES.map((m, i) => `
-    <div class="module-card" onclick="openModule(${i})">
-      <div class="module-icon">${m.icon}</div>
-      <div>
-        <div class="module-title">${m.title}</div>
-        <div class="module-meta">${m.sections.length} sections${completed.includes(i) ? ' · ✅ Completed' : ''}</div>
-      </div>
-      <div class="module-arrow">›</div>
-    </div>`).join('');
-}
-
-function openModule(i) {
-  const mod = MODULES[i];
-  document.getElementById('modalTitle').textContent = mod.icon + ' ' + mod.title;
-  document.getElementById('modalBody').innerHTML = mod.sections.map(s => `
-    <div class="content-section">
-      <div class="content-heading">${s.h}</div>
-      <div class="content-text">${s.t}</div>
-    </div>`).join('') +
-    `<button class="btn-primary" onclick="markModuleDone(${i});closeModal('moduleModal')">✓ Mark Complete</button>`;
-  openModal('moduleModal');
-}
-
-function markModuleDone(i) {
-  const completed = JSON.parse(localStorage.getItem('completedModules') || '[]');
-  if (!completed.includes(i)) completed.push(i);
-  localStorage.setItem('completedModules', JSON.stringify(completed));
-  renderModules();
-}
-
-// ============================================================
-// EXERCISES
-// ============================================================
-function renderExercises() {
-  document.getElementById('exerciseList').innerHTML = EXERCISES.map((ex, i) => `
-    <div class="exercise-card" onclick="openExercise(${i})">
-      <div class="exercise-header">
-        <div class="ex-icon">${ex.icon}</div>
-        <div class="ex-title">${ex.title}</div>
-        <div class="ex-duration">${ex.duration}</div>
-      </div>
-      <div class="ex-desc">${ex.desc}</div>
-    </div>`).join('');
-}
-
-function openExercise(i) {
-  currentExercise = EXERCISES[i];
-  currentExerciseStep = 0;
-  document.getElementById('exModalTitle').textContent = currentExercise.icon + ' ' + currentExercise.title;
-  renderExerciseSteps();
-  openModal('exerciseModal');
-}
-
-function renderExerciseSteps() {
-  const ex = currentExercise;
-  document.getElementById('exModalBody').innerHTML =
-    `<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;">${ex.desc}</p>
-     <div class="section-title">Steps — tap to progress</div>` +
-    ex.steps.map((step, i) => {
-      const done = i < currentExerciseStep;
-      const active = i === currentExerciseStep;
-      return `<div class="step-row" onclick="if(${active}) nextStep()">
-        <div class="step-num ${done?'done':active?'active':'pending'}">${done?'✓':i+1}</div>
-        <div class="step-text ${done?'done-text':active?'active-text':''}">${step}</div>
-      </div>`;
-    }).join('') +
-    (currentExerciseStep < ex.steps.length
-      ? `<button class="btn-primary" onclick="nextStep()" style="margin-top:16px">
-          ${currentExerciseStep === ex.steps.length - 1 ? '✓ Complete Exercise' : 'Next Step →'}</button>`
-      : `<button class="btn-success" onclick="closeModal('exerciseModal')">✓ Exercise Complete!</button>`);
-}
-
-function nextStep() {
-  if (currentExerciseStep < currentExercise.steps.length) {
-    currentExerciseStep++;
-    renderExerciseSteps();
-  }
-}
-
-// ============================================================
-// HISTORY
-// ============================================================
-function renderHistory() {
-  const history = JSON.parse(localStorage.getItem('pauseHistory') || '[]');
-  const container = document.getElementById('historyContent');
-  if (!history.length) {
-    container.innerHTML = `<div class="history-empty">
-      <div class="history-empty-icon">📋</div>
-      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px;">No Assessments Yet</div>
-      <div style="font-size:14px;line-height:1.6;">Complete your first CSS-15 assessment to begin tracking your progress over time.</div>
-      <button class="btn-primary" onclick="startAssessment()" style="margin-top:20px">Take Assessment Now</button>
-    </div>`;
-    return;
-  }
-  container.innerHTML =
-    `<div class="notice blue" style="margin-bottom:16px;">
-      <div class="notice-title">📊 ${history.length} Assessment${history.length>1?'s':''} Recorded</div>
-      <div class="notice-text">Your scores are stored privately on this device. Track trends over weeks to measure improvement.</div>
-    </div>` +
-    history.map(r => `
-    <div class="history-item">
-      <div class="history-dot" style="background:${r.color}"></div>
-      <div>
-        <div style="font-size:13px;font-weight:700;color:${r.color}">${r.level} Cyberchondria</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.date}</div>
-      </div>
-      <div class="history-score-col">
-        <div class="history-score">${r.score}</div>
-        <div style="font-size:11px;color:var(--muted)">/75</div>
-      </div>
-    </div>`).join('') +
-    `<button class="btn-secondary" onclick="if(confirm('Clear all history?')){localStorage.removeItem('pauseHistory');renderHistory()}" style="margin-top:8px">Clear History</button>`;
-}
-
-// ============================================================
-// MODAL
-// ============================================================
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
-});
-
-// ============================================================
-// PWA INSTALL
-// ============================================================
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBanner').classList.add('show');
-});
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') document.getElementById('installBanner').classList.remove('show');
-  deferredPrompt = null;
-});
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').classList.remove('show');
-});
-
-// ============================================================
-// SERVICE WORKER
-// ============================================================
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Pause-App/sw.js').catch(() => {});
-}
+// Results
+let disorderScores = {};
+let impactScores = {};
+let dwsScore = null;
 
 // ============================================================
 // INIT
 // ============================================================
-renderModules();
-renderExercises();
+function init(){
+  renderHomeDisorders();
+  renderAssessMenu();
+  renderQuickScan();
+  renderAboutScales();
+  renderProgress();
+  renderChallenge();
+  loadSavedScores();
+}
+
+function loadSavedScores(){
+  const saved = JSON.parse(localStorage.getItem('pauseV2Scores') || 'null');
+  if(saved){
+    disorderScores = saved.disorder || {};
+    impactScores = saved.impact || {};
+    dwsScore = saved.dws || null;
+    updateDWSDisplay();
+  }
+}
+
+function saveScores(){
+  localStorage.setItem('pauseV2Scores', JSON.stringify({
+    disorder: disorderScores,
+    impact: impactScores,
+    dws: dwsScore
+  }));
+  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  history.unshift({
+    dws: dwsScore,
+    disorder: {...disorderScores},
+    impact: {...impactScores},
+    date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})
+  });
+  if(history.length > 20) history.splice(20);
+  localStorage.setItem('pauseV2History', JSON.stringify(history));
+}
+
+// ============================================================
+// RENDER HOME
+// ============================================================
+function renderHomeDisorders(){
+  const el = document.getElementById('home-disorder-list');
+  el.innerHTML = DISORDERS.map((d,i) => {
+    const score = disorderScores[d.id];
+    const level = score ? getLevel(d, score) : null;
+    return `<div class="disorder-card" onclick="startSingleAssessment(${i})">
+      <div class="disorder-icon" style="background:${d.bg};">${d.icon}</div>
+      <div class="disorder-info">
+        <div class="disorder-name">${d.name}</div>
+        <div class="disorder-meta">${d.scale} · ${d.items} questions</div>
+      </div>
+      <div class="disorder-score">
+        ${level ? `<div class="disorder-badge" style="background:${level.bg};color:${level.color}">${level.label}</div>` : '<div style="font-size:11px;color:var(--muted)">Tap to screen</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAssessMenu(){
+  const d = document.getElementById('assess-menu-list');
+  d.innerHTML = DISORDERS.map(dis => `
+    <div class="disorder-card" style="cursor:default">
+      <div class="disorder-icon" style="background:${dis.bg}">${dis.icon}</div>
+      <div class="disorder-info">
+        <div class="disorder-name">${dis.name}</div>
+        <div class="disorder-meta">${dis.scale} · ${dis.items} questions</div>
+      </div>
+    </div>`).join('');
+  const im = document.getElementById('assess-impact-list');
+  im.innerHTML = IMPACT_MODULES.map(m => `
+    <div class="disorder-card" style="cursor:default">
+      <div class="disorder-icon" style="background:rgba(0,0,0,0.05)">${m.icon}</div>
+      <div class="disorder-info">
+        <div class="disorder-name">${m.name} Impact</div>
+        <div class="disorder-meta">5 questions</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderQuickScan(){
+  const el = document.getElementById('quick-impact-list');
+  el.innerHTML = IMPACT_MODULES.map(m => `
+    <div class="disorder-card" style="cursor:default">
+      <div class="disorder-icon" style="background:rgba(0,0,0,0.05)">${m.icon}</div>
+      <div class="disorder-info">
+        <div class="disorder-name">${m.name} Impact</div>
+        <div class="disorder-meta">5 questions</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderAboutScales(){
+  const el = document.getElementById('aboutScaleList');
+  el.innerHTML = DISORDERS.map(d => `
+    <div style="margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text)">${d.icon} ${d.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${d.scaleRef}</div>
+    </div>`).join('') +
+    IMPACT_MODULES.map(m => `
+    <div style="margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text)">${m.icon} ${m.name} Impact Module</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Custom validated-style module · 5 items · Likert scale</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// ASSESSMENT ENGINE
+// ============================================================
+function buildFullAssessment(){
+  allQuestions = [];
+  questionMeta = [];
+  DISORDERS.forEach((d,di) => {
+    d.questions.forEach((q,qi) => {
+      allQuestions.push({text:q.t, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:di});
+      questionMeta.push({type:'disorder', dIdx:di, qIdx:qi});
+    });
+  });
+  IMPACT_MODULES.forEach((m,mi) => {
+    m.questions.forEach((q,qi) => {
+      allQuestions.push({text:q, options:IMPACT_OPTIONS, values:IMPACT_OPTION_VALUES, scaleInfo:`Health Impact · ${m.name}`, impactIdx:mi});
+      questionMeta.push({type:'impact', mIdx:mi, qIdx:qi});
+    });
+  });
+}
+
+function buildQuickAssessment(){
+  allQuestions = [];
+  questionMeta = [];
+  IMPACT_MODULES.forEach((m,mi) => {
+    m.questions.forEach((q,qi) => {
+      allQuestions.push({text:q, options:IMPACT_OPTIONS, values:IMPACT_OPTION_VALUES, scaleInfo:`Health Impact · ${m.name}`, impactIdx:mi});
+      questionMeta.push({type:'impact', mIdx:mi, qIdx:qi});
+    });
+  });
+}
+
+function buildSingleAssessment(dIdx){
+  allQuestions = [];
+  questionMeta = [];
+  const d = DISORDERS[dIdx];
+  d.questions.forEach((q,qi) => {
+    allQuestions.push({text:q.t, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:dIdx});
+    questionMeta.push({type:'disorder', dIdx:dIdx, qIdx:qi});
+  });
+}
+
+function startFullAssessment(){
+  assessMode = 'full';
+  buildFullAssessment();
+  allAnswers = new Array(allQuestions.length).fill(null);
+  currentQIdx = 0;
+  showScreen('screen-assessment');
+  renderQuestion();
+}
+
+function startQuickScan(){
+  assessMode = 'quick';
+  buildQuickAssessment();
+  allAnswers = new Array(allQuestions.length).fill(null);
+  currentQIdx = 0;
+  showScreen('screen-assessment');
+  renderQuestion();
+}
+
+function startSingleAssessment(dIdx){
+  assessMode = 'single';
+  singleDisorderIdx = dIdx;
+  buildSingleAssessment(dIdx);
+  allAnswers = new Array(allQuestions.length).fill(null);
+  currentQIdx = 0;
+  showScreen('screen-assessment');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = allQuestions[currentQIdx];
+  const total = allQuestions.length;
+  const pct = ((currentQIdx)/total)*100;
+  document.getElementById('qProgressFill').style.width = pct+'%';
+  document.getElementById('qScaleInfo').textContent = q.scaleInfo;
+  document.getElementById('qNumber').textContent = `Question ${currentQIdx+1} of ${total}`;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qPrevBtn').style.opacity = currentQIdx === 0 ? '0.3' : '1';
+  const nextBtn = document.getElementById('qNextBtn');
+  nextBtn.textContent = currentQIdx === total-1 ? 'Finish ✓' : 'Next →';
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = q.options.map((o,i) => {
+    const val = q.values[i];
+    const sel = allAnswers[currentQIdx] === val;
+    return `<button class="q-option${sel?' selected':''}" onclick="selectAnswer(${val})">
+      <span>${o}</span>
+      <span class="q-option-label">${val}</span>
+    </button>`;
+  }).join('');
+}
+
+function selectAnswer(val){
+  allAnswers[currentQIdx] = val;
+  renderQuestion();
+  setTimeout(() => {
+    if(currentQIdx < allQuestions.length-1) nextQuestion();
+    else finishAssessment();
+  }, 300);
+}
+
+function nextQuestion(){
+  if(allAnswers[currentQIdx] === null){ alert('Please select an answer.'); return; }
+  if(currentQIdx < allQuestions.length-1){ currentQIdx++; renderQuestion(); }
+  else finishAssessment();
+}
+
+function prevQuestion(){
+  if(currentQIdx > 0){ currentQIdx--; renderQuestion(); }
+}
+
+// ============================================================
+// SCORING
+// ============================================================
+function finishAssessment(){
+  // Score disorders
+  if(assessMode === 'full'){
+    DISORDERS.forEach((d,di) => {
+      const qs = questionMeta.filter(m => m.type==='disorder' && m.dIdx===di);
+      const score = qs.reduce((sum,m,i) => {
+        const globalIdx = questionMeta.indexOf(m);
+        return sum + (allAnswers[globalIdx] || 0);
+      }, 0);
+      disorderScores[d.id] = score;
+    });
+    IMPACT_MODULES.forEach((m,mi) => {
+      const qs = questionMeta.filter(meta => meta.type==='impact' && meta.mIdx===mi);
+      const score = qs.reduce((sum,meta) => {
+        const globalIdx = questionMeta.indexOf(meta);
+        return sum + (allAnswers[globalIdx] || 0);
+      }, 0);
+      impactScores[m.id] = score;
+    });
+    dwsScore = calculateDWS();
+  } else if(assessMode==='quick'){
+    IMPACT_MODULES.forEach((m,mi) => {
+      const qs = questionMeta.filter(meta => meta.type==='impact' && meta.mIdx===mi);
+      const score = qs.reduce((sum,meta) => {
+        const globalIdx = questionMeta.indexOf(meta);
+        return sum + (allAnswers[globalIdx] || 0);
+      }, 0);
+      impactScores[m.id] = score;
+    });
+  } else if(assessMode==='single'){
+    const d = DISORDERS[singleDisorderIdx];
+    const score = allAnswers.reduce((a,b) => a+(b||0), 0);
+    disorderScores[d.id] = score;
+    if(Object.keys(disorderScores).length === DISORDERS.length && Object.keys(impactScores).length === IMPACT_MODULES.length){
+      dwsScore = calculateDWS();
+    }
+  }
+  saveScores();
+  updateDWSDisplay();
+  renderResults();
+  showScreen('screen-results');
+}
+
+function calculateDWS(){
+  // Higher score = worse. DWS = 100 - normalized risk
+  let totalRisk = 0;
+  let totalMax = 0;
+  DISORDERS.forEach(d => {
+    if(disorderScores[d.id] !== undefined){
+      const pct = (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
+      totalRisk += pct;
+      totalMax++;
+    }
+  });
+  IMPACT_MODULES.forEach(m => {
+    if(impactScores[m.id] !== undefined){
+      const pct = impactScores[m.id] / (m.questions.length * 4);
+      totalRisk += pct * 0.5; // impact weighted less
+      totalMax += 0.5;
+    }
+  });
+  if(totalMax === 0) return null;
+  const avgRisk = totalRisk / totalMax;
+  return Math.round((1 - avgRisk) * 100);
+}
+
+function getLevel(disorder, score){
+  return disorder.levels.find(l => score >= l.min && score <= l.max) || disorder.levels[disorder.levels.length-1];
+}
+
+function getImpactLevel(score){
+  if(score <= 5) return {label:'Minimal',color:'#2ecc71'};
+  if(score <= 10) return {label:'Mild',color:'#f5a623'};
+  if(score <= 15) return {label:'Moderate',color:'#ff6b35'};
+  return {label:'High',color:'#ff4757'};
+}
+
+function getDWSStatus(score){
+  if(score >= 80) return {status:'Excellent',color:'#2ecc71',sub:'Your digital habits are very healthy.'};
+  if(score >= 65) return {status:'Good',color:'#00c9a7',sub:'Mostly healthy with minor concerns.'};
+  if(score >= 50) return {status:'Moderate Risk',color:'#f5a623',sub:'Some digital behaviors need attention.'};
+  if(score >= 35) return {status:'High Risk',color:'#ff6b35',sub:'Multiple digital behaviors causing harm.'};
+  return {status:'Critical',color:'#ff4757',sub:'Significant digital addiction patterns detected.'};
+}
+
+function updateDWSDisplay(){
+  if(dwsScore !== null){
+    const s = getDWSStatus(dwsScore);
+    document.getElementById('dwsPill').textContent = `DWS: ${dwsScore}`;
+    document.getElementById('dwsPill').style.color = s.color;
+    document.getElementById('home-dws-num').textContent = dwsScore;
+    document.getElementById('home-dws-num').style.color = s.color;
+    document.getElementById('home-dws-card').querySelector('div:last-child').textContent = s.status;
+  }
+}
+
+// ============================================================
+// RESULTS RENDER
+// ============================================================
+function renderResults(){
+  // Share card
+  if(dwsScore !== null){
+    const s = getDWSStatus(dwsScore);
+    document.getElementById('resultDWSNum').textContent = dwsScore;
+    document.getElementById('resultDWSStatus').textContent = s.status;
+    document.getElementById('resultDWSNum').style.color = '#fff';
+  }
+
+  // Share tags
+  const tags = document.getElementById('shareTags');
+  const topDisorder = Object.entries(disorderScores).sort((a,b) => {
+    const da = DISORDERS.find(d => d.id===a[0]);
+    const db = DISORDERS.find(d => d.id===b[0]);
+    const pa = da ? (a[1]-da.questions.length)/(da.maxScore-da.questions.length) : 0;
+    const pb = db ? (b[1]-db.questions.length)/(db.maxScore-db.questions.length) : 0;
+    return pb - pa;
+  }).slice(0,3);
+  tags.innerHTML = topDisorder.map(([id]) => {
+    const d = DISORDERS.find(x => x.id===id);
+    return d ? `<div class="share-tag">${d.icon} ${d.name}</div>` : '';
+  }).join('');
+
+  // Disorder results
+  const dList = document.getElementById('resultDisorderList');
+  if(Object.keys(disorderScores).length > 0){
+    dList.innerHTML = DISORDERS.filter(d => disorderScores[d.id] !== undefined).map(d => {
+      const score = disorderScores[d.id];
+      const level = getLevel(d, score);
+      const pct = ((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100;
+      // Benchmark (simulated population average ~40th percentile)
+      const avgPct = 35;
+      return `<div class="result-disorder-row">
+        <div class="result-disorder-header">
+          <div class="result-disorder-name">${d.icon} ${d.name}</div>
+          <div class="result-level" style="background:${level.bg};color:${level.color}">${level.label}</div>
+        </div>
+        <div class="result-bar-bg">
+          <div class="result-bar-fill" style="width:${pct}%;background:${level.color}"></div>
+        </div>
+        <div class="result-score-text">${score} / ${d.maxScore} — ${d.scale}</div>
+        <div class="benchmark-bar">
+          <div class="benchmark-labels"><span>Your score</span><span>Average user</span></div>
+          <div class="benchmark-track">
+            <div class="benchmark-avg" style="width:${avgPct}%"></div>
+            <div class="benchmark-you" style="width:${pct}%;background:${level.color}"></div>
+          </div>
+          <div class="benchmark-text">You score ${pct > avgPct ? 'higher' : 'lower'} than average users</div>
+        </div>
+        <button class="explain-btn" onclick="showExplain('${d.id}')">💡 What does this mean?</button>
+      </div>`;
+    }).join('');
+  } else {
+    dList.innerHTML = '<div class="notice yellow"><div class="notice-title">No disorder screens completed</div>Complete a Full Assessment or individual disorder screen.</div>';
+  }
+
+  // Impact results
+  const iCard = document.getElementById('resultImpactCard');
+  if(Object.keys(impactScores).length > 0){
+    iCard.innerHTML = IMPACT_MODULES.map(m => {
+      const score = impactScores[m.id] || 0;
+      const level = getImpactLevel(score);
+      const pct = (score / (m.questions.length * 4)) * 100;
+      return `<div class="impact-row">
+        <div class="impact-label">${m.icon} ${m.name}</div>
+        <div class="impact-bar-bg"><div class="impact-bar-fill" style="width:${pct}%;background:${level.color}"></div></div>
+        <div class="impact-value" style="color:${level.color}">${level.label}</div>
+      </div>`;
+    }).join('');
+  } else {
+    iCard.innerHTML = '<div style="font-size:13px;color:var(--muted)">Complete a Quick Scan or Full Assessment to see health impact.</div>';
+  }
+
+  // Action plan
+  renderActionPlan();
+
+  // Re-render home
+  renderHomeDisorders();
+  renderProgress();
+}
+
+function renderActionPlan(){
+  const el = document.getElementById('resultActionPlan');
+  const actions = [];
+
+  // Top disorder actions
+  DISORDERS.forEach(d => {
+    if(!disorderScores[d.id]) return;
+    const level = getLevel(d, disorderScores[d.id]);
+    if(level.label === 'Severe' || level.label === 'Moderate'){
+      const tips = {
+        cyberchondria: "Set a 20-minute daily limit for health-related searches",
+        socialmedia: "Enable screen time limits on all social media apps",
+        shortform: "Delete TikTok/Reels apps for 7 days and observe the change",
+        gaming: "Set a strict 2-hour daily gaming limit with a timer",
+        ai: "Challenge yourself to solve one problem per day without AI",
+        workaddiction: "Set a strict work cut-off time and honor it daily"
+      };
+      if(tips[d.id]) actions.push({icon:d.icon, text:tips[d.id], color:d.color});
+    }
+  });
+
+  // Impact actions
+  if(impactScores.sleep && impactScores.sleep > 10)
+    actions.push({icon:'😴', text:'Keep phone outside bedroom. Use an alarm clock instead.', color:'#7c5cbf'});
+  if(impactScores.attention && impactScores.attention > 10)
+    actions.push({icon:'🧠', text:'Try the Pomodoro technique: 25 min focus, 5 min break.', color:'#3d6fff'});
+  if(impactScores.productivity && impactScores.productivity > 10)
+    actions.push({icon:'⚡', text:'Use app blockers during work hours (Forest, Cold Turkey).', color:'#f5a623'});
+  if(impactScores.emotional && impactScores.emotional > 10)
+    actions.push({icon:'❤️', text:'Take a 10-minute mindfulness break before screen time.', color:'#ff4757'});
+
+  if(actions.length === 0){
+    actions.push({icon:'✅', text:'Your digital habits look healthy. Keep it up!', color:'#2ecc71'});
+    actions.push({icon:'📅', text:'Reassess in 4 weeks to track your progress.', color:'#3d6fff'});
+  }
+
+  el.innerHTML = actions.slice(0,5).map((a,i) => `
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
+      <div style="width:36px;height:36px;border-radius:10px;background:${a.color}20;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${a.icon}</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px">ACTION ${i+1}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.5">${a.text}</div>
+      </div>
+    </div>`).join('');
+}
+
+function switchResultTab(tab){
+  ['disorders','impact','actions'].forEach(t => {
+    document.getElementById(`result-tab-${t}`).style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', ['disorders','impact','actions'][i]===tab);
+  });
+}
+
+// ============================================================
+// EXPLAIN MODAL
+// ============================================================
+function showExplain(disorderId){
+  const d = DISORDERS.find(x => x.id===disorderId);
+  if(!d) return;
+  const score = disorderScores[d.id];
+  const level = getLevel(d, score);
+  document.getElementById('explainTitle').textContent = `${d.icon} ${d.name}: ${level.label}`;
+  document.getElementById('explainBody').innerHTML = `
+    <p><strong>Your score:</strong> ${score} out of ${d.maxScore}</p>
+    <p style="margin-top:8px">${level.desc}</p>
+    <p style="margin-top:12px"><strong>Scale used:</strong> ${d.scaleRef}</p>
+    ${d.id==='ai' ? '<p style="margin-top:8px;font-size:12px;color:var(--muted)">⚠️ Note: This scale is currently validated in a Turkish sample only. Results should be interpreted with caution pending wider cross-cultural validation.</p>' : ''}
+  `;
+  openModal('explainModal');
+}
+
+// ============================================================
+// DWS MODAL
+// ============================================================
+function showDWSModal(){
+  if(dwsScore !== null){
+    const s = getDWSStatus(dwsScore);
+    document.getElementById('modalDWSNum').textContent = dwsScore;
+    document.getElementById('modalDWSStatus').textContent = s.status;
+    document.getElementById('modalDWSStatus').style.color = s.color;
+    document.getElementById('modalDWSSub').textContent = s.sub;
+    // Breakdown
+    let breakdown = '';
+    if(Object.keys(disorderScores).length > 0){
+      breakdown = '<div style="margin-top:8px"><div class="section-label">Score Breakdown</div>';
+      DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
+        const level = getLevel(d, disorderScores[d.id]);
+        breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span>${d.icon} ${d.name}</span>
+          <span style="font-weight:700;color:${level.color}">${level.label}</span>
+        </div>`;
+      });
+      breakdown += '</div>';
+    }
+    document.getElementById('modalDWSBreakdown').innerHTML = breakdown;
+  } else {
+    document.getElementById('modalDWSNum').textContent = '--';
+    document.getElementById('modalDWSStatus').textContent = 'Not assessed yet';
+    document.getElementById('modalDWSSub').textContent = 'Complete a Full Assessment to get your Digital Wellness Score.';
+    document.getElementById('modalDWSBreakdown').innerHTML = '';
+  }
+  openModal('dwsModal');
+}
+
+// ============================================================
+// PROGRESS & CHALLENGE
+// ============================================================
+function renderProgress(){
+  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const el = document.getElementById('progressHistory');
+  if(!history.length){
+    el.innerHTML = '<div class="notice blue"><div class="notice-title">No history yet</div>Complete your first assessment to start tracking progress.</div>';
+    return;
+  }
+  el.innerHTML = history.map(h => {
+    const s = h.dws ? getDWSStatus(h.dws) : null;
+    return `<div class="history-item">
+      <div class="history-dot" style="background:${s ? s.color : 'var(--muted)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:${s ? s.color : 'var(--muted)'}">${s ? s.status : 'Impact Only'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${h.date}</div>
+      </div>
+      ${h.dws ? `<div style="text-align:right"><div class="history-score" style="color:${s.color}">${h.dws}</div><div style="font-size:10px;color:var(--muted)">/ 100</div></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderChallenge(){
+  const completed = JSON.parse(localStorage.getItem('pauseChallenge') || '[]');
+  const el = document.getElementById('challengeList');
+  el.innerHTML = `<div class="notice blue" style="margin-bottom:10px"><div class="notice-title">🎯 7-Day Digital Detox Challenge</div>Complete each challenge to build healthier digital habits.</div>`;
+  el.innerHTML += CHALLENGES.map((c,i) => `
+    <div class="challenge-day" onclick="toggleChallenge(${i})">
+      <div class="challenge-check ${completed.includes(i) ? 'done' : ''}">${completed.includes(i) ? '✓' : ''}</div>
+      <div class="challenge-text">${c}</div>
+      <div class="challenge-day-label">Day ${i+1}</div>
+    </div>`).join('');
+}
+
+function toggleChallenge(idx){
+  const completed = JSON.parse(localStorage.getItem('pauseChallenge') || '[]');
+  const pos = completed.indexOf(idx);
+  if(pos === -1) completed.push(idx); else completed.splice(pos,1);
+  localStorage.setItem('pauseChallenge', JSON.stringify(completed));
+  renderChallenge();
+}
+
+// ============================================================
+// SHARE
+// ============================================================
+function shareResults(){
+  const score = dwsScore || '--';
+  const text = `My Digital Wellness Score: ${score}/100\n\nScreened using PAUSE App — Multi-disorder digital addiction platform\n\n#DigitalWellness #PAUSEApp #DigitalHealth`;
+  if(navigator.share){
+    navigator.share({title:'My PAUSE App Score', text:text, url:'https://jaideeprao22.github.io/Pause-App/'});
+  } else {
+    navigator.clipboard.writeText(text).then(() => alert('Score copied to clipboard! Share it anywhere.'));
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(id){
+  // Nav highlighting
+  const navMap = {
+    'screen-home':0,'screen-assess-menu':1,'screen-quick':1,
+    'screen-assessment':1,'screen-results':1,
+    'screen-progress':2,'screen-about':3
+  };
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i === navMap[id]));
+  
+  // Back button
+  const showBack = ['screen-assess-menu','screen-quick','screen-assessment','screen-results'].includes(id);
+  document.getElementById('backBtn').style.display = showBack ? 'block' : 'none';
+
+  if(currentScreen !== id) screenHistory.push(currentScreen);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+  currentScreen = id;
+}
+
+function goBack(){
+  if(screenHistory.length > 0){
+    const prev = screenHistory.pop();
+    showScreen(prev);
+  } else {
+    showScreen('screen-home');
+  }
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) closeModal(m.id); });
+});
+
+// ============================================================
+// PWA
+// ============================================================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const {outcome} = await deferredPrompt.userChoice;
+  if(outcome==='accepted') document.getElementById('installBanner').classList.remove('show');
+  deferredPrompt = null;
+});
+window.addEventListener('appinstalled', () => document.getElementById('installBanner').classList.remove('show'));
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/Pause-App/sw.js').catch(()=>{}); }
+
+// ============================================================
+// START
+// ============================================================
+init();
 </script>
 </body>
 </html>
