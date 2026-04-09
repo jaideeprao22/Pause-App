@@ -3,6 +3,7 @@
   "short_name": "PAUSE App",
   "description": "A validated digital tool for screening and managing cyberchondria — compulsive online health searching.",
   "start_url": "/Pause-App/",
+  "id": "/Pause-App/",
   "display": "standalone",
   "background_color": "#0f2d5e",
   "theme_color": "#0f2d5e",
