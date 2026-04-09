@@ -22,5 +22,18 @@
   ],
   "categories": ["health", "medical", "lifestyle"],
   "lang": "en",
-  "screenshots": []
+  "screenshots": [
+  {
+    "src": "screenshots/screen1.png",
+    "sizes": "1080x1920",
+    "type": "image/png",
+    "form_factor": "narrow"
+  },
+  {
+    "src": "screenshots/screen2.png",
+    "sizes": "1920x1080",
+    "type": "image/png",
+    "form_factor": "wide"
+  }
+]
 }
