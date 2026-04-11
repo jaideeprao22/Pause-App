@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pause-app-v1';
+const CACHE_NAME = 'pause-app-v3';
 const ASSETS = [
   '/Pause-App/',
   '/Pause-App/index.html',
