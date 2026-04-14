@@ -101,3 +101,7 @@ function checkReassessmentReminder(){
     }
   }
 }
+
+document.addEventListener('DOMContentLoaded', function(){
+  checkReassessmentReminder();
+});
