@@ -31,15 +31,8 @@ function goBack(){
 }
 
 // ============================================================
-// MODALS
+// MODALS - click outside to close
 // ============================================================
-function openModal(id){
-  document.getElementById(id).classList.add('open');
-  if(id==='loginModal' && window.google){
-    setTimeout(()=>initGoogleSignIn(), 100);
-  }
-}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});});
 
 // ============================================================
@@ -54,4 +47,3 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/Pause-App/sw
 // ============================================================
 // START
 // ============================================================
-init();

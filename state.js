@@ -208,3 +208,14 @@ async function saveToSupabase(){
     });
   } catch(e){ console.log('Supabase save error:', e); }
 }
+
+// ============================================================
+// MODALS (moved here from nav.js to load early)
+// ============================================================
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='loginModal' && window.google){
+    setTimeout(()=>initGoogleSignIn(), 100);
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
