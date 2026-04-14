@@ -507,7 +507,7 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
 // ============================================================
 const SUPABASE_URL = 'https://qwcnoosblqdwbgntixnk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_URueIVja3Rfu3eSt_iLaDA_SMlLvl9L';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================================
 // DATA
@@ -683,10 +683,10 @@ let notifPermission = false;
 // SUPABASE AUTH
 // ============================================================
 async function initAuth(){
-  const {data:{session}} = await supabase.auth.getSession();
+  const {data:{session}} = await sb.auth.getSession();
   if(session) handleUser(session.user);
 
-  supabase.auth.onAuthStateChange((event, session) => {
+  sb.auth.onAuthStateChange((event, session) => {
     if(session) handleUser(session.user);
     else handleLogout();
   });
@@ -717,7 +717,7 @@ function handleLogout(){
 }
 
 async function loginWithGoogle(){
-  const {error} = await supabase.auth.signInWithOAuth({
+  const {error} = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {redirectTo: 'https://jaideeprao22.github.io/Pause-App/'}
   });
@@ -726,7 +726,7 @@ async function loginWithGoogle(){
 }
 
 async function logoutUser(){
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   closeModal('userModal');
 }
 
@@ -813,7 +813,7 @@ function showUserModal(){
 async function saveToSupabase(){
   if(!currentUser) return;
   try {
-    await supabase.from('Assessments').insert({
+    await sb.from('Assessments').insert({
       user_id: currentUser.id,
       email: currentUser.email,
       disorder_scores: disorderScores,
