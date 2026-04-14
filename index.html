@@ -298,11 +298,13 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
   <div id="result-tab-disorders">
     <div class="section-label">Disorder Screening Results</div>
     <div id="resultDisorderList"></div>
+    <button class="btn-primary" style="margin-top:8px" onclick="switchResultTab('actions')">See your Action Plan →</button>
   </div>
 
   <div id="result-tab-impact" style="display:none">
     <div class="section-label">Health Impact Report</div>
     <div class="card" id="resultImpactCard"></div>
+    <button class="btn-primary" style="margin-top:12px" onclick="switchResultTab('actions')">See your Action Plan →</button>
   </div>
 
   <div id="result-tab-actions" style="display:none">
