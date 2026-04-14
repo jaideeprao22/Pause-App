@@ -924,6 +924,7 @@ function finishAssessment(){
   saveScores();
   updateDWSDisplay();
   renderResults();
+  if(assessMode === 'quick') switchResultTab('impact');
   showScreen('screen-results');
 }
 
