@@ -88,3 +88,5 @@ function renderAboutScales(){
     DISORDERS.map(d => `<div style="margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:700;color:var(--text)">${d.icon} ${d.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${d.scaleRef}</div></div>`).join('') +
     IMPACT_MODULES.map(m => `<div style="margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;font-weight:700;color:var(--text)">${m.icon} ${m.name} Impact Module</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Custom validated-style module · 5 items · Likert scale</div></div>`).join('');
 }
+// Start app
+init();
