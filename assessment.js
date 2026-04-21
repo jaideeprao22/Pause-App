@@ -4,7 +4,7 @@
 function buildFullAssessment(){
   allQuestions=[]; questionMeta=[];
   DISORDERS.forEach((d,di) => d.questions.forEach((q,qi) => {
-    allQuestions.push({text:q.t, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:di});
+    allQuestions.push({text:q.t, hint:q.hint||null, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:di});
     questionMeta.push({type:'disorder', dIdx:di, qIdx:qi});
   }));
   IMPACT_MODULES.forEach((m,mi) => m.questions.forEach((q,qi) => {
@@ -41,6 +41,9 @@ function renderQuestion(){
   document.getElementById('qScaleInfo').textContent = q.scaleInfo;
   document.getElementById('qNumber').textContent = `Question ${currentQIdx+1} of ${total}`;
   document.getElementById('qText').textContent = q.text;
+  const hintEl = document.getElementById('qHint');
+  if(hintEl) hintEl.textContent = q.hint || '';
+  if(hintEl) hintEl.style.display = q.hint ? 'block' : 'none';
   document.getElementById('qPrevBtn').style.opacity = currentQIdx === 0 ? '0.3' : '1';
   document.getElementById('qNextBtn').textContent = currentQIdx === total-1 ? 'Finish ✓' : 'Next →';
   document.getElementById('qOptions').innerHTML = q.options.map((o,i) => {
@@ -64,25 +67,39 @@ function prevQuestion(){ if(currentQIdx>0){currentQIdx--;renderQuestion();} }
 // ============================================================
 function finishAssessment(){
   if(assessMode==='full'){
+    // Score all 6 disorders
     DISORDERS.forEach((d,di) => {
       const qs = questionMeta.filter(m => m.type==='disorder' && m.dIdx===di);
       disorderScores[d.id] = qs.reduce((sum,m) => sum + (allAnswers[questionMeta.indexOf(m)]||0), 0);
     });
+    // Score all 4 impact modules
     IMPACT_MODULES.forEach((m,mi) => {
       const qs = questionMeta.filter(meta => meta.type==='impact' && meta.mIdx===mi);
       impactScores[m.id] = qs.reduce((sum,meta) => sum + (allAnswers[questionMeta.indexOf(meta)]||0), 0);
     });
+    // Calculate DWS from full data
     dwsScore = calculateDWS();
+
   } else if(assessMode==='quick'){
+    // Score all 4 impact modules
     IMPACT_MODULES.forEach((m,mi) => {
       const qs = questionMeta.filter(meta => meta.type==='impact' && meta.mIdx===mi);
       impactScores[m.id] = qs.reduce((sum,meta) => sum + (allAnswers[questionMeta.indexOf(meta)]||0), 0);
     });
+    // FIX: Calculate DWS using whatever data is available (impact only is fine)
+    // calculateDWS() already handles missing disorder scores gracefully
+    dwsScore = calculateDWS();
+
   } else if(assessMode==='single'){
     const d = DISORDERS[singleDisorderIdx];
+    // Score the single disorder
     disorderScores[d.id] = allAnswers.reduce((a,b) => a+(b||0), 0);
-    if(Object.keys(disorderScores).length===DISORDERS.length && Object.keys(impactScores).length===IMPACT_MODULES.length) dwsScore = calculateDWS();
+    // FIX: Always recalculate DWS using all available scores
+    // Removed the overly strict condition that required ALL disorders + ALL impacts
+    // calculateDWS() already skips undefined scores gracefully
+    dwsScore = calculateDWS();
   }
+
   saveScores();
   updateDWSDisplay();
   renderResults();
@@ -93,10 +110,22 @@ function finishAssessment(){
 
 function calculateDWS(){
   let totalRisk=0, totalMax=0;
-  DISORDERS.forEach(d => { if(disorderScores[d.id]!==undefined){ totalRisk+=(disorderScores[d.id]-d.questions.length)/(d.maxScore-d.questions.length); totalMax++; } });
-  IMPACT_MODULES.forEach(m => { if(impactScores[m.id]!==undefined){ totalRisk+=impactScores[m.id]/(m.questions.length*4)*0.5; totalMax+=0.5; } });
+  // Include disorder scores only if available
+  DISORDERS.forEach(d => {
+    if(disorderScores[d.id]!==undefined){
+      totalRisk += (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
+      totalMax++;
+    }
+  });
+  // Include impact scores only if available (weighted at 0.5 each)
+  IMPACT_MODULES.forEach(m => {
+    if(impactScores[m.id]!==undefined){
+      totalRisk += impactScores[m.id] / (m.questions.length * 4) * 0.5;
+      totalMax += 0.5;
+    }
+  });
   if(totalMax===0) return null;
-  return Math.round((1-totalRisk/totalMax)*100);
+  return Math.round((1 - totalRisk / totalMax) * 100);
 }
 
 function getLevel(disorder, score){ return disorder.levels.find(l => score>=l.min && score<=l.max)||disorder.levels[disorder.levels.length-1]; }

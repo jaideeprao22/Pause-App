@@ -30,7 +30,6 @@ function renderProgress(){
     if(recent.length===0){
       trendBars.innerHTML='<div style="font-size:12px;color:var(--muted);width:100%;text-align:center">No data yet</div>';
     } else {
-      const maxDWS = Math.max(...recent.map(h=>h.dws));
       trendBars.innerHTML = recent.map(h => {
         const s=getDWSStatus(h.dws);
         const pct = (h.dws/100)*100;
@@ -61,23 +60,39 @@ function renderProgress(){
 }
 
 function renderChallenge(){
-  // Check if we need to reset for new week
   const weekStart = localStorage.getItem('challengeWeekStart');
   const now = Date.now();
-  if(!weekStart || now - parseInt(weekStart) > 7*24*60*60*1000){
-    const completed = JSON.parse(localStorage.getItem('pauseChallenge')||'[]');
-    if(completed.length === 7){
-      const weeks = parseInt(localStorage.getItem('challengeWeeksCompleted')||'0');
-      localStorage.setItem('challengeWeeksCompleted', weeks+1);
-    }
+  const sevenDaysPassed = weekStart && (now - parseInt(weekStart) > 7*24*60*60*1000);
+  const isFirstLoad = !weekStart;
+
+  if(isFirstLoad){
+    // First ever load — start Week 1
     localStorage.setItem('pauseChallenge','[]');
     localStorage.setItem('challengeWeekStart', now.toString());
-    const weekNum = parseInt(localStorage.getItem('challengeWeeksCompleted')||'0') + 1;
-    localStorage.setItem('currentWeekNum', weekNum);
+    localStorage.setItem('currentWeekNum', '1');
+    localStorage.setItem('challengeWeeksCompleted', '0');
+  } else if(sevenDaysPassed){
+    const completed = JSON.parse(localStorage.getItem('pauseChallenge')||'[]');
+    const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum')||'1');
+
+    // BUG FIX 1: Count as completed only if all 7 challenges done
+    if(completed.length === 7){
+      const weeks = parseInt(localStorage.getItem('challengeWeeksCompleted')||'0');
+      localStorage.setItem('challengeWeeksCompleted', (weeks + 1).toString());
+    }
+
+    // BUG FIX 2: Always increment week number, whether complete or not
+    localStorage.setItem('currentWeekNum', (prevWeekNum + 1).toString());
+
+    // Reset challenge for new week
+    localStorage.setItem('pauseChallenge','[]');
+    localStorage.setItem('challengeWeekStart', now.toString());
+    localStorage.setItem('weekJustReset', completed.length === 7 ? 'completed' : 'expired');
   }
 
   const completed = JSON.parse(localStorage.getItem('pauseChallenge')||'[]');
-  const weekNum = localStorage.getItem('currentWeekNum')||'1';
+  const weekNum = localStorage.getItem('currentWeekNum') || '1';
+  const weekJustReset = localStorage.getItem('weekJustReset');
 
   // Update streak display
   const streakEl = document.getElementById('challengeStreakNum');
@@ -87,14 +102,37 @@ function renderChallenge(){
   if(progressBar) progressBar.style.width = (completed.length/7*100)+'%';
   if(weekLabel) weekLabel.textContent = `Week ${weekNum}`;
 
-  // Track max streak
+  // Track max streak for badges
   const maxStreak = parseInt(localStorage.getItem('maxChallengeStreak')||'0');
   if(completed.length > maxStreak) localStorage.setItem('maxChallengeStreak', completed.length);
 
   const el = document.getElementById('challengeList');
-  if(completed.length===7){
-    el.innerHTML = `<div class="notice green" style="text-align:center;padding:20px"><div style="font-size:36px;margin-bottom:8px">🏆</div><div class="notice-title">Week ${weekNum} Complete!</div>You've finished all 7 challenges this week. A new challenge week will start automatically.</div>`;
-    el.innerHTML += CHALLENGES.map((c,i) => `
+  if(!el) return;
+
+  // Show reset notification banner if week just changed
+  let resetBanner = '';
+  if(weekJustReset === 'completed'){
+    resetBanner = `<div class="notice green" style="margin-bottom:8px;text-align:center">
+      <div class="notice-title">🏆 Last week complete!</div>
+      You finished all 7 challenges. Week ${weekNum} has started.
+    </div>`;
+    localStorage.removeItem('weekJustReset');
+  } else if(weekJustReset === 'expired'){
+    resetBanner = `<div class="notice yellow" style="margin-bottom:8px">
+      <div class="notice-title">⏰ A new week has started</div>
+      Your previous week's challenges have reset. Keep going — Week ${weekNum} is here!
+    </div>`;
+    localStorage.removeItem('weekJustReset');
+  }
+
+  // Show completion state
+  if(completed.length === 7){
+    el.innerHTML = resetBanner + `<div class="notice green" style="text-align:center;padding:20px">
+      <div style="font-size:36px;margin-bottom:8px">🏆</div>
+      <div class="notice-title">Week ${weekNum} Complete!</div>
+      You've finished all 7 challenges. A new challenge week will start automatically in 7 days.
+    </div>` +
+    CHALLENGES.map((c,i) => `
       <div class="challenge-day completed">
         <div class="challenge-check done">✓</div>
         <div><div style="font-size:16px">${c.icon}</div><div class="challenge-text">${c.text}</div></div>
@@ -103,7 +141,8 @@ function renderChallenge(){
     return;
   }
 
-  el.innerHTML = CHALLENGES.map((c,i) => `
+  // Show active challenge list
+  el.innerHTML = resetBanner + CHALLENGES.map((c,i) => `
     <div class="challenge-day ${completed.includes(i)?'completed':''}" onclick="toggleChallenge(${i})">
       <div class="challenge-check ${completed.includes(i)?'done':''}">${completed.includes(i)?'✓':c.icon}</div>
       <div style="flex:1">

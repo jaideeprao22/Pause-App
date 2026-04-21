@@ -68,7 +68,7 @@ const DISORDERS = [
     items:6,
     maxScore:30,
     questions:[
-      {t:"How often in the past year have you spent a lot of time thinking about social media or planning to use it?"},
+      {t:"How often in the past year have you spent a lot of time thinking about social media or planning to use it?", hint:"e.g. thinking about what others have posted, planning what you'll post next, or looking forward to checking social media"},
       {t:"How often in the past year have you felt an urge to use social media more and more?"},
       {t:"How often in the past year have you used social media to forget about personal problems?"},
       {t:"How often in the past year have you tried to cut down on social media use without success?"},
