@@ -17,16 +17,18 @@ let notifPermission = false;
 // ============================================================
 const GOOGLE_CLIENT_ID = '857927388938-3rn4ejm805kukp10cerh4f7oakseejgn.apps.googleusercontent.com';
 
+// FIX: Guard flag to prevent multiple Google Sign-In initializations
+let googleSignInInitialized = false;
+
 function initAuth(){
-  // Initialize Google Sign-In
   if(window.google){
     initGoogleSignIn();
   } else {
     window.addEventListener('load', () => {
       if(window.google) initGoogleSignIn();
     });
-    // Retry after GSI script loads
-    setTimeout(() => { if(window.google) initGoogleSignIn(); }, 2000);
+    // Single retry after GSI script loads
+    setTimeout(() => { if(window.google && !googleSignInInitialized) initGoogleSignIn(); }, 2000);
   }
 
   // Check existing Supabase session
@@ -41,6 +43,10 @@ function initAuth(){
 }
 
 function initGoogleSignIn(){
+  // FIX: Prevent multiple initializations
+  if(googleSignInInitialized) return;
+  googleSignInInitialized = true;
+
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
     callback: handleGoogleCredential,
@@ -106,8 +112,6 @@ function handleLogout(){
   renderAccountSection();
 }
 
-// Google login handled via GSI callback above
-
 async function logoutUser(){
   await sb.auth.signOut();
   if(window.google) google.accounts.id.disableAutoSelect();
@@ -147,6 +151,16 @@ function renderAccountSection(){
     el.innerHTML = `
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Login to save your data and sync across devices.</p>
       <div id="googleSignInBtnAbout" style="display:flex;justify-content:center"></div>`;
+    // Re-render Google button into newly created element if already initialized
+    if(googleSignInInitialized && window.google){
+      const btnAbout = document.getElementById('googleSignInBtnAbout');
+      if(btnAbout && !btnAbout.hasChildNodes()){
+        google.accounts.id.renderButton(btnAbout, {
+          theme: 'outline', size: 'large', width: 320,
+          text: 'continue_with', shape: 'rectangular'
+        });
+      }
+    }
   }
 }
 
@@ -200,6 +214,7 @@ async function saveToSupabase(){
       disorder_scores: disorderScores,
       impact_scores: impactScores,
       dws_score: dwsScore,
+      research_consent: localStorage.getItem('researchConsent') === 'true',
       age: userProfile.age || null,
       gender: userProfile.gender || null,
       occupation: userProfile.occupation || null,
@@ -210,12 +225,18 @@ async function saveToSupabase(){
 }
 
 // ============================================================
-// MODALS (moved here from nav.js to load early)
+// MODALS
 // ============================================================
 function openModal(id){
   document.getElementById(id).classList.add('open');
-  if(id==='loginModal' && window.google){
-    setTimeout(()=>initGoogleSignIn(), 100);
+  if(id==='loginModal' && window.google && googleSignInInitialized){
+    const btnEl = document.getElementById('googleSignInBtn');
+    if(btnEl && !btnEl.hasChildNodes()){
+      google.accounts.id.renderButton(btnEl, {
+        theme: 'outline', size: 'large', width: 320,
+        text: 'continue_with', shape: 'rectangular'
+      });
+    }
   }
 }
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }

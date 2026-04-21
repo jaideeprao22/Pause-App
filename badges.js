@@ -3,8 +3,7 @@
 // ============================================================
 function getBadgeStats(){
   const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
-  const challenge = JSON.parse(localStorage.getItem('pauseChallenge') || '[]');
-  const earned = JSON.parse(localStorage.getItem('pauseBadges') || '[]');
+  // FIX: Removed unused 'earned' variable that was being computed and discarded here
   return {
     totalAssessments: history.length,
     fullAssessments: history.filter(h => Object.keys(h.disorder||{}).length === 6).length,

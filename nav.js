@@ -11,8 +11,9 @@ function showScreen(id){
   document.getElementById(id).classList.add('active');
   document.getElementById(id).scrollTop=0;
   currentScreen=id;
-  if(id==='screen-progress'){renderProgress();renderChallenge();renderMoodTrend();}
-  if(id==='screen-logbook'){renderLogbookScreen();}
+  // FIX: renderProgress already calls renderMoodTrend internally — removed duplicate call
+  if(id==='screen-progress'){ renderProgress(); renderChallenge(); }
+  if(id==='screen-logbook'){ renderLogbookScreen(); }
   if(id==='screen-tools'){
     renderMotivationCard();
     renderWeeklyReport();
@@ -22,28 +23,36 @@ function showScreen(id){
     renderResearchConsent();
     checkReassessmentReminder();
   }
-  if(id==='screen-home'){renderBadges();}
+  if(id==='screen-home'){ renderBadges(); }
 }
 
 function goBack(){
-  if(screenHistory.length>0){const prev=screenHistory.pop();showScreen(prev);}
+  if(screenHistory.length>0){ const prev=screenHistory.pop(); showScreen(prev); }
   else showScreen('screen-home');
 }
 
 // ============================================================
 // MODALS - click outside to close
 // ============================================================
-document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});});
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) closeModal(m.id); });
+});
 
 // ============================================================
 // PWA
 // ============================================================
 let deferredPrompt;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show');});
-document.getElementById('installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;if(outcome==='accepted')document.getElementById('installBanner').classList.remove('show');deferredPrompt=null;});
-window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/Pause-App/sw.js').catch(()=>{});}
-
-// ============================================================
-// START
-// ============================================================
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', async()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const {outcome} = await deferredPrompt.userChoice;
+  if(outcome==='accepted') document.getElementById('installBanner').classList.remove('show');
+  deferredPrompt = null;
+});
+window.addEventListener('appinstalled', ()=>document.getElementById('installBanner').classList.remove('show'));
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/Pause-App/sw.js').catch(()=>{}); }

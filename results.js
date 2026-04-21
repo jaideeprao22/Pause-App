@@ -47,12 +47,10 @@ function renderResults(){
   renderActionPlan();
   renderHomeDisorders();
   renderProgress();
-  // Show notification opt-in after first assessment
   if(!localStorage.getItem('notifPromptShown')){
     localStorage.setItem('notifPromptShown','true');
     setTimeout(() => showNotifPrompt(), 1500);
   }
-  // Populate percentile displays
   setTimeout(() => {
     DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
       const el = document.getElementById('pct-' + d.id);
@@ -61,7 +59,6 @@ function renderResults(){
         if(p !== null) el.innerHTML = '📊 Higher than <strong style="color:var(--accent)">' + p + '%</strong> of PAUSE App users';
       }
     });
-    // DWS cumulative percentile if all 6 done
     if(dwsScore !== null && Object.keys(disorderScores).length === 6){
       const dp = getDWSPercentile(dwsScore);
       const shareCard = document.getElementById('shareCard');
@@ -80,7 +77,8 @@ function renderActionPlan(){
   const el = document.getElementById('resultActionPlan');
   const actions = [];
   DISORDERS.forEach(d => {
-    if(!disorderScores[d.id]) return;
+    // FIX: use === undefined instead of !disorderScores[d.id] which fails for score of 0
+    if(disorderScores[d.id] === undefined) return;
     const level = getLevel(d, disorderScores[d.id]);
     if(level.label==='Severe'||level.label==='Moderate'||level.label==='Mild'){
       const tips = {
