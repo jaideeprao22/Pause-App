@@ -21,7 +21,7 @@ const DISORDERS = [
     maxScore:75,
     questions:[
       // --- EXCESSIVENESS subscale (items 1, 2, 13) ---
-      {t:"I look up the same health symptoms online more than once."},
+      {t:"If I notice an unexplained bodily symptom, I search for it on the internet again and again.", hint:"e.g. a rash, lump, or pain somewhere"},
       {t:"I end up spending hours searching for health information online."},
       // --- COMPULSION subscale (items 3, 4, 7) ---
       {t:"I feel a strong urge to search for health information online, even when I don't need to."},

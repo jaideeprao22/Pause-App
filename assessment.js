@@ -25,7 +25,7 @@ function buildSingleAssessment(dIdx){
   allQuestions=[]; questionMeta=[];
   const d = DISORDERS[dIdx];
   d.questions.forEach((q,qi) => {
-    allQuestions.push({text:q.t, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:dIdx});
+    allQuestions.push({text:q.t, hint:q.hint||null, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:dIdx});
     questionMeta.push({type:'disorder', dIdx:dIdx, qIdx:qi});
   });
 }
