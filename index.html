@@ -21,11 +21,11 @@
 <!-- FIX 2: Offline banner styles -->
 <style>
 #offline-banner{display:none;background:#c0392b;color:#fff;text-align:center;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;position:sticky;top:0;z-index:9999;letter-spacing:0.01em}
-.terms-box{background:rgba(15,45,94,0.06);border-radius:10px;padding:12px 14px;margin:12px 0;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(15,45,94,0.12)}
-.terms-box input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:#0f2d5e}
-.terms-box label{font-size:12px;line-height:1.6;color:var(--muted);cursor:pointer}
-.terms-box label a{color:#0f2d5e;font-weight:600;text-decoration:none}
-.terms-error{color:#c0392b;font-size:12px;margin-top:-6px;margin-bottom:8px;display:none;text-align:center}
+.terms-box{background:rgba(15,45,94,0.06);border-radius:10px;padding:14px;margin:12px 0;display:flex;gap:12px;align-items:flex-start;border:1.5px solid rgba(15,45,94,0.2)}
+.terms-box input[type=checkbox]{width:22px;height:22px;flex-shrink:0;margin-top:1px;cursor:pointer;accent-color:#0f2d5e;border:2px solid #0f2d5e;border-radius:4px}
+.terms-box label{font-size:12px;line-height:1.6;color:var(--text);cursor:pointer;font-weight:500}
+.terms-box label a{color:#0f2d5e;font-weight:700;text-decoration:underline}
+.terms-error{color:#c0392b;font-size:12px;font-weight:600;margin-top:4px;margin-bottom:8px;display:none;text-align:center;padding:6px;background:#fef2f2;border-radius:8px}
 /* Edit profile modal */
 .edit-profile-row{margin-bottom:14px}
 .edit-profile-row label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:5px}
@@ -246,11 +246,25 @@
     </div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Research Focus</div>
-      <p style="font-size:13px;color:var(--text);line-height:1.7;margin:0">Digital health interventions for non-communicable diseases (NCDs). This app forms part of ongoing doctoral research on the prevalence and management of digital behavioural disorders in the Indian population.</p>
+      <p style="font-size:13px;color:var(--text);line-height:1.7;margin:0">Digital health interventions for non-communicable diseases (NCDs). This app is part of ongoing research on the prevalence and management of digital behavioural disorders in the Indian population.</p>
     </div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Principal Investigator</div>
-      <div style="font-size:13px;color:var(--text);line-height:1.7">Dr. M. Jaideep Rao<br><span style="color:var(--muted);font-size:12px">MBBS, MD (Community Medicine)<br>Senior Resident, GMC Maheshwaram</span></div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:10px">Research Team</div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Principal Investigator</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Dr. Jaideep Rao M.</div>
+        <div style="font-size:12px;color:var(--muted)">MBBS, MD (Community Medicine)<br>Senior Resident, Dept. of Community Medicine</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Co-Investigator</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Dr. Sridhar D.</div>
+        <div style="font-size:12px;color:var(--muted)">MBBS, MD<br>Associate Professor, Dept. of Community Medicine</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Guide &amp; Head of Department</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Dr. Kiranmai B.</div>
+        <div style="font-size:12px;color:var(--muted)">MBBS, MD<br>Professor &amp; Head, Dept. of Community Medicine</div>
+      </div>
     </div>
   </div>
 
@@ -435,7 +449,7 @@
   <div class="modal-sheet" style="max-height:92vh;display:flex;flex-direction:column">
     <div class="modal-handle"></div>
     <div class="modal-title" style="flex-shrink:0">📋 Terms &amp; Research Consent</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;flex-shrink:0">Please read before creating your account.</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;flex-shrink:0">Read carefully before creating your account. You must accept to continue.</p>
 
     <!-- Scrollable T&C summary -->
     <div style="overflow-y:auto;flex:1;margin-bottom:14px;padding-right:4px">
@@ -451,23 +465,26 @@
       </div>
 
       <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">What Data We Collect</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">What Data We Collect &amp; Store</div>
         <ul style="font-size:12px;line-height:1.9;color:var(--text);padding-left:16px;margin:0">
           <li>Your <strong>email address</strong> — for account login and data sync only</li>
-          <li>Your <strong>profile details</strong> — age, gender, occupation, etc. (research variables)</li>
+          <li>Your <strong>profile details</strong> — age, gender, occupation, and other sociodemographic variables entered during signup</li>
           <li>Your <strong>assessment scores</strong> — disorder screening results and Digital Wellness Score</li>
-          <li>Your <strong>app usage</strong> — logbook, challenge, mood check data (stored locally)</li>
+          <li>Your <strong>app usage data</strong> — logbook entries, mood checks, and challenge progress (stored locally on your device)</li>
         </ul>
         <p style="font-size:12px;line-height:1.7;color:var(--text);margin-top:8px;margin-bottom:0">We do <strong>not</strong> collect your name, phone number, location, contacts, camera, or microphone.</p>
       </div>
 
-      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">How Your Data Is Used</div>
-        <ul style="font-size:12px;line-height:1.9;color:var(--text);padding-left:16px;margin:0">
-          <li>Your anonymised data will be used for <strong>academic research</strong> on digital disorder prevalence</li>
-          <li>Aggregated findings may be published in journals or a PhD thesis</li>
-          <li>Your individual data is <strong>never published in identifiable form</strong></li>
-          <li>Your data is <strong>never sold or shared with advertisers</strong></li>
+      <!-- Prominent research use box -->
+      <div style="background:#e8f4fd;border:1.5px solid #2980b9;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1a5276;margin-bottom:6px">🔬 Research Data Use — Important</div>
+        <p style="font-size:12px;line-height:1.7;color:#1a5276;margin:0 0 6px 0"><strong>By agreeing to these terms, you consent to your data being stored on secure servers and used for academic research.</strong> Specifically:</p>
+        <ul style="font-size:12px;line-height:1.9;color:#1a5276;padding-left:16px;margin:0">
+          <li>Your anonymised data will be <strong>stored in a secure cloud database</strong> (Supabase, GDPR-compliant)</li>
+          <li>It will be used for <strong>academic research</strong> on the prevalence of digital behavioural disorders in India</li>
+          <li>Aggregated, anonymised findings may be <strong>published in peer-reviewed journals</strong></li>
+          <li>Your individual data will <strong>never be published in identifiable form</strong></li>
+          <li>Your data will <strong>never be sold or shared with advertisers</strong></li>
         </ul>
       </div>
 
@@ -475,7 +492,7 @@
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">Your Rights</div>
         <ul style="font-size:12px;line-height:1.9;color:var(--text);padding-left:16px;margin:0">
           <li><strong>Withdraw any time</strong> — no penalty or consequence</li>
-          <li><strong>Access &amp; delete</strong> your data on request</li>
+          <li><strong>Request deletion</strong> of your data by contacting us via the Feedback form</li>
           <li><strong>Edit</strong> your profile at any time within the app</li>
         </ul>
       </div>
@@ -492,13 +509,13 @@
     <div style="flex-shrink:0">
       <div class="terms-box" style="margin-top:0">
         <input type="checkbox" id="termsCheckbox"/>
-        <label for="termsCheckbox" style="font-size:12px;line-height:1.6;color:var(--text)">
-          I have read and agree to the Terms &amp; Conditions. I am 18 or older and voluntarily consent to my anonymised data being used for academic research on digital health interventions (PAUSE App Study, GMC Maheshwaram).
+        <label for="termsCheckbox">
+          ✅ I have read and understood the Terms &amp; Conditions. I am 18 or older, and I <strong>consent to my anonymised data being stored and used for academic research</strong> on digital health (PAUSE App Study, GMC Maheshwaram).
         </label>
       </div>
-      <div class="terms-error" id="termsError">Please tick the box above to continue.</div>
-      <button class="btn-primary" onclick="acceptTermsAndLogin()">Accept &amp; Continue to Sign In →</button>
-      <button class="btn-ghost" onclick="closeModal('termsModal')" style="margin-top:6px">Cancel</button>
+      <div class="terms-error" id="termsError">⚠️ You must tick the checkbox above to create an account.</div>
+      <button class="btn-primary" onclick="acceptTermsAndLogin()" style="margin-top:8px">Accept &amp; Continue to Sign In →</button>
+      <button class="btn-ghost" onclick="closeModal('termsModal')" style="margin-top:6px">Cancel — I do not consent</button>
     </div>
   </div>
 </div>
@@ -896,38 +913,6 @@
 })();
 </script>
 
-<!-- T&C / Login flow -->
-<script>
-// Step 1: Any "Login" trigger opens termsModal first (unless T&C already accepted)
-function openLoginFlow(){
-  const alreadyAccepted = localStorage.getItem('pause_terms_accepted');
-  if(alreadyAccepted){
-    openModal('loginModal');
-  } else {
-    openModal('termsModal');
-  }
-}
-// Step 2: User ticks checkbox and clicks Accept — validate then open loginModal
-function acceptTermsAndLogin(){
-  var cb  = document.getElementById('termsCheckbox');
-  var err = document.getElementById('termsError');
-  if(!cb || !cb.checked){
-    err && (err.style.display = 'block');
-    cb && (cb.style.outline = '2px solid #c0392b');
-    setTimeout(function(){ if(cb) cb.style.outline = ''; }, 1500);
-    return;
-  }
-  err && (err.style.display = 'none');
-  // Persist consent with timestamp
-  localStorage.setItem('pause_terms_accepted', JSON.stringify({
-    accepted: true,
-    timestamp: new Date().toISOString(),
-    version: '1.0'
-  }));
-  closeModal('termsModal');
-  setTimeout(function(){ openModal('loginModal'); }, 200);
-}
-</script>
 
 
 <script src="data.js"></script>

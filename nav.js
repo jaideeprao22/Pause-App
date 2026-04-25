@@ -11,7 +11,7 @@ function showScreen(id){
     'screen-about':4
   };
   document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===navMap[id]));
-  const showBack = ['screen-assess-menu','screen-quick','screen-assessment','screen-results','screen-logbook','screen-tools'].includes(id);
+  const showBack = ['screen-assess-menu','screen-quick','screen-assessment','screen-results'].includes(id);
   document.getElementById('backBtn').style.display = showBack ? 'block' : 'none';
   if(currentScreen !== id) screenHistory.push(currentScreen);
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));

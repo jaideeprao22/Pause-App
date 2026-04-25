@@ -74,6 +74,9 @@ function renderResults(){
   if(!localStorage.getItem('notifPromptShown')){
     localStorage.setItem('notifPromptShown', 'true');
     setTimeout(() => showNotifPrompt(), 1500);
+  } else {
+    // Show post-assessment research modal if notif prompt already done
+    renderPostAssessmentPrompt();
   }
 
   setTimeout(() => {
@@ -220,4 +223,142 @@ function showDWSModal(){
     document.getElementById('modalDWSBreakdown').innerHTML = '';
   }
   openModal('dwsModal');
+}
+
+// ============================================================
+// POST-ASSESSMENT RESEARCH PROMPT — Stage 2
+// 3 disorder-specific questions based on highest-scoring disorder
+// ============================================================
+function renderPostAssessmentPrompt(){
+  // Find the highest-scoring disorder (by normalised score)
+  if(Object.keys(disorderScores).length === 0) return;
+
+  const ranked = Object.entries(disorderScores).sort((a,b) => {
+    const da = DISORDERS.find(d => d.id === a[0]);
+    const db = DISORDERS.find(d => d.id === b[0]);
+    if(!da || !db) return 0;
+    const normA = (a[1] - da.questions.length) / (da.maxScore - da.questions.length);
+    const normB = (b[1] - db.questions.length) / (db.maxScore - db.questions.length);
+    return normB - normA;
+  });
+
+  const topId = ranked[0][0];
+  const topDisorder = DISORDERS.find(d => d.id === topId);
+  if(!topDisorder) return;
+
+  // Store for savePostAssessmentData to reference
+  postAssessDisorderId = topId;
+
+  // Disorder-specific question banks (3 per disorder)
+  const questionBank = {
+    cyberchondria: [
+      {
+        q: 'How long have you been experiencing anxiety-driven online health searches?',
+        opts: ['Less than 1 month','1–6 months','6–12 months','More than 1 year']
+      },
+      {
+        q: 'Does your health searching worsen after reading about a specific disease or symptom?',
+        opts: ['Almost always','Often','Sometimes','Rarely','Never']
+      },
+      {
+        q: 'Have you ever sought a doctor\'s reassurance after an online health search?',
+        opts: ['Yes, frequently','Yes, occasionally','Rarely','No, never']
+      }
+    ],
+    socialmedia: [
+      {
+        q: 'Which platform consumes most of your social media time?',
+        opts: ['Instagram','Facebook','X (Twitter)','WhatsApp','YouTube','Other']
+      },
+      {
+        q: 'How often do you compare yourself negatively to others on social media?',
+        opts: ['Very often','Often','Sometimes','Rarely','Never']
+      },
+      {
+        q: 'Have you tried and failed to reduce social media use in the past?',
+        opts: ['Yes, multiple times','Yes, once','No, but I\'ve thought about it','No, I haven\'t tried']
+      }
+    ],
+    shortform: [
+      {
+        q: 'Which short-form video platform do you use most?',
+        opts: ['Instagram Reels','YouTube Shorts','TikTok','Moj / Josh / other Indian app','Multiple equally']
+      },
+      {
+        q: 'Do you find it difficult to stop watching short videos once you start?',
+        opts: ['Almost always','Often','Sometimes','Rarely','Never']
+      },
+      {
+        q: 'Has short-form video watching interfered with your sleep or work?',
+        opts: ['Yes, significantly','Yes, somewhat','Rarely','No, not at all']
+      }
+    ],
+    gaming: [
+      {
+        q: 'What type of games do you primarily play?',
+        opts: ['Mobile casual','Mobile MOBA / Battle Royale','PC / Console','Online multiplayer (MMORPG)','Multiple types']
+      },
+      {
+        q: 'Do you experience irritability or restlessness when unable to play games?',
+        opts: ['Yes, frequently','Yes, sometimes','Rarely','No, never']
+      },
+      {
+        q: 'Has gaming negatively affected your relationships, studies, or work?',
+        opts: ['Yes, significantly','Yes, to some extent','Rarely','No, not at all']
+      }
+    ],
+    ai: [
+      {
+        q: 'For which tasks do you primarily use AI assistants?',
+        opts: ['Writing / communication','Learning / studying','Work / professional tasks','Creative tasks','Decision-making','Multiple equally']
+      },
+      {
+        q: 'Do you feel anxious or stuck when you cannot access an AI assistant?',
+        opts: ['Yes, frequently','Yes, sometimes','Rarely','No, never']
+      },
+      {
+        q: 'Do you feel your independent thinking or problem-solving has weakened due to AI use?',
+        opts: ['Yes, definitely','Possibly yes','Not sure','No, not at all']
+      }
+    ],
+    workaddiction: [
+      {
+        q: 'What best describes your primary work context?',
+        opts: ['Student / academic','Healthcare / clinical','Corporate / office','Self-employed','Remote / freelance','Other']
+      },
+      {
+        q: 'Do you check work messages or emails outside of official work hours most days?',
+        opts: ['Yes, constantly','Yes, frequently','Occasionally','Rarely / Never']
+      },
+      {
+        q: 'Has overworking negatively affected your personal relationships or physical health?',
+        opts: ['Yes, significantly','Yes, to some extent','Possibly','No, not at all']
+      }
+    ]
+  };
+
+  const qs = questionBank[topId];
+  if(!qs) return;
+
+  // Build the modal content
+  const title = document.getElementById('postAssessTitle');
+  if(title) title.textContent = `${topDisorder.icon} ${topDisorder.name}: 3 Research Questions`;
+
+  const container = document.getElementById('postAssessQuestions');
+  if(!container) return;
+
+  container.innerHTML = qs.map((item, qi) => `
+    <div class="post-assess-q" style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.5">${qi+1}. ${item.q}</div>
+      <div class="form-options" style="flex-wrap:wrap">
+        ${item.opts.map(opt =>
+          `<button class="form-option" data-value="${opt}"
+            onclick="this.closest('.post-assess-q').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')"
+          >${opt}</button>`
+        ).join('')}
+      </div>
+    </div>`).join('');
+
+  // Show modal after a short delay (results should be visible first)
+  setTimeout(() => openModal('postAssessmentModal'), 2000);
 }
