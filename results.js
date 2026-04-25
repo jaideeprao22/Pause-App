@@ -2,7 +2,7 @@
 // RESULTS
 // ============================================================
 function renderResults(){
-  if(dwsScore!==null){
+  if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
     document.getElementById('resultDWSNum').textContent = dwsScore;
     document.getElementById('resultDWSStatus').textContent = s.status;
@@ -10,15 +10,19 @@ function renderResults(){
   const tags = document.getElementById('shareTags');
   const topDisorder = Object.entries(disorderScores).sort((a,b) => {
     const da=DISORDERS.find(d=>d.id===a[0]), db=DISORDERS.find(d=>d.id===b[0]);
-    return ((b[1]-(db?.questions.length||0))/(db?.maxScore-(db?.questions.length||0)||1)) - ((a[1]-(da?.questions.length||0))/(da?.maxScore-(da?.questions.length||0)||1));
+    return ((b[1]-(db?.questions.length||0))/(db?.maxScore-(db?.questions.length||0)||1)) -
+           ((a[1]-(da?.questions.length||0))/(da?.maxScore-(da?.questions.length||0)||1));
   }).slice(0,3);
-  tags.innerHTML = topDisorder.map(([id]) => { const d=DISORDERS.find(x=>x.id===id); return d?`<div class="share-tag">${d.icon} ${d.name}</div>`:''; }).join('');
+  tags.innerHTML = topDisorder.map(([id]) => {
+    const d = DISORDERS.find(x=>x.id===id);
+    return d ? `<div class="share-tag">${d.icon} ${d.name}</div>` : '';
+  }).join('');
 
   const dList = document.getElementById('resultDisorderList');
-  if(Object.keys(disorderScores).length>0){
-    dList.innerHTML = DISORDERS.filter(d=>disorderScores[d.id]!==undefined).map(d => {
-      const score=disorderScores[d.id], level=getLevel(d,score);
-      const pct=((score-d.questions.length)/(d.maxScore-d.questions.length))*100;
+  if(Object.keys(disorderScores).length > 0){
+    dList.innerHTML = DISORDERS.filter(d => disorderScores[d.id] !== undefined).map(d => {
+      const score = disorderScores[d.id], level = getLevel(d, score);
+      const pct = ((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100;
       return `<div class="result-disorder-row">
         <div class="result-disorder-header">
           <div class="result-disorder-name">${d.icon} ${d.name}</div>
@@ -35,10 +39,15 @@ function renderResults(){
   }
 
   const iCard = document.getElementById('resultImpactCard');
-  if(Object.keys(impactScores).length>0){
+  if(Object.keys(impactScores).length > 0){
     iCard.innerHTML = IMPACT_MODULES.map(m => {
-      const score=impactScores[m.id]||0, level=getImpactLevel(score), pct=(score/(m.questions.length*4))*100;
-      return `<div class="impact-row"><div class="impact-label">${m.icon} ${m.name}</div><div class="impact-bar-bg"><div class="impact-bar-fill" style="width:${pct}%;background:${level.color}"></div></div><div class="impact-value" style="color:${level.color}">${level.label}</div></div>`;
+      const score = impactScores[m.id] || 0, level = getImpactLevel(score);
+      const pct = (score / (m.questions.length * 4)) * 100;
+      return `<div class="impact-row">
+        <div class="impact-label">${m.icon} ${m.name}</div>
+        <div class="impact-bar-bg"><div class="impact-bar-fill" style="width:${pct}%;background:${level.color}"></div></div>
+        <div class="impact-value" style="color:${level.color}">${level.label}</div>
+      </div>`;
     }).join('');
   } else {
     iCard.innerHTML = '<div style="font-size:13px;color:var(--muted)">Complete a Quick Scan or Full Assessment to see health impact.</div>';
@@ -47,10 +56,26 @@ function renderResults(){
   renderActionPlan();
   renderHomeDisorders();
   renderProgress();
+
+  // FIX 3 + FIX 7: After rendering results, persist grades & refresh CBT modules
+  if(window.AppGrades && Object.keys(disorderScores).length > 0){
+    const grades = {};
+    DISORDERS.forEach(d => {
+      if(disorderScores[d.id] !== undefined){
+        const level = getLevel(d, disorderScores[d.id]);
+        grades[d.id] = level.label.toLowerCase(); // 'minimal','mild','moderate','severe'
+      }
+    });
+    window.AppGrades.save(grades);
+    // Refresh CBT modules with new severity data
+    if(typeof renderCBTSection === 'function') renderCBTSection();
+  }
+
   if(!localStorage.getItem('notifPromptShown')){
-    localStorage.setItem('notifPromptShown','true');
+    localStorage.setItem('notifPromptShown', 'true');
     setTimeout(() => showNotifPrompt(), 1500);
   }
+
   setTimeout(() => {
     DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
       const el = document.getElementById('pct-' + d.id);
@@ -77,7 +102,6 @@ function renderActionPlan(){
   const el = document.getElementById('resultActionPlan');
   const actions = [];
   DISORDERS.forEach(d => {
-    // FIX: use === undefined instead of !disorderScores[d.id] which fails for score of 0
     if(disorderScores[d.id] === undefined) return;
     const level = getLevel(d, disorderScores[d.id]);
     if(level.label==='Severe'||level.label==='Moderate'||level.label==='Mild'){
@@ -95,25 +119,25 @@ function renderActionPlan(){
       }
     }
   });
-  if(impactScores.sleep&&impactScores.sleep>5){
+  if(impactScores.sleep && impactScores.sleep > 5){
     actions.push({icon:'😴',text:'Keep your phone charging outside the bedroom. Use a standalone alarm clock.',color:'#7c5cbf'});
     actions.push({icon:'😴',text:'Set a digital curfew 1 hour before bedtime — no screens after that time.',color:'#7c5cbf'});
     actions.push({icon:'😴',text:'Enable Night Shift or blue light filter from 8pm onwards on all devices.',color:'#7c5cbf'});
     actions.push({icon:'😴',text:'Create a 15-minute wind-down routine: dim lights, no phone, light reading only.',color:'#7c5cbf'});
   }
-  if(impactScores.attention&&impactScores.attention>5){
+  if(impactScores.attention && impactScores.attention > 5){
     actions.push({icon:'🧠',text:'Try the Pomodoro technique: 25 minutes of focused work, then a 5-minute break.',color:'#3d6fff'});
     actions.push({icon:'🧠',text:'Put your phone face-down and on silent during any task requiring concentration.',color:'#3d6fff'});
     actions.push({icon:'🧠',text:'Practice reading a physical book for 20 minutes daily to rebuild sustained attention.',color:'#3d6fff'});
     actions.push({icon:'🧠',text:'Disable all non-essential notifications — keep only calls and messages from close contacts.',color:'#3d6fff'});
   }
-  if(impactScores.productivity&&impactScores.productivity>5){
+  if(impactScores.productivity && impactScores.productivity > 5){
     actions.push({icon:'⚡',text:'Use app blockers like Forest or Cold Turkey during your peak work hours.',color:'#f5a623'});
     actions.push({icon:'⚡',text:'Write a 3-item priority list each morning and complete it before opening social media.',color:'#f5a623'});
     actions.push({icon:'⚡',text:'Batch all digital admin tasks (email, messages) into two fixed 30-minute windows daily.',color:'#f5a623'});
     actions.push({icon:'⚡',text:'Keep your phone in another room during your most important 2 hours of the workday.',color:'#f5a623'});
   }
-  if(impactScores.emotional&&impactScores.emotional>5){
+  if(impactScores.emotional && impactScores.emotional > 5){
     actions.push({icon:'❤️',text:'Take a 10-minute mindfulness or breathing break before any screen session.',color:'#ff4757'});
     actions.push({icon:'❤️',text:'Unfollow or mute any accounts that consistently make you feel anxious or inadequate.',color:'#ff4757'});
     actions.push({icon:'❤️',text:'Schedule one screen-free social activity per week with friends or family.',color:'#ff4757'});
@@ -125,7 +149,10 @@ function renderActionPlan(){
   actions.push({icon:'🛌',text:'Aim for 7-8 hours of sleep — poor sleep dramatically worsens digital addiction patterns.',color:'#7c5cbf'});
   actions.push({icon:'👥',text:'Share your PAUSE score with someone you trust and discuss one change you will make together.',color:'#3d6fff'});
 
-  if(actions.length===0){ actions.push({icon:'✅',text:'Your digital habits look healthy. Keep it up!',color:'#2ecc71'}); actions.push({icon:'📅',text:'Reassess in 4 weeks to track your progress.',color:'#3d6fff'}); }
+  if(actions.length === 0){
+    actions.push({icon:'✅',text:'Your digital habits look healthy. Keep it up!',color:'#2ecc71'});
+    actions.push({icon:'📅',text:'Reassess in 4 weeks to track your progress.',color:'#3d6fff'});
+  }
 
   el.innerHTML = actions.slice(0,12).map((a,i) => `
     <div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
@@ -138,15 +165,19 @@ function renderActionPlan(){
 }
 
 function switchResultTab(tab){
-  ['disorders','impact','actions'].forEach(t => document.getElementById(`result-tab-${t}`).style.display = t===tab?'block':'none');
-  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active',['disorders','impact','actions'][i]===tab));
+  ['disorders','impact','actions'].forEach(t =>
+    document.getElementById(`result-tab-${t}`).style.display = t===tab ? 'block' : 'none'
+  );
+  document.querySelectorAll('.tab').forEach((el,i) =>
+    el.classList.toggle('active', ['disorders','impact','actions'][i]===tab)
+  );
 }
 
 // ============================================================
 // EXPLAIN MODAL
 // ============================================================
 function showExplain(disorderId){
-  const d = DISORDERS.find(x=>x.id===disorderId);
+  const d = DISORDERS.find(x => x.id === disorderId);
   if(!d) return;
   const score = disorderScores[d.id];
   const level = getLevel(d, score);
@@ -163,27 +194,30 @@ function showExplain(disorderId){
 // DWS MODAL
 // ============================================================
 function showDWSModal(){
-  if(dwsScore!==null){
-    const s=getDWSStatus(dwsScore);
-    document.getElementById('modalDWSNum').textContent=dwsScore;
-    document.getElementById('modalDWSStatus').textContent=s.status;
-    document.getElementById('modalDWSStatus').style.color=s.color;
-    document.getElementById('modalDWSSub').textContent=s.sub;
-    let breakdown='';
-    if(Object.keys(disorderScores).length>0){
-      breakdown='<div style="margin-top:8px"><div class="section-label">Score Breakdown</div>';
-      DISORDERS.filter(d=>disorderScores[d.id]!==undefined).forEach(d => {
-        const level=getLevel(d,disorderScores[d.id]);
-        breakdown+=`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span>${d.icon} ${d.name}</span><span style="font-weight:700;color:${level.color}">${level.label}</span></div>`;
+  if(dwsScore !== null){
+    const s = getDWSStatus(dwsScore);
+    document.getElementById('modalDWSNum').textContent = dwsScore;
+    document.getElementById('modalDWSStatus').textContent = s.status;
+    document.getElementById('modalDWSStatus').style.color = s.color;
+    document.getElementById('modalDWSSub').textContent = s.sub;
+    let breakdown = '';
+    if(Object.keys(disorderScores).length > 0){
+      breakdown = '<div style="margin-top:8px"><div class="section-label">Score Breakdown</div>';
+      DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
+        const level = getLevel(d, disorderScores[d.id]);
+        breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span>${d.icon} ${d.name}</span>
+          <span style="font-weight:700;color:${level.color}">${level.label}</span>
+        </div>`;
       });
-      breakdown+='</div>';
+      breakdown += '</div>';
     }
-    document.getElementById('modalDWSBreakdown').innerHTML=breakdown;
+    document.getElementById('modalDWSBreakdown').innerHTML = breakdown;
   } else {
-    document.getElementById('modalDWSNum').textContent='--';
-    document.getElementById('modalDWSStatus').textContent='Not assessed yet';
-    document.getElementById('modalDWSSub').textContent='Complete a Full Assessment to get your Digital Wellness Score.';
-    document.getElementById('modalDWSBreakdown').innerHTML='';
+    document.getElementById('modalDWSNum').textContent = '--';
+    document.getElementById('modalDWSStatus').textContent = 'Not assessed yet';
+    document.getElementById('modalDWSSub').textContent = 'Complete a Full Assessment to get your Digital Wellness Score.';
+    document.getElementById('modalDWSBreakdown').innerHTML = '';
   }
   openModal('dwsModal');
 }
