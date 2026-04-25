@@ -45,6 +45,9 @@
 .assess-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .assess-card-chevron{margin-left:auto;font-size:18px;color:var(--muted)}
 .assess-impact-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* Feedback stars */
+.feedback-star{background:none;border:none;font-size:28px;cursor:pointer;padding:4px;border-radius:8px;opacity:0.35;transition:opacity 0.15s,transform 0.15s;-webkit-tap-highlight-color:transparent}
+.feedback-star.active{opacity:1;transform:scale(1.15)}
 </style>
 </head>
 <body>
@@ -218,26 +221,135 @@
 <!-- ABOUT -->
 <div class="screen" id="screen-about">
 <div class="screen-content">
-  <div class="card">
-    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:12px">About PAUSE App</div>
-    <p style="font-size:13px;line-height:1.7;color:var(--muted)">PAUSE App is a multi-disorder digital addiction screening platform developed at Government Medical College, Maheshwaram, Telangana, India.</p>
-    <div style="margin-top:16px">
-      <div class="section-label">Validated Instruments Used</div>
-      <div id="aboutScaleList"></div>
-    </div>
-    <div style="margin-top:14px" class="notice yellow">
-      <div class="notice-title">⚠️ Clinical Disclaimer</div>
-      This app is for educational screening only. It does not constitute clinical diagnosis or treatment. Individuals experiencing significant distress should consult a qualified mental health professional.
+
+  <!-- App identity hero -->
+  <div style="background:linear-gradient(135deg,#0f2d5e 0%,#1a4a8a 100%);border-radius:16px;padding:24px 20px;margin-bottom:12px;color:#fff;text-align:center">
+    <div style="font-size:48px;margin-bottom:8px">🧠</div>
+    <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px">PAUSE App</div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:12px">Digital Wellness Platform · Version 1.0</div>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
+      <div style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600">🔬 6 Validated Scales</div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600">📊 Research Tool</div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600">🆓 Free Forever</div>
     </div>
   </div>
-  <div class="card">
-    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px">Developed At</div>
-    <p style="font-size:13px;color:var(--muted);line-height:1.6">Department of Community Medicine<br>Government Medical College, Maheshwaram<br>Rangareddy District, Telangana, India</p>
+
+  <!-- Developed at -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px">🏛️ Developed At</div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="font-size:32px;flex-shrink:0">🎓</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">Department of Community Medicine</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7">Government Medical College, Maheshwaram<br>Rangareddy District, Telangana – 501359<br>India</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Research Focus</div>
+      <p style="font-size:13px;color:var(--text);line-height:1.7;margin:0">Digital health interventions for non-communicable diseases (NCDs). This app forms part of ongoing doctoral research on the prevalence and management of digital behavioural disorders in the Indian population.</p>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Principal Investigator</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.7">Dr. M. Jaideep Rao<br><span style="color:var(--muted);font-size:12px">MBBS, MD (Community Medicine)<br>Senior Resident, GMC Maheshwaram</span></div>
+    </div>
   </div>
-  <div class="card" id="accountCard">
-    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:12px">Account</div>
+
+  <!-- Validated instruments -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px">📐 Validated Instruments</div>
+    <div id="aboutScaleList"></div>
+  </div>
+
+  <!-- Clinical disclaimer -->
+  <div class="notice yellow" style="margin-bottom:12px">
+    <div class="notice-title">⚠️ Clinical Disclaimer</div>
+    PAUSE App is a screening and psychoeducation tool for educational and research purposes only. It does not constitute a clinical diagnosis or treatment. If you score Moderate or Severe on any scale, please consult a qualified mental health professional.
+  </div>
+
+  <!-- Account card -->
+  <div class="card" style="margin-bottom:12px" id="accountCard">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:12px">👤 Account</div>
     <div id="accountSection"></div>
   </div>
+
+  <!-- Links -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px">🔗 Links</div>
+    <a href="terms.html" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);text-decoration:none">
+      <span style="font-size:18px">📋</span>
+      <span style="font-size:13px;font-weight:600;color:var(--text)">Terms &amp; Research Consent</span>
+      <span style="margin-left:auto;color:var(--muted);font-size:16px">›</span>
+    </a>
+    <a href="privacy-policy.html" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);text-decoration:none">
+      <span style="font-size:18px">🔒</span>
+      <span style="font-size:13px;font-weight:600;color:var(--text)">Privacy Policy</span>
+      <span style="margin-left:auto;color:var(--muted);font-size:16px">›</span>
+    </a>
+    <a href="https://github.com/jaideeprao22/Pause-App" target="_blank" style="display:flex;align-items:center;gap:10px;padding:10px 0;text-decoration:none">
+      <span style="font-size:18px">💻</span>
+      <span style="font-size:13px;font-weight:600;color:var(--text)">GitHub Repository</span>
+      <span style="margin-left:auto;color:var(--muted);font-size:16px">›</span>
+    </a>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- FEEDBACK SECTION                                           -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">💬 Send Feedback</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Found a bug? Have a suggestion? Your feedback directly helps improve this research tool.</p>
+
+    <!-- Rating -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Overall Rating</div>
+      <div style="display:flex;gap:8px" id="feedbackStars">
+        <button class="feedback-star" data-val="1" onclick="selectFeedbackRating(1)">⭐</button>
+        <button class="feedback-star" data-val="2" onclick="selectFeedbackRating(2)">⭐</button>
+        <button class="feedback-star" data-val="3" onclick="selectFeedbackRating(3)">⭐</button>
+        <button class="feedback-star" data-val="4" onclick="selectFeedbackRating(4)">⭐</button>
+        <button class="feedback-star" data-val="5" onclick="selectFeedbackRating(5)">⭐</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px" id="feedbackRatingLabel">Tap to rate</div>
+    </div>
+
+    <!-- Category -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Category</div>
+      <div class="form-options" id="feedbackCategoryOptions">
+        <button class="form-option" onclick="selectFeedbackCategory('Bug report',this)">🐛 Bug</button>
+        <button class="form-option" onclick="selectFeedbackCategory('Feature request',this)">💡 Feature</button>
+        <button class="form-option" onclick="selectFeedbackCategory('General feedback',this)">💬 General</button>
+        <button class="form-option" onclick="selectFeedbackCategory('Research query',this)">🔬 Research</button>
+      </div>
+    </div>
+
+    <!-- Message -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Your Message <span style="color:#c0392b">*</span></div>
+      <textarea id="feedbackMessage" placeholder="Describe your feedback, bug, or suggestion in detail..." style="width:100%;min-height:100px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--card);resize:vertical;line-height:1.6"></textarea>
+    </div>
+
+    <!-- Contact email (optional) -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Your Email <span style="font-weight:400">(optional — for follow-up)</span></div>
+      <input type="email" id="feedbackEmail" placeholder="you@example.com" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--card)"/>
+    </div>
+
+    <div style="color:#c0392b;font-size:12px;margin-bottom:8px;display:none" id="feedbackError">Please add a message before submitting.</div>
+    <button class="btn-primary" onclick="submitFeedback()" id="feedbackSubmitBtn">Send Feedback →</button>
+    <div style="display:none;text-align:center;padding:16px 0" id="feedbackSuccess">
+      <div style="font-size:36px;margin-bottom:8px">🙏</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">Thank you!</div>
+      <div style="font-size:13px;color:var(--muted)">Your feedback has been recorded and will help improve PAUSE App.</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:var(--muted);padding:8px 0 24px;line-height:1.8">
+    PAUSE App v1.0 · April 2026<br>
+    Department of Community Medicine · GMC Maheshwaram<br>
+    Built with ❤️ for public health
+  </div>
+
 </div>
 </div>
 
@@ -270,10 +382,6 @@
   </div>
   <div class="section-label" style="margin-top:4px">Caregiver Summary</div>
   <div class="card" id="caregiverSection"></div>
-  <div class="section-label" style="margin-top:4px">Research Participation</div>
-  <div class="card">
-    <div id="researchConsentSection"></div>
-  </div>
 </div>
 </div>
 
@@ -282,17 +390,17 @@
   <button class="nav-btn active" onclick="showScreen('screen-home')">
     <div class="nav-icon">🏠</div><div class="nav-label">Home</div>
   </button>
-  <button class="nav-btn" onclick="showScreen('screen-assess-menu')">
-    <div class="nav-icon">📋</div><div class="nav-label">Assess</div>
-  </button>
-  <button class="nav-btn" onclick="showScreen('screen-logbook')">
-    <div class="nav-icon">📓</div><div class="nav-label">Logbook</div>
-  </button>
   <button class="nav-btn" onclick="showScreen('screen-tools')">
     <div class="nav-icon">🛠️</div><div class="nav-label">Tools</div>
   </button>
   <button class="nav-btn" onclick="showScreen('screen-progress')">
     <div class="nav-icon">📈</div><div class="nav-label">Progress</div>
+  </button>
+  <button class="nav-btn" onclick="showScreen('screen-logbook')">
+    <div class="nav-icon">📓</div><div class="nav-label">Logbook</div>
+  </button>
+  <button class="nav-btn" onclick="showScreen('screen-about')">
+    <div class="nav-icon">ℹ️</div><div class="nav-label">About</div>
   </button>
 </div>
 
@@ -322,31 +430,105 @@
   </div>
 </div>
 
-<!-- FIX 1: LOGIN MODAL — T&C checkbox + no anonymous skip after Google sign-in -->
-<div class="modal-overlay" id="loginModal">
-  <div class="modal-sheet">
+<!-- TERMS & CONDITIONS MODAL — Step 1 of sign-in flow -->
+<div class="modal-overlay" id="termsModal">
+  <div class="modal-sheet" style="max-height:92vh;display:flex;flex-direction:column">
     <div class="modal-handle"></div>
-    <div class="modal-title">🔐 Save Your Progress</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Login to save your assessment history, sync across devices, and protect your data.</p>
-    <!-- Terms checkbox — must be ticked before Google sign-in proceeds -->
-    <div class="terms-box">
-      <input type="checkbox" id="termsCheckbox"/>
-      <label for="termsCheckbox">
-        I agree to the <a href="privacy-policy.html" target="_blank">Terms &amp; Conditions</a> and voluntarily consent to my anonymised assessment data being used for academic research on digital health interventions (PAUSE App Study, Govt. Medical College, Maheshwaram).
-      </label>
+    <div class="modal-title" style="flex-shrink:0">📋 Terms &amp; Research Consent</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;flex-shrink:0">Please read before creating your account.</p>
+
+    <!-- Scrollable T&C summary -->
+    <div style="overflow-y:auto;flex:1;margin-bottom:14px;padding-right:4px">
+
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">About This App &amp; Study</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text)">PAUSE App is a digital health screening and research tool developed at the Department of Community Medicine, Government Medical College, Maheshwaram, Telangana, India. By creating an account you are voluntarily participating in an academic research study on digital health behaviours.</p>
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">Eligibility</div>
+        <p style="font-size:12px;line-height:1.7;color:var(--text)">You must be <strong>18 years or older</strong> and able to read English. This app is not suitable for individuals currently in mental health crisis.</p>
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">What Data We Collect</div>
+        <ul style="font-size:12px;line-height:1.9;color:var(--text);padding-left:16px;margin:0">
+          <li>Your <strong>email address</strong> — for account login and data sync only</li>
+          <li>Your <strong>profile details</strong> — age, gender, occupation, etc. (research variables)</li>
+          <li>Your <strong>assessment scores</strong> — disorder screening results and Digital Wellness Score</li>
+          <li>Your <strong>app usage</strong> — logbook, challenge, mood check data (stored locally)</li>
+        </ul>
+        <p style="font-size:12px;line-height:1.7;color:var(--text);margin-top:8px;margin-bottom:0">We do <strong>not</strong> collect your name, phone number, location, contacts, camera, or microphone.</p>
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">How Your Data Is Used</div>
+        <ul style="font-size:12px;line-height:1.9;color:var(--text);padding-left:16px;margin:0">
+          <li>Your anonymised data will be used for <strong>academic research</strong> on digital disorder prevalence</li>
+          <li>Aggregated findings may be published in journals or a PhD thesis</li>
+          <li>Your individual data is <strong>never published in identifiable form</strong></li>
+          <li>Your data is <strong>never sold or shared with advertisers</strong></li>
+        </ul>
+      </div>
+
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">Your Rights</div>
+        <ul style="font-size:12px;line-height:1.9;color:var(--text);padding-left:16px;margin:0">
+          <li><strong>Withdraw any time</strong> — no penalty or consequence</li>
+          <li><strong>Access &amp; delete</strong> your data on request</li>
+          <li><strong>Edit</strong> your profile at any time within the app</li>
+        </ul>
+      </div>
+
+      <div style="background:#fff8e1;border-left:3px solid #d97706;border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:4px">⚠️ Clinical Disclaimer</div>
+        <p style="font-size:12px;line-height:1.6;color:#92400e;margin:0">PAUSE App is a <strong>screening tool for educational purposes only</strong>. It does not constitute a clinical diagnosis or treatment. If you score Moderate or Severe on any scale, please consult a qualified mental health professional.</p>
+      </div>
+
+      <a href="terms.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:#0f2d5e;text-decoration:none;padding:8px;background:rgba(15,45,94,0.06);border-radius:8px;margin-bottom:4px">📄 Read Full Terms &amp; Conditions →</a>
     </div>
-    <div class="terms-error" id="termsError">Please agree to the Terms &amp; Conditions to continue.</div>
-    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:10px"></div>
-    <!-- NOTE: "Maybe later" is removed — login is now required to proceed past onboarding -->
+
+    <!-- Consent checkbox — must be ticked to proceed -->
+    <div style="flex-shrink:0">
+      <div class="terms-box" style="margin-top:0">
+        <input type="checkbox" id="termsCheckbox"/>
+        <label for="termsCheckbox" style="font-size:12px;line-height:1.6;color:var(--text)">
+          I have read and agree to the Terms &amp; Conditions. I am 18 or older and voluntarily consent to my anonymised data being used for academic research on digital health interventions (PAUSE App Study, GMC Maheshwaram).
+        </label>
+      </div>
+      <div class="terms-error" id="termsError">Please tick the box above to continue.</div>
+      <button class="btn-primary" onclick="acceptTermsAndLogin()">Accept &amp; Continue to Sign In →</button>
+      <button class="btn-ghost" onclick="closeModal('termsModal')" style="margin-top:6px">Cancel</button>
+    </div>
   </div>
 </div>
 
-<!-- PROFILE SETUP MODAL — FIX 1: "Skip for now" removed, profile is mandatory post-login -->
-<div class="modal-overlay" id="profileModal">
+<!-- LOGIN MODAL — Step 2: Google sign-in (shown only after T&C accepted) -->
+<div class="modal-overlay" id="loginModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">👋 Complete Your Profile</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">This helps personalise your experience. All fields required.</p>
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:36px;margin-bottom:8px">✅</div>
+      <div class="modal-title" style="margin-bottom:4px">Terms Accepted</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Now sign in with Google to create your account and save your progress securely.</p>
+    </div>
+    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
+    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">Your Google account is only used for login. We do not access your Google data.</p>
+    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Back</button>
+  </div>
+</div>
+
+<!-- PROFILE SETUP MODAL — Research Stage 1: ~20 sociodemographic fields -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👋 Tell Us About Yourself</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps personalise your experience and contributes to anonymous research on digital health. All fields required unless marked optional.</p>
+    <div class="notice blue" style="margin-bottom:14px;font-size:12px"><strong>🔬 Research note:</strong> Your anonymised profile data will be used for academic research on digital wellness (GMC Maheshwaram). Your identity is never shared.</div>
+
+    <!-- SECTION: Demographics -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Demographics</div>
+
     <div class="form-group">
       <label class="form-label">Age</label>
       <input type="number" class="form-input" id="profileAge" placeholder="Enter your age" min="13" max="100"/>
@@ -361,6 +543,28 @@
       </div>
     </div>
     <div class="form-group">
+      <label class="form-label">Education</label>
+      <select class="form-input" id="profileEducation">
+        <option value="" disabled selected>Select highest qualification</option>
+        <option value="Below 10th">Below 10th standard</option>
+        <option value="10th">10th standard / SSLC</option>
+        <option value="12th">12th standard / PUC</option>
+        <option value="Diploma">Diploma</option>
+        <option value="Graduate">Graduate (Bachelor's)</option>
+        <option value="Postgraduate">Postgraduate (Master's / MD)</option>
+        <option value="Doctorate">Doctorate (PhD / DrNB)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Marital Status</label>
+      <div class="form-options" id="maritalOptions">
+        <button class="form-option" onclick="selectOption('marital','Single',this)">Single</button>
+        <button class="form-option" onclick="selectOption('marital','Married',this)">Married</button>
+        <button class="form-option" onclick="selectOption('marital','Divorced/Separated',this)">Divorced</button>
+        <button class="form-option" onclick="selectOption('marital','Widowed',this)">Widowed</button>
+      </div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Occupation</label>
       <div class="form-options" id="occupationOptions">
         <button class="form-option" onclick="selectOption('occupation','Student',this)">Student</button>
@@ -369,6 +573,18 @@
         <button class="form-option" onclick="selectOption('occupation','Other Professional',this)">Other Professional</button>
         <button class="form-option" onclick="selectOption('occupation','Not Working',this)">Not Working</button>
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Household Income</label>
+      <select class="form-input" id="profileIncome">
+        <option value="" disabled selected>Select range</option>
+        <option value="Below ₹10,000">Below ₹10,000</option>
+        <option value="₹10,000–25,000">₹10,000 – ₹25,000</option>
+        <option value="₹25,000–50,000">₹25,000 – ₹50,000</option>
+        <option value="₹50,000–1,00,000">₹50,000 – ₹1,00,000</option>
+        <option value="Above ₹1,00,000">Above ₹1,00,000</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Country</label>
@@ -382,6 +598,27 @@
       </select>
     </div>
     <div class="form-group">
+      <label class="form-label">Area of Residence</label>
+      <div class="form-options" id="residenceOptions">
+        <button class="form-option" onclick="selectOption('residence','Urban',this)">Urban</button>
+        <button class="form-option" onclick="selectOption('residence','Semi-urban',this)">Semi-urban</button>
+        <button class="form-option" onclick="selectOption('residence','Rural',this)">Rural</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Living Situation</label>
+      <div class="form-options" id="livingSituationOptions">
+        <button class="form-option" onclick="selectOption('living_situation','Alone',this)">Alone</button>
+        <button class="form-option" onclick="selectOption('living_situation','With family',this)">With family</button>
+        <button class="form-option" onclick="selectOption('living_situation','With roommates',this)">With roommates</button>
+        <button class="form-option" onclick="selectOption('living_situation','Hostel/PG',this)">Hostel/PG</button>
+      </div>
+    </div>
+
+    <!-- SECTION: Digital Habits -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">Digital Habits</div>
+
+    <div class="form-group">
       <label class="form-label">Primary Device</label>
       <div class="form-options" id="deviceOptions">
         <button class="form-option" onclick="selectOption('device','Smartphone',this)">Smartphone</button>
@@ -389,6 +626,125 @@
         <button class="form-option" onclick="selectOption('device','Both equally',this)">Both equally</button>
       </div>
     </div>
+    <div class="form-group">
+      <label class="form-label">Daily Screen Time (hours)</label>
+      <select class="form-input" id="profileScreentime">
+        <option value="" disabled selected>Select approximate total</option>
+        <option value="Less than 2">Less than 2 hours</option>
+        <option value="2–4">2 – 4 hours</option>
+        <option value="4–6">4 – 6 hours</option>
+        <option value="6–8">6 – 8 hours</option>
+        <option value="More than 8">More than 8 hours</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Years Using a Smartphone</label>
+      <select class="form-input" id="profileSmartphoneYears">
+        <option value="" disabled selected>Select</option>
+        <option value="Less than 1">Less than 1 year</option>
+        <option value="1–3">1 – 3 years</option>
+        <option value="3–5">3 – 5 years</option>
+        <option value="5–8">5 – 8 years</option>
+        <option value="More than 8">More than 8 years</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">First thing you do after waking up?</label>
+      <div class="form-options" id="morningHabitOptions">
+        <button class="form-option" onclick="selectOption('morning_habit','Check phone',this)">Check phone</button>
+        <button class="form-option" onclick="selectOption('morning_habit','Freshen up first',this)">Freshen up first</button>
+        <button class="form-option" onclick="selectOption('morning_habit','Exercise',this)">Exercise</button>
+        <button class="form-option" onclick="selectOption('morning_habit','Other',this)">Other</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Do you charge your phone in the bedroom at night?</label>
+      <div class="form-options" id="bedroomChargeOptions">
+        <button class="form-option" onclick="selectOption('bedroom_charge','Yes',this)">Yes</button>
+        <button class="form-option" onclick="selectOption('bedroom_charge','No',this)">No</button>
+        <button class="form-option" onclick="selectOption('bedroom_charge','Sometimes',this)">Sometimes</button>
+      </div>
+    </div>
+
+    <!-- SECTION: Health -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">Health &amp; Wellbeing</div>
+
+    <div class="form-group">
+      <label class="form-label">Average Sleep per Night (hours)</label>
+      <select class="form-input" id="profileSleep">
+        <option value="" disabled selected>Select</option>
+        <option value="Less than 5">Less than 5 hours</option>
+        <option value="5–6">5 – 6 hours</option>
+        <option value="6–7">6 – 7 hours</option>
+        <option value="7–8">7 – 8 hours</option>
+        <option value="More than 8">More than 8 hours</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">How would you rate your overall health?</label>
+      <div class="form-options" id="selfRatedHealthOptions">
+        <button class="form-option" onclick="selectOption('self_rated_health','Excellent',this)">Excellent</button>
+        <button class="form-option" onclick="selectOption('self_rated_health','Good',this)">Good</button>
+        <button class="form-option" onclick="selectOption('self_rated_health','Fair',this)">Fair</button>
+        <button class="form-option" onclick="selectOption('self_rated_health','Poor',this)">Poor</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Do you have any chronic illness?</label>
+      <div class="form-options" id="chronicIllnessOptions">
+        <button class="form-option" onclick="selectOption('chronic_illness','Yes',this)">Yes</button>
+        <button class="form-option" onclick="selectOption('chronic_illness','No',this)">No</button>
+        <button class="form-option" onclick="selectOption('chronic_illness','Prefer not to say',this)">Prefer not to say</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Is any close family member seriously ill?</label>
+      <div class="form-options" id="familyIllOptions">
+        <button class="form-option" onclick="selectOption('family_member_ill','Yes',this)">Yes</button>
+        <button class="form-option" onclick="selectOption('family_member_ill','No',this)">No</button>
+        <button class="form-option" onclick="selectOption('family_member_ill','Prefer not to say',this)">Prefer not to say</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Physical Activity Level</label>
+      <div class="form-options" id="physicalActivityOptions">
+        <button class="form-option" onclick="selectOption('physical_activity','Sedentary',this)">Sedentary</button>
+        <button class="form-option" onclick="selectOption('physical_activity','Light',this)">Light</button>
+        <button class="form-option" onclick="selectOption('physical_activity','Moderate',this)">Moderate</button>
+        <button class="form-option" onclick="selectOption('physical_activity','Active',this)">Active</button>
+      </div>
+    </div>
+
+    <!-- SECTION: App-specific -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">About This Visit</div>
+
+    <div class="form-group">
+      <label class="form-label">Have you ever attempted a digital detox before?</label>
+      <div class="form-options" id="prevDetoxOptions">
+        <button class="form-option" onclick="selectOption('prev_detox_attempt','Yes',this)">Yes</button>
+        <button class="form-option" onclick="selectOption('prev_detox_attempt','No',this)">No</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">How did you hear about PAUSE App? <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <select class="form-input" id="profileReferral">
+        <option value="">Prefer not to say</option>
+        <option value="Doctor/Healthcare provider">Doctor / Healthcare provider</option>
+        <option value="Friend/Family">Friend / Family</option>
+        <option value="Social media">Social media</option>
+        <option value="Play Store search">Play Store search</option>
+        <option value="Research/Academic">Research / Academic context</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">May we follow up with you for research purposes?</label>
+      <div class="form-options" id="followupConsentOptions">
+        <button class="form-option" onclick="selectOption('followup_consent','Yes',this)">Yes, you may contact me</button>
+        <button class="form-option" onclick="selectOption('followup_consent','No',this)">No thanks</button>
+      </div>
+    </div>
+
     <button class="btn-primary" onclick="saveProfile()">Save &amp; Continue →</button>
     <!-- "Skip for now" removed intentionally — profile is mandatory -->
   </div>
@@ -514,6 +870,19 @@
   </div>
 </div>
 
+<!-- POST-ASSESSMENT RESEARCH MODAL — Stage 2: 3 disorder-specific questions -->
+<div class="modal-overlay" id="postAssessmentModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Research Contribution</div>
+    <div class="modal-title" id="postAssessTitle">3 Quick Research Questions</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Based on your highest-scoring area, answering these 3 optional questions significantly helps our research. Responses are anonymous.</p>
+    <div id="postAssessQuestions"></div>
+    <button class="btn-primary" style="margin-top:12px" onclick="savePostAssessmentData()">Submit &amp; Help Research 🔬</button>
+    <button class="btn-ghost" onclick="closeModal('postAssessmentModal')">Skip for now</button>
+  </div>
+</div>
+
 </div><!-- /app -->
 
 <!-- FIX 2: Offline detection -->
@@ -527,64 +896,39 @@
 })();
 </script>
 
-<!-- FIX 1: T&C enforcement — intercept Google button click -->
+<!-- T&C / Login flow -->
 <script>
-function enforceTermsBeforeSignIn(e){
-  var cb = document.getElementById('termsCheckbox');
+// Step 1: Any "Login" trigger opens termsModal first (unless T&C already accepted)
+function openLoginFlow(){
+  const alreadyAccepted = localStorage.getItem('pause_terms_accepted');
+  if(alreadyAccepted){
+    openModal('loginModal');
+  } else {
+    openModal('termsModal');
+  }
+}
+// Step 2: User ticks checkbox and clicks Accept — validate then open loginModal
+function acceptTermsAndLogin(){
+  var cb  = document.getElementById('termsCheckbox');
   var err = document.getElementById('termsError');
-  if(!cb || cb.checked){ err && (err.style.display='none'); return true; }
-  e && e.stopImmediatePropagation();
-  e && e.preventDefault();
-  err && (err.style.display='block');
-  cb.style.outline='2px solid #c0392b';
-  setTimeout(function(){ cb.style.outline=''; }, 1500);
-  return false;
-}
-// Attach after Google button renders
-document.addEventListener('DOMContentLoaded', function(){
-  var interval = setInterval(function(){
-    var gBtn = document.querySelector('#googleSignInBtn iframe, #googleSignInBtn > div');
-    if(gBtn){
-      clearInterval(interval);
-      gBtn.addEventListener('click', enforceTermsBeforeSignIn, true);
-    }
-  }, 300);
-});
-</script>
-
-<!-- FIX 6: Edit profile logic -->
-<script>
-function openEditProfile(){
-  closeModal('userModal');
-  var profile = JSON.parse(localStorage.getItem('pause_profile')||'{}');
-  var setVal = function(id,val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
-  setVal('editAge', profile.age);
-  setVal('editGender', profile.gender);
-  setVal('editOccupation', profile.occupation);
-  setVal('editCountry', profile.country);
-  setVal('editDevice', profile.device);
-  document.getElementById('editProfileModal').classList.add('active');
-}
-function saveEditProfile(){
-  var profile = JSON.parse(localStorage.getItem('pause_profile')||'{}');
-  var age = document.getElementById('editAge').value;
-  if(!age || age < 13 || age > 100){
-    alert('Please enter a valid age between 13 and 100.');
+  if(!cb || !cb.checked){
+    err && (err.style.display = 'block');
+    cb && (cb.style.outline = '2px solid #c0392b');
+    setTimeout(function(){ if(cb) cb.style.outline = ''; }, 1500);
     return;
   }
-  profile.age        = age;
-  profile.gender     = document.getElementById('editGender').value;
-  profile.occupation = document.getElementById('editOccupation').value;
-  profile.country    = document.getElementById('editCountry').value;
-  profile.device     = document.getElementById('editDevice').value;
-  profile.updatedAt  = new Date().toISOString();
-  localStorage.setItem('pause_profile', JSON.stringify(profile));
-  closeModal('editProfileModal');
-  // Refresh user modal content if function exists
-  if(typeof renderUserModal === 'function') renderUserModal();
-  if(typeof showUserModal === 'function'){ setTimeout(showUserModal, 200); }
+  err && (err.style.display = 'none');
+  // Persist consent with timestamp
+  localStorage.setItem('pause_terms_accepted', JSON.stringify({
+    accepted: true,
+    timestamp: new Date().toISOString(),
+    version: '1.0'
+  }));
+  closeModal('termsModal');
+  setTimeout(function(){ openModal('loginModal'); }, 200);
 }
 </script>
+
 
 <script src="data.js"></script>
 <script src="state.js"></script>

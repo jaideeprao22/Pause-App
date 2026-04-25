@@ -4,10 +4,11 @@
 function showScreen(id){
   const navMap={
     'screen-home':0,
-    'screen-assess-menu':1,'screen-quick':1,'screen-assessment':1,'screen-results':1,
-    'screen-logbook':2,
-    'screen-tools':3,
-    'screen-progress':4,'screen-about':4
+    'screen-assess-menu':0,'screen-quick':0,'screen-assessment':0,'screen-results':0,
+    'screen-tools':1,
+    'screen-progress':2,
+    'screen-logbook':3,
+    'screen-about':4
   };
   document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===navMap[id]));
   const showBack = ['screen-assess-menu','screen-quick','screen-assessment','screen-results','screen-logbook','screen-tools'].includes(id);
@@ -33,12 +34,14 @@ function showScreen(id){
   if(id === 'screen-tools'){
     renderMotivationCard();
     renderWeeklyReport();
-    // FIX 7: renderCBTSection now takes no argument — finds #cbtSection internally
     if(typeof renderCBTSection === 'function') renderCBTSection();
     renderScreenTimeSection();
     renderCaregiverSection();
-    renderResearchConsent();
     checkReassessmentReminder();
+  }
+
+  if(id === 'screen-about'){
+    renderAccountSection();
   }
 
   if(id === 'screen-home'){

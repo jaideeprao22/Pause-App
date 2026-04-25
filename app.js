@@ -113,6 +113,16 @@ function showScaleInfo(disorderId, idx){
   const d = DISORDERS.find(x => x.id === disorderId);
   if(!d){ if(idx !== undefined) startSingleAssessment(idx); return; }
 
+  // Plain-language definitions for each disorder
+  const definitions = {
+    cyberchondria:  'Cyberchondria is the compulsive habit of repeatedly searching for health information online in a way that escalates — rather than relieves — health anxiety. Instead of reassurance, each search triggers more worry and more searching, creating a distressing cycle.',
+    socialmedia:    'Social Media Addiction is a pattern of compulsive social media use characterised by loss of control, preoccupation with platforms, and continued use despite negative effects on mood, relationships, or daily responsibilities.',
+    shortform:      'Short-Form Video Addiction refers to the inability to control consumption of brief video content (Reels, Shorts, TikTok) leading to significant time loss, disrupted sleep, reduced attention span, and interference with everyday tasks.',
+    gaming:         'Gaming Disorder is characterised by impaired control over gaming, increasing priority given to gaming over other activities, and continuation of gaming despite negative consequences — persisting over a significant period.',
+    ai:             'AI Dependency is excessive reliance on artificial intelligence tools (chatbots, writing assistants) that weakens independent thinking, problem-solving, and decision-making, to the point where functioning without AI causes anxiety or impairment.',
+    workaddiction:  'Digital Work Addiction is compulsive overworking driven by constant digital connectivity — checking emails after hours, being unable to mentally disconnect from work — that erodes personal relationships, leisure, and physical health.'
+  };
+
   const score = disorderScores[d.id];
   const level = score !== undefined ? getLevel(d, score) : null;
   const scoreHtml = level
@@ -124,6 +134,7 @@ function showScaleInfo(disorderId, idx){
 
   document.getElementById('explainTitle').innerHTML = `${d.icon} ${d.name}`;
   document.getElementById('explainBody').innerHTML = `
+    ${definitions[d.id] ? `<div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.7;color:var(--text);border-left:3px solid ${d.color || 'var(--accent)'}">${definitions[d.id]}</div>` : ''}
     <p style="margin-bottom:10px">${d.scaleRef}</p>
     ${scoreHtml}
     <div style="background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:10px">
