@@ -17,8 +17,41 @@
 <link rel="stylesheet" href="style.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- FIX 2: Offline banner styles -->
+<style>
+#offline-banner{display:none;background:#c0392b;color:#fff;text-align:center;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;position:sticky;top:0;z-index:9999;letter-spacing:0.01em}
+.terms-box{background:rgba(15,45,94,0.06);border-radius:10px;padding:12px 14px;margin:12px 0;display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(15,45,94,0.12)}
+.terms-box input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:#0f2d5e}
+.terms-box label{font-size:12px;line-height:1.6;color:var(--muted);cursor:pointer}
+.terms-box label a{color:#0f2d5e;font-weight:600;text-decoration:none}
+.terms-error{color:#c0392b;font-size:12px;margin-top:-6px;margin-bottom:8px;display:none;text-align:center}
+/* Edit profile modal */
+.edit-profile-row{margin-bottom:14px}
+.edit-profile-row label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:5px}
+.edit-profile-row input,.edit-profile-row select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--card)}
+/* Disorder info modal */
+.disorder-info-badge{display:inline-block;background:#e8eef7;color:#0f2d5e;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;margin:3px 3px 3px 0}
+.tool-stat{background:var(--bg);border-radius:10px;padding:10px 12px;text-align:center;flex:1}
+.tool-stat-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#0f2d5e}
+.tool-stat-label{font-size:10px;color:var(--muted);margin-top:2px}
+/* Trend share button */
+.trend-share-btn{width:100%;background:linear-gradient(135deg,#0f2d5e,#1a4a8a);color:#fff;border:none;border-radius:12px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.trend-share-btn:active{opacity:0.85}
+.trend-need-more{font-size:12px;color:var(--muted);text-align:center;margin-top:8px;padding:8px}
+/* Assess disorder cards */
+.assess-disorder-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:box-shadow 0.18s,border-color 0.18s;-webkit-tap-highlight-color:transparent}
+.assess-disorder-card:active{box-shadow:0 0 0 3px rgba(15,45,94,0.1)}
+.assess-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.assess-card-chevron{margin-left:auto;font-size:18px;color:var(--muted)}
+.assess-impact-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+</style>
 </head>
 <body>
+
+<!-- FIX 2: Offline banner -->
+<div id="offline-banner">⚡ You're offline — your data is saved locally and will sync when you reconnect.</div>
+
 <div id="app">
 
 <!-- INSTALL BANNER -->
@@ -66,7 +99,7 @@
 </div>
 </div>
 
-<!-- ASSESSMENT MENU -->
+<!-- ASSESSMENT MENU — FIX 4: Disorders & impact modules are now clickable -->
 <div class="screen" id="screen-assess-menu">
 <div class="screen-content">
   <div class="notice blue"><div class="notice-title">📋 Full Assessment</div>Complete all 6 disorder screens + 4 health impact modules. Takes 20-25 minutes.</div>
@@ -96,7 +129,7 @@
     <div class="q-number" id="qNumber"></div>
   </div>
   <div class="q-text" id="qText"></div>
-<div id="qHint" style="display:none;font-size:12px;color:var(--muted);font-style:italic;margin:-8px 16px 8px;line-height:1.5;padding:8px 12px;background:rgba(0,0,0,0.03);border-radius:8px;border-left:3px solid var(--border)"></div>
+  <div id="qHint" style="display:none;font-size:12px;color:var(--muted);font-style:italic;margin:-8px 16px 8px;line-height:1.5;padding:8px 12px;background:rgba(0,0,0,0.03);border-radius:8px;border-left:3px solid var(--border)"></div>
   <div class="q-options" id="qOptions"></div>
   <div class="q-nav">
     <button class="q-prev" id="qPrevBtn" onclick="prevQuestion()">←</button>
@@ -137,10 +170,9 @@
 </div>
 </div>
 
-<!-- PROGRESS -->
+<!-- PROGRESS — FIX 5: Share trend button added -->
 <div class="screen" id="screen-progress">
 <div class="screen-content">
-  <!-- 7-Day Challenge Hero -->
   <div class="challenge-header-card">
     <div style="position:relative;z-index:1">
       <div style="font-size:11px;opacity:0.7;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">🎯 7-Day Digital Detox</div>
@@ -173,6 +205,8 @@
   <div class="trend-graph">
     <div style="font-size:12px;font-weight:700;color:var(--text)">Digital Wellness Score Over Time</div>
     <div class="trend-bars" id="trendBars"></div>
+    <!-- FIX 5: Share trend -->
+    <div id="trendShareArea"></div>
   </div>
   <div class="section-label" style="margin-top:4px">😊 Mood Trend</div>
   <div class="card" id="moodTrendSection"></div>
@@ -207,7 +241,6 @@
 </div>
 </div>
 
-
 <!-- LOGBOOK SCREEN -->
 <div class="screen" id="screen-logbook">
 <div class="screen-content">
@@ -219,39 +252,24 @@
 <div class="screen-content">
   <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Wellness Tools</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Clinically-informed tools for your digital wellbeing</div>
-
-  <!-- Reassessment Banner -->
   <div id="reassessmentBanner" style="display:none"></div>
-
-  <!-- Today's Motivation -->
   <div class="section-label">Today's Motivation</div>
   <div class="card" id="motivationCard"></div>
-
-  <!-- Weekly Report -->
   <div class="section-label" style="margin-top:4px">Weekly Summary</div>
   <div class="card" id="weeklyReportCard"></div>
-
-  <!-- CBT Tips -->
+  <!-- FIX 7: CBT modules rendered by cbt.js -->
   <div class="section-label" style="margin-top:4px">CBT Exercises</div>
   <div id="cbtSection"></div>
-
-  <!-- Screen Time Log -->
   <div class="section-label" style="margin-top:4px">Screen Time Log</div>
   <div class="card" id="screenTimeSection"></div>
-
-  <!-- PDF Report -->
   <div class="section-label" style="margin-top:4px">Clinical Report</div>
   <div class="card">
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">🩺 Show Your Doctor</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">Generate a printable clinical report of your assessment results to share with your healthcare provider.</div>
     <button class="btn-primary" onclick="generateDoctorReport()">📄 Generate Report</button>
   </div>
-
-  <!-- Caregiver Mode -->
   <div class="section-label" style="margin-top:4px">Caregiver Summary</div>
   <div class="card" id="caregiverSection"></div>
-
-  <!-- Research Consent -->
   <div class="section-label" style="margin-top:4px">Research Participation</div>
   <div class="card">
     <div id="researchConsentSection"></div>
@@ -304,23 +322,31 @@
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- FIX 1: LOGIN MODAL — T&C checkbox + no anonymous skip after Google sign-in -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">🔐 Save Your Progress</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Login to save your assessment history, sync across devices, and protect your data from being lost.</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Login to save your assessment history, sync across devices, and protect your data.</p>
+    <!-- Terms checkbox — must be ticked before Google sign-in proceeds -->
+    <div class="terms-box">
+      <input type="checkbox" id="termsCheckbox"/>
+      <label for="termsCheckbox">
+        I agree to the <a href="privacy-policy.html" target="_blank">Terms &amp; Conditions</a> and voluntarily consent to my anonymised assessment data being used for academic research on digital health interventions (PAUSE App Study, Govt. Medical College, Maheshwaram).
+      </label>
+    </div>
+    <div class="terms-error" id="termsError">Please agree to the Terms &amp; Conditions to continue.</div>
     <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:10px"></div>
-    <button class="btn-ghost" onclick="closeModal('loginModal')">Maybe later — use without login</button>
+    <!-- NOTE: "Maybe later" is removed — login is now required to proceed past onboarding -->
   </div>
 </div>
 
-<!-- PROFILE SETUP MODAL -->
+<!-- PROFILE SETUP MODAL — FIX 1: "Skip for now" removed, profile is mandatory post-login -->
 <div class="modal-overlay" id="profileModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">👋 Quick Profile Setup</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Help us personalize your experience. Takes 30 seconds.</p>
+    <div class="modal-title">👋 Complete Your Profile</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">This helps personalise your experience. All fields required.</p>
     <div class="form-group">
       <label class="form-label">Age</label>
       <input type="number" class="form-input" id="profileAge" placeholder="Enter your age" min="13" max="100"/>
@@ -363,18 +389,73 @@
         <button class="form-option" onclick="selectOption('device','Both equally',this)">Both equally</button>
       </div>
     </div>
-    <button class="btn-primary" onclick="saveProfile()">Save & Continue →</button>
-    <button class="btn-ghost" onclick="closeModal('profileModal')">Skip for now</button>
+    <button class="btn-primary" onclick="saveProfile()">Save &amp; Continue →</button>
+    <!-- "Skip for now" removed intentionally — profile is mandatory -->
   </div>
 </div>
 
-<!-- USER MODAL -->
+<!-- FIX 6: USER MODAL — Edit profile button added -->
 <div class="modal-overlay" id="userModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div id="userModalContent"></div>
+    <!-- Edit profile button -->
+    <button class="btn-secondary" onclick="openEditProfile()" style="margin-bottom:8px">✏️ Edit My Details</button>
     <button class="btn-ghost" style="color:var(--red)" onclick="logoutUser()">Sign Out</button>
     <button class="btn-ghost" onclick="closeModal('userModal')">Close</button>
+  </div>
+</div>
+
+<!-- FIX 6: EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Edit Profile</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Update your personal details below.</p>
+    <div class="edit-profile-row">
+      <label>Age</label>
+      <input type="number" id="editAge" placeholder="Your age" min="13" max="100"/>
+    </div>
+    <div class="edit-profile-row">
+      <label>Gender</label>
+      <select id="editGender">
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
+    </div>
+    <div class="edit-profile-row">
+      <label>Occupation</label>
+      <select id="editOccupation">
+        <option value="Student">Student</option>
+        <option value="Healthcare">Healthcare</option>
+        <option value="IT Professional">IT Professional</option>
+        <option value="Other Professional">Other Professional</option>
+        <option value="Not Working">Not Working</option>
+      </select>
+    </div>
+    <div class="edit-profile-row">
+      <label>Country</label>
+      <select id="editCountry">
+        <option value="India">India</option>
+        <option value="USA">USA</option>
+        <option value="UK">UK</option>
+        <option value="Australia">Australia</option>
+        <option value="Canada">Canada</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="edit-profile-row">
+      <label>Primary Device</label>
+      <select id="editDevice">
+        <option value="Smartphone">Smartphone</option>
+        <option value="Laptop">Laptop</option>
+        <option value="Both equally">Both equally</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveEditProfile()">Save Changes</button>
+    <button class="btn-ghost" onclick="closeModal('editProfileModal')">Cancel</button>
   </div>
 </div>
 
@@ -388,7 +469,6 @@
     <button class="btn-primary" onclick="closeModal('badgeModal')">Awesome! 🎉</button>
   </div>
 </div>
-
 
 <!-- ONBOARDING MODAL -->
 <div class="modal-overlay" id="onboardingModal">
@@ -410,6 +490,18 @@
   </div>
 </div>
 
+<!-- FIX 4: DISORDER INFO MODAL -->
+<div class="modal-overlay" id="disorderInfoModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;font-size:44px;margin-bottom:8px" id="disorderInfoIcon"></div>
+    <div class="modal-title" id="disorderInfoTitle"></div>
+    <div id="disorderInfoBody" style="font-size:13px;line-height:1.7;color:var(--muted)"></div>
+    <button class="btn-primary" style="margin-top:16px" id="disorderInfoStartBtn">Start This Assessment →</button>
+    <button class="btn-ghost" onclick="closeModal('disorderInfoModal')">Close</button>
+  </div>
+</div>
+
 <!-- NOTIFICATION PROMPT MODAL -->
 <div class="modal-overlay" id="notifPromptModal">
   <div class="modal-sheet" style="text-align:center">
@@ -424,7 +516,75 @@
 
 </div><!-- /app -->
 
+<!-- FIX 2: Offline detection -->
+<script>
+(function(){
+  var banner = document.getElementById('offline-banner');
+  function update(){ banner.style.display = navigator.onLine ? 'none' : 'block'; }
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
+})();
+</script>
 
+<!-- FIX 1: T&C enforcement — intercept Google button click -->
+<script>
+function enforceTermsBeforeSignIn(e){
+  var cb = document.getElementById('termsCheckbox');
+  var err = document.getElementById('termsError');
+  if(!cb || cb.checked){ err && (err.style.display='none'); return true; }
+  e && e.stopImmediatePropagation();
+  e && e.preventDefault();
+  err && (err.style.display='block');
+  cb.style.outline='2px solid #c0392b';
+  setTimeout(function(){ cb.style.outline=''; }, 1500);
+  return false;
+}
+// Attach after Google button renders
+document.addEventListener('DOMContentLoaded', function(){
+  var interval = setInterval(function(){
+    var gBtn = document.querySelector('#googleSignInBtn iframe, #googleSignInBtn > div');
+    if(gBtn){
+      clearInterval(interval);
+      gBtn.addEventListener('click', enforceTermsBeforeSignIn, true);
+    }
+  }, 300);
+});
+</script>
+
+<!-- FIX 6: Edit profile logic -->
+<script>
+function openEditProfile(){
+  closeModal('userModal');
+  var profile = JSON.parse(localStorage.getItem('pause_profile')||'{}');
+  var setVal = function(id,val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
+  setVal('editAge', profile.age);
+  setVal('editGender', profile.gender);
+  setVal('editOccupation', profile.occupation);
+  setVal('editCountry', profile.country);
+  setVal('editDevice', profile.device);
+  document.getElementById('editProfileModal').classList.add('active');
+}
+function saveEditProfile(){
+  var profile = JSON.parse(localStorage.getItem('pause_profile')||'{}');
+  var age = document.getElementById('editAge').value;
+  if(!age || age < 13 || age > 100){
+    alert('Please enter a valid age between 13 and 100.');
+    return;
+  }
+  profile.age        = age;
+  profile.gender     = document.getElementById('editGender').value;
+  profile.occupation = document.getElementById('editOccupation').value;
+  profile.country    = document.getElementById('editCountry').value;
+  profile.device     = document.getElementById('editDevice').value;
+  profile.updatedAt  = new Date().toISOString();
+  localStorage.setItem('pause_profile', JSON.stringify(profile));
+  closeModal('editProfileModal');
+  // Refresh user modal content if function exists
+  if(typeof renderUserModal === 'function') renderUserModal();
+  if(typeof showUserModal === 'function'){ setTimeout(showUserModal, 200); }
+}
+</script>
 
 <script src="data.js"></script>
 <script src="state.js"></script>
