@@ -152,7 +152,7 @@
   <div class="tabs">
     <button class="tab active" onclick="switchResultTab('disorders')">Your Results</button>
     <button class="tab" onclick="switchResultTab('impact')">Health Impact</button>
-    <button class="tab" onclick="switchResultTab('actions')">What to Do</button>
+    <button class="tab" onclick="switchResultTab('actions')">Action Plan</button>
   </div>
   <div id="result-tab-disorders">
     <div class="section-label">Your Wellness Results</div>
@@ -425,7 +425,7 @@
 <div class="modal-overlay" id="dwsModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title" style="margin-bottom:4px">Digital Wellness Score</div>
+    <div class="modal-title">Digital Wellness Score</div>
     <div class="dws-container">
       <div class="dws-circle">
         <div class="dws-number" id="modalDWSNum">--</div>
@@ -435,7 +435,34 @@
       <div class="dws-sub" id="modalDWSSub">Complete a check-up to see your Digital Wellness Score.</div>
     </div>
     <div style="margin-top:12px" id="modalDWSBreakdown"></div>
-    <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Close</button>
+    <!-- Score band legend -->
+    <div style="margin-top:14px;background:var(--bg);border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:10px">What the score means</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#2ecc71;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>80 – 100</strong> &nbsp;Excellent — very healthy digital habits</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#00c9a7;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>65 – 79</strong> &nbsp;Good — mostly healthy with minor concerns</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f5a623;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>50 – 64</strong> &nbsp;Moderate Risk — some habits need attention</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ff6b35;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>35 – 49</strong> &nbsp;High Risk — multiple habits affecting wellbeing</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ff4757;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>0 – 34</strong> &nbsp;Critical — significant patterns detected</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6">A higher score means healthier digital habits. The score is calculated from your disorder screening results and health impact modules — a Full Check-up gives the most accurate picture.</div>
+    </div>
+    <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Got it</button>
   </div>
 </div>
 
