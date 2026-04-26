@@ -283,41 +283,28 @@ function saveProfile(){
 function openEditProfile(){
   closeModal('userModal');
   if(!userProfile || !userProfile.age){ openModal('profileModal'); return; }
-  const sv = function(id, val){
-    const el = document.getElementById(id);
-    if(!el || val === undefined || val === null) return;
-    el.value = val;
-  };
-  // Personal
-  sv('editAge',        userProfile.age);
-  sv('editGender',     userProfile.gender);
-  sv('editEducation',  userProfile.education);
-  sv('editMarital',    userProfile.marital_status);
+  // Pre-fill edit fields
+  const sv = function(id, val){ const el=document.getElementById(id); if(el && val!==undefined) el.value=val; };
+  sv('editAge', userProfile.age);
+  sv('editGender', userProfile.gender);
   sv('editOccupation', userProfile.occupation);
-  sv('editIncome',     userProfile.income_bracket);
-  sv('editCountry',    userProfile.country);
-  // Digital habits
-  sv('editDevice',      userProfile.primary_device);
-  sv('editScreentime',  userProfile.daily_screentime);
-  sv('editSleep',       userProfile.avg_sleep);
+  sv('editCountry', userProfile.country);
+  sv('editDevice', userProfile.primary_device);
   openModal('editProfileModal');
 }
 
 function saveEditProfile(){
   const age = parseInt(document.getElementById('editAge').value);
   if(!age || age < 18 || age > 100){ showToast('Please enter a valid age between 18 and 100.'); return; }
-  // Update all editable fields — all 20 research baseline fields are preserved via spread
-  userProfile.age             = age;
-  userProfile.gender          = document.getElementById('editGender').value       || userProfile.gender;
-  userProfile.education       = document.getElementById('editEducation').value    || userProfile.education;
-  userProfile.marital_status  = document.getElementById('editMarital').value      || userProfile.marital_status;
-  userProfile.occupation      = document.getElementById('editOccupation').value   || userProfile.occupation;
-  userProfile.income_bracket  = document.getElementById('editIncome').value       || userProfile.income_bracket;
-  userProfile.country         = document.getElementById('editCountry').value      || userProfile.country;
-  userProfile.primary_device  = document.getElementById('editDevice').value       || userProfile.primary_device;
-  userProfile.daily_screentime= document.getElementById('editScreentime').value   || userProfile.daily_screentime;
-  userProfile.avg_sleep       = document.getElementById('editSleep').value        || userProfile.avg_sleep;
-  userProfile.updatedAt       = new Date().toISOString();
+  // Only update the 5 editable fields — all research fields are preserved from existing userProfile
+  userProfile.age            = age;
+  userProfile.gender         = document.getElementById('editGender').value || userProfile.gender;
+  userProfile.occupation     = document.getElementById('editOccupation').value || userProfile.occupation;
+  userProfile.country        = document.getElementById('editCountry').value || userProfile.country;
+  userProfile.primary_device = document.getElementById('editDevice').value || userProfile.primary_device;
+  userProfile.updatedAt      = new Date().toISOString();
+  // BUG7 FIX: persist for both logged-in and guest users
+  // L3 FIX: write only the canonical key
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
   } else {
@@ -528,11 +515,28 @@ async function submitFeedback(){
 // ============================================================
 // LOGIN FLOW
 // ============================================================
+
+// Directly triggers Google One Tap — bypasses the "Welcome" loginModal entirely.
+// Falls back to loginModal if One Tap is suppressed or Google SDK isn't ready.
+function _triggerGoogleSignIn(){
+  if(window.google && googleSignInInitialized){
+    google.accounts.id.prompt((notification) => {
+      // One Tap was blocked/suppressed by browser or previously dismissed — fall back
+      if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+        openModal('loginModal');
+      }
+    });
+  } else {
+    // Google SDK not ready yet — fall back to modal with button
+    openModal('loginModal');
+  }
+}
+
 function openLoginFlow(){
-  // Show T&C if never accepted; go straight to sign-in if returning user
+  // Show T&C if never accepted; trigger Google sign-in directly if returning user
   const alreadyAccepted = localStorage.getItem('pause_terms_accepted');
   if(alreadyAccepted){
-    openModal('loginModal');
+    _triggerGoogleSignIn();
   } else {
     openModal('termsModal');
   }
@@ -551,7 +555,8 @@ function acceptTermsAndLogin(){
     accepted: true, timestamp: new Date().toISOString(), version: '1.0'
   }));
   closeModal('termsModal');
-  setTimeout(() => openModal('loginModal'), 250);
+  // Skip "Welcome" modal — go directly to Google sign-in
+  setTimeout(() => _triggerGoogleSignIn(), 250);
 }
 
 // ============================================================
