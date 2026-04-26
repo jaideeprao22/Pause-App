@@ -110,7 +110,7 @@ async function handleGoogleCredential(response){
     provider:'google',
     token: response.credential
   });
-  if(error){ console.error('Auth error:', error); alert('Login failed. Please try again.'); return; }
+  if(error){ console.error('Auth error:', error); showToast('Login failed — please try again.'); return; }
   closeModal('loginModal');
 }
 
@@ -222,26 +222,26 @@ function selectOption(type, value, btn){
 function saveProfile(){
   // Validate number inputs and selects directly from DOM
   const age = parseInt(document.getElementById('profileAge').value);
-  if(!age || age < 18 || age > 100){ alert('Please enter a valid age (18 or older).'); return; }
-  if(!profileSelections.gender)           { alert('Please select your gender.'); return; }
-  if(!document.getElementById('profileEducation').value) { alert('Please select your education level.'); return; }
-  if(!profileSelections.marital)          { alert('Please select your marital status.'); return; }
-  if(!profileSelections.occupation)       { alert('Please select your occupation.'); return; }
-  if(!document.getElementById('profileIncome').value)    { alert('Please select your income range.'); return; }
-  if(!profileSelections.residence)        { alert('Please select your area of residence.'); return; }
-  if(!profileSelections.living_situation) { alert('Please select your living situation.'); return; }
-  if(!profileSelections.device)           { alert('Please select your primary device.'); return; }
-  if(!document.getElementById('profileScreentime').value){ alert('Please select your daily screen time.'); return; }
-  if(!document.getElementById('profileSmartphoneYears').value){ alert('Please select years using a smartphone.'); return; }
-  if(!profileSelections.morning_habit)    { alert('Please answer the morning habit question.'); return; }
-  if(!profileSelections.bedroom_charge)   { alert('Please answer the bedroom charging question.'); return; }
-  if(!document.getElementById('profileSleep').value)     { alert('Please select your average sleep.'); return; }
-  if(!profileSelections.self_rated_health){ alert('Please rate your overall health.'); return; }
-  if(!profileSelections.chronic_illness)  { alert('Please answer the chronic illness question.'); return; }
-  if(!profileSelections.family_member_ill){ alert('Please answer the family illness question.'); return; }
-  if(!profileSelections.physical_activity){ alert('Please select your physical activity level.'); return; }
-  if(!profileSelections.prev_detox_attempt){ alert('Please answer the digital detox question.'); return; }
-  if(!profileSelections.followup_consent) { alert('Please answer the follow-up consent question.'); return; }
+  if(!age || age < 18 || age > 100){ showToast('Please enter a valid age (18 or older).'); return; }
+  if(!profileSelections.gender)           { showToast('Please select your gender.'); return; }
+  if(!document.getElementById('profileEducation').value) { showToast('Please select your education level.'); return; }
+  if(!profileSelections.marital)          { showToast('Please select your marital status.'); return; }
+  if(!profileSelections.occupation)       { showToast('Please select your occupation.'); return; }
+  if(!document.getElementById('profileIncome').value)    { showToast('Please select your income range.'); return; }
+  if(!profileSelections.residence)        { showToast('Please select your area of residence.'); return; }
+  if(!profileSelections.living_situation) { showToast('Please select your living situation.'); return; }
+  if(!profileSelections.device)           { showToast('Please select your primary device.'); return; }
+  if(!document.getElementById('profileScreentime').value){ showToast('Please select your daily screen time.'); return; }
+  if(!document.getElementById('profileSmartphoneYears').value){ showToast('Please select years using a smartphone.'); return; }
+  if(!profileSelections.morning_habit)    { showToast('Please answer the morning habit question.'); return; }
+  if(!profileSelections.bedroom_charge)   { showToast('Please answer the bedroom charging question.'); return; }
+  if(!document.getElementById('profileSleep').value)     { showToast('Please select your average sleep.'); return; }
+  if(!profileSelections.self_rated_health){ showToast('Please rate your overall health.'); return; }
+  if(!profileSelections.chronic_illness)  { showToast('Please answer the chronic illness question.'); return; }
+  if(!profileSelections.family_member_ill){ showToast('Please answer the family illness question.'); return; }
+  if(!profileSelections.physical_activity){ showToast('Please select your physical activity level.'); return; }
+  if(!profileSelections.prev_detox_attempt){ showToast('Please answer the digital detox question.'); return; }
+  if(!profileSelections.followup_consent) { showToast('Please answer the follow-up consent question.'); return; }
 
   userProfile = {
     age,
@@ -271,8 +271,8 @@ function saveProfile(){
   };
 
   if(currentUser){
+    // L3 FIX: write only the canonical key — handleUser() already migrates old pauseProfile_ key on login
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
-    localStorage.setItem('pauseProfile_' + currentUser.id, JSON.stringify(userProfile));
   } else {
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile)); // BUG5 FIX: persist for guests
   }
@@ -295,7 +295,7 @@ function openEditProfile(){
 
 function saveEditProfile(){
   const age = parseInt(document.getElementById('editAge').value);
-  if(!age || age < 18 || age > 100){ alert('Please enter a valid age between 18 and 100.'); return; }
+  if(!age || age < 18 || age > 100){ showToast('Please enter a valid age between 18 and 100.'); return; }
   // Only update the 5 editable fields — all research fields are preserved from existing userProfile
   userProfile.age            = age;
   userProfile.gender         = document.getElementById('editGender').value || userProfile.gender;
@@ -304,9 +304,9 @@ function saveEditProfile(){
   userProfile.primary_device = document.getElementById('editDevice').value || userProfile.primary_device;
   userProfile.updatedAt      = new Date().toISOString();
   // BUG7 FIX: persist for both logged-in and guest users
+  // L3 FIX: write only the canonical key
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
-    localStorage.setItem('pauseProfile_' + currentUser.id, JSON.stringify(userProfile));
   } else {
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile));
   }
@@ -413,7 +413,7 @@ async function savePostAssessmentData(){
   });
 
   if(!allAnswered){
-    alert('Please answer all 3 questions before submitting.');
+    showToast('Please answer all 3 questions before submitting.');
     return;
   }
 

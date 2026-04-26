@@ -2,6 +2,8 @@
 // INIT
 // ============================================================
 function init(){
+  // NM1 FIX: load saved scores FIRST so disorder cards render with correct data immediately
+  loadSavedScores();
   renderHomeDisorders();
   renderAssessMenu();
   renderQuickScan();
@@ -9,7 +11,6 @@ function init(){
   renderProgress();
   renderChallenge();
   renderBadges();
-  loadSavedScores();
   renderLoginBanner();
   renderAccountSection();
   renderMoodCheck();
@@ -58,24 +59,12 @@ function saveScores(){
 
 // ============================================================
 // RENDER HOME
+// NC1 FIX: renderHomeDisorders() is defined ONLY in assessment.js.
+// The version that was here used startSingleAssessment (no partial-check guard),
+// old .disorder-card CSS, and no staleness labels. Since app.js loads after
+// assessment.js, the old version here was silently overwriting the correct one.
+// Removed — all calls below now use the assessment.js implementation.
 // ============================================================
-function renderHomeDisorders(){
-  const el = document.getElementById('home-disorder-list');
-  el.innerHTML = DISORDERS.map((d,i) => {
-    const score = disorderScores[d.id];
-    const level = score !== undefined ? getLevel(d, score) : null;
-    return `<div class="disorder-card" onclick="startSingleAssessment(${i})">
-      <div class="disorder-icon" style="background:${d.bg}">${d.icon}</div>
-      <div class="disorder-info">
-        <div class="disorder-name">${d.name}</div>
-        <div class="disorder-meta">${d.scale} · ${d.items} questions</div>
-      </div>
-      <div class="disorder-score">
-        ${level ? `<div class="disorder-badge" style="background:${level.bg};color:${level.color}">${level.label}</div>` : '<div style="font-size:11px;color:var(--muted)">Tap to screen</div>'}
-      </div>
-    </div>`;
-  }).join('');
-}
 
 // ============================================================
 // FIX 4: ASSESS MENU — clickable cards with disorder info

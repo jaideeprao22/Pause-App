@@ -25,7 +25,7 @@ async function toggleNotification(){
         localStorage.setItem('notifEnabled','true');
         scheduleNotification();
       } else {
-        alert('Please enable notifications in your browser/phone settings.');
+        showToast('Please enable notifications in your device settings, then try again.');
       }
     }
   } else {

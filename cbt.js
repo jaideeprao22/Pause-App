@@ -202,9 +202,11 @@ function renderCBTSection(){
     modulesToRender = GENERAL_MODULES;
   } else {
     const [topKey, topSev] = activeDisorders[0];
-    const sevColors = {severe:'#c0392b', moderate:'#d97706', mild:'#059669'};
-    const sevBgs    = {severe:'#ffe4e6', moderate:'#fef3c7', mild:'#d1fae5'};
-    const sevLabels = {severe:'needs some attention', moderate:'worth working on', mild:'mild — great that you caught it early'};
+    // H2 FIX: 'low risk' is a valid level label but not a CBT_MODULES key — map to 'mild'
+    const sevForModules = topSev === 'low risk' ? 'mild' : topSev;
+    const sevColors = {severe:'#c0392b', moderate:'#d97706', mild:'#059669', 'low risk':'#059669'};
+    const sevBgs    = {severe:'#ffe4e6', moderate:'#fef3c7', mild:'#d1fae5', 'low risk':'#d1fae5'};
+    const sevLabels = {severe:'needs some attention', moderate:'worth working on', mild:'mild — great that you caught it early', 'low risk':'low risk — keep an eye on it'};
     let disName = topKey;
     if(typeof DISORDERS !== 'undefined'){
       const found = DISORDERS.find(d => d.id === topKey);
@@ -213,7 +215,7 @@ function renderCBTSection(){
     html += `<div style="background:${sevBgs[topSev]||'#f3f4f6'};border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:${sevColors[topSev]||'#333'};font-weight:600">
       💙 Tailored for you — <strong>${disName}</strong> (${sevLabels[topSev]||topSev})
     </div>`;
-    const topMods = (CBT_MODULES[topKey] && CBT_MODULES[topKey][topSev]) || [];
+    const topMods = (CBT_MODULES[topKey] && CBT_MODULES[topKey][sevForModules]) || [];
     modulesToRender = [...topMods, GENERAL_MODULES[1], GENERAL_MODULES[2]];
   }
 
@@ -260,7 +262,7 @@ async function shareTrendImage(){
     if(navigator.share) await navigator.share(shareData);
     else {
       await navigator.clipboard.writeText(shareData.text);
-      alert('Progress copied to clipboard — paste anywhere to share!');
+      showToast('Progress copied to clipboard — paste anywhere to share!');
     }
   } catch(err){
     if(err.name !== 'AbortError') console.error('Share failed:', err);

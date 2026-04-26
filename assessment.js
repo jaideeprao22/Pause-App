@@ -231,10 +231,14 @@ function _doStartFullAssessment(){
 function startQuickScan(){ assessMode='quick'; buildQuickAssessment(); allAnswers=new Array(allQuestions.length).fill(null); currentQIdx=0; showScreen('screen-assessment'); renderQuestion(); }
 function startSingleAssessment(dIdx){ assessMode='single'; singleDisorderIdx=dIdx; buildSingleAssessment(dIdx); allAnswers=new Array(allQuestions.length).fill(null); currentQIdx=0; showScreen('screen-assessment'); renderQuestion(); }
 
+// H3 FIX: track pending auto-advance so manual Next tap cancels it, preventing double-fire
+let _autoAdvanceTimer = null;
+
 function renderQuestion(){
   const q = allQuestions[currentQIdx];
   const total = allQuestions.length;
-  document.getElementById('qProgressFill').style.width=((currentQIdx)/total*100)+'%';
+  // L1 FIX: use currentQIdx+1 so bar shows accurate completion (was 0% on Q1)
+  document.getElementById('qProgressFill').style.width = ((currentQIdx + 1) / total * 100) + '%';
   document.getElementById('qScaleInfo').textContent=q.scaleInfo;
   document.getElementById('qNumber').textContent=`Question ${currentQIdx+1} of ${total}`;
   document.getElementById('qText').textContent=q.text;
@@ -258,10 +262,21 @@ function selectAnswer(val){
   allAnswers[currentQIdx]=val;
   savePartialProgress();
   renderQuestion();
-  setTimeout(()=>{ if(currentQIdx<allQuestions.length-1) nextQuestion(); else finishAssessment(); },300);
+  // H3 FIX: cancel any pending auto-advance before scheduling a new one
+  if(_autoAdvanceTimer){ clearTimeout(_autoAdvanceTimer); _autoAdvanceTimer=null; }
+  _autoAdvanceTimer=setTimeout(()=>{
+    _autoAdvanceTimer=null;
+    if(currentQIdx<allQuestions.length-1) nextQuestion(); else finishAssessment();
+  },300);
 }
 
-function nextQuestion(){ if(allAnswers[currentQIdx]===null){alert('Please select an answer.');return;} if(currentQIdx<allQuestions.length-1){currentQIdx++;renderQuestion();}else finishAssessment(); }
+function nextQuestion(){
+  // H3 FIX: cancel pending auto-advance so manual tap + auto-advance don't both fire
+  if(_autoAdvanceTimer){ clearTimeout(_autoAdvanceTimer); _autoAdvanceTimer=null; }
+  // H1 FIX: use showToast instead of alert() — alert() is blocked in TWA/WebView
+  if(allAnswers[currentQIdx]===null){ showToast('Please select an answer to continue.'); return; }
+  if(currentQIdx<allQuestions.length-1){currentQIdx++;renderQuestion();}else finishAssessment();
+}
 function prevQuestion(){ if(currentQIdx>0){currentQIdx--;renderQuestion();} }
 
 // ============================================================
@@ -286,7 +301,8 @@ function finishAssessment(){
       impactScores[m.id]=qs.reduce((sum,meta)=>sum+(allAnswers[questionMeta.indexOf(meta)]||0),0);
       stampDisorderTime(m.id);
     });
-    dwsScore=calculateDWS();
+    // M1 FIX: impact-only DWS for Quick Scan — don't blend stale disorder scores
+    dwsScore=calculateDWS(true);
   } else if(assessMode==='single'){
     const d=DISORDERS[singleDisorderIdx];
     disorderScores[d.id]=allAnswers.reduce((a,b)=>a+(b||0),0);
@@ -302,14 +318,18 @@ function finishAssessment(){
   showScreen('screen-results');
 }
 
-function calculateDWS(){
+// M1 FIX: impactOnly=true for Quick Scan so stale disorderScores from a previous
+// full assessment don't contaminate the Quick Scan DWS.
+function calculateDWS(impactOnly=false){
   let totalRisk=0,totalMax=0;
-  DISORDERS.forEach(d=>{
-    if(disorderScores[d.id]!==undefined){
-      totalRisk+=(disorderScores[d.id]-d.questions.length)/(d.maxScore-d.questions.length);
-      totalMax++;
-    }
-  });
+  if(!impactOnly){
+    DISORDERS.forEach(d=>{
+      if(disorderScores[d.id]!==undefined){
+        totalRisk+=(disorderScores[d.id]-d.questions.length)/(d.maxScore-d.questions.length);
+        totalMax++;
+      }
+    });
+  }
   IMPACT_MODULES.forEach(m=>{
     if(impactScores[m.id]!==undefined){
       totalRisk+=impactScores[m.id]/(m.questions.length*4)*0.5;
@@ -458,7 +478,7 @@ function renderHomeDisorders(){
         </div>`;
     } else {
       return `
-        <div class="assess-disorder-card" onclick="showScaleInfo(${DISORDERS.indexOf(d)})" style="opacity:0.65">
+        <div class="assess-disorder-card" onclick="showScaleInfo('${d.id}', ${DISORDERS.indexOf(d)})" style="opacity:0.65">
           <div class="assess-card-icon" style="background:var(--bg)"><span style="font-size:22px">${d.icon}</span></div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">

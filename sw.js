@@ -1,37 +1,41 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v3';
+const CACHE_NAME = 'pause-app-v4';
 
 // All files to pre-cache at install time
+// NH2 FIX: derive base path from SW location so caching works on any subdirectory.
+// On GitHub Pages at jaideeprao22.github.io/Pause-App/, BASE = '/Pause-App/'
+const BASE = self.location.pathname.replace(/sw\.js$/, '');
+
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/manifest.json',
-  '/data.js',
-  '/state.js',
-  '/badges.js',
-  '/notifications.js',
-  '/assessment.js',
-  '/results.js',
-  '/progress.js',
-  '/share.js',
-  '/logbook.js',
-  '/motivation.js',
-  '/weekly.js',
-  '/cbt.js',
-  '/screentime.js',
-  '/app.js',
-  '/nav.js',
-  '/icons/icon-72.png',
-  '/icons/icon-96.png',
-  '/icons/icon-128.png',
-  '/icons/icon-144.png',
-  '/icons/icon-152.png',
-  '/icons/icon-192.png',
-  '/icons/icon-384.png',
-  '/icons/icon-512.png'
+  BASE,
+  BASE + 'index.html',
+  BASE + 'style.css',
+  BASE + 'manifest.json',
+  BASE + 'data.js',
+  BASE + 'state.js',
+  BASE + 'badges.js',
+  BASE + 'notifications.js',
+  BASE + 'assessment.js',
+  BASE + 'results.js',
+  BASE + 'progress.js',
+  BASE + 'share.js',
+  BASE + 'logbook.js',
+  BASE + 'motivation.js',
+  BASE + 'weekly.js',
+  BASE + 'cbt.js',
+  BASE + 'screentime.js',
+  BASE + 'app.js',
+  BASE + 'nav.js',
+  BASE + 'icons/icon-72.png',
+  BASE + 'icons/icon-96.png',
+  BASE + 'icons/icon-128.png',
+  BASE + 'icons/icon-144.png',
+  BASE + 'icons/icon-152.png',
+  BASE + 'icons/icon-192.png',
+  BASE + 'icons/icon-384.png',
+  BASE + 'icons/icon-512.png'
 ];
 
 // ─── INSTALL ────────────────────────────────────────────────────────────────
@@ -79,7 +83,8 @@ self.addEventListener('fetch', event => {
     'accounts.google.com',
     'fonts.googleapis.com',
     'fonts.gstatic.com',
-    'cdn.jsdelivr.net'
+    'cdn.jsdelivr.net',
+    'cdnjs.cloudflare.com'  // Bug B FIX: Tone.js CDN — don't intercept external libraries
   ];
   if (skipPatterns.some(p => req.url.includes(p))) return;
 
@@ -106,7 +111,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Network failed and nothing cached — return index.html (SPA fallback)
         console.warn('[SW] Offline, serving fallback for:', req.url);
-        return caches.match('/index.html');
+        return caches.match(BASE + 'index.html');
       });
     })
   );

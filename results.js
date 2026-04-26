@@ -116,6 +116,16 @@ function renderResults(){
   }, 100);
 }
 
+// M3 FIX: Safely resolve an impact score by partial ID, tolerating data.js ID mismatches
+function _getImpactScore(partialKey){
+  if(impactScores[partialKey] !== undefined) return impactScores[partialKey];
+  if(typeof IMPACT_MODULES !== 'undefined'){
+    const mod = IMPACT_MODULES.find(m => m.id && m.id.toLowerCase().includes(partialKey.toLowerCase()));
+    if(mod && impactScores[mod.id] !== undefined) return impactScores[mod.id];
+  }
+  return 0;
+}
+
 function renderActionPlan(){
   const el = document.getElementById('resultActionPlan');
   const actions = [];
@@ -139,25 +149,25 @@ function renderActionPlan(){
       }
     }
   });
-  if(impactScores.sleep && impactScores.sleep > 5){
+  if(_getImpactScore('sleep') > 5){
     actions.push({icon:'😴',text:'Keeping your phone charging outside the bedroom can make a surprising difference to your sleep quality.',color:'#7c5cbf'});
     actions.push({icon:'😴',text:'A gentle digital wind-down — no screens in the hour before bed — can really help you sleep more deeply.',color:'#7c5cbf'});
     actions.push({icon:'😴',text:'Enabling Night Shift or a blue light filter from 8pm onwards is a small change with a big impact.',color:'#7c5cbf'});
     actions.push({icon:'😴',text:'Try a 15-minute bedtime routine: dim lights, no phone, something light to read. Your sleep will thank you.',color:'#7c5cbf'});
   }
-  if(impactScores.attention && impactScores.attention > 5){
+  if(_getImpactScore('attention') > 5){
     actions.push({icon:'🧠',text:'The Pomodoro technique — 25 minutes of focused work, then a 5-minute break — is a gentle way to rebuild concentration.',color:'#3d6fff'});
     actions.push({icon:'🧠',text:'Putting your phone face-down during tasks that need your full attention is simple but genuinely effective.',color:'#3d6fff'});
     actions.push({icon:'🧠',text:'Reading a physical book for even 20 minutes daily is a wonderful way to rebuild your focus gradually.',color:'#3d6fff'});
     actions.push({icon:'🧠',text:'Reducing notifications — keeping only calls and messages from people who matter — can give you back remarkable amounts of focus.',color:'#3d6fff'});
   }
-  if(impactScores.productivity && impactScores.productivity > 5){
+  if(_getImpactScore('productivity') > 5){
     actions.push({icon:'⚡',text:'App timers like Forest or Focus Mode during your peak work hours can gently nudge your focus back where it belongs.',color:'#f5a623'});
     actions.push({icon:'⚡',text:'Writing down your 3 most important tasks each morning — before opening social media — is a small habit with a big payoff.',color:'#f5a623'});
     actions.push({icon:'⚡',text:'Batching emails and messages into two fixed daily windows frees up remarkable amounts of mental energy.',color:'#f5a623'});
     actions.push({icon:'⚡',text:'Keeping your phone in another room during your most important 2 hours of the day is one of the most effective things you can do.',color:'#f5a623'});
   }
-  if(impactScores.emotional && impactScores.emotional > 5){
+  if(_getImpactScore('emotional') > 5){
     actions.push({icon:'❤️',text:'A 10-minute breathing or mindfulness pause before any screen session can transform how you feel during it.',color:'#ff4757'});
     actions.push({icon:'❤️',text:'Muting or unfollowing content that consistently leaves you feeling less-than is a genuinely kind act of self-care.',color:'#ff4757'});
     actions.push({icon:'❤️',text:'One screen-free social activity per week — a walk, a meal, a phone call — does wonders for your emotional wellbeing.',color:'#ff4757'});
@@ -420,82 +430,10 @@ function renderPostAssessmentPrompt(){
 }
 
 
-// ============================================================
-// HOME SCREEN — DISORDER GRADE CARDS
-// Shows scored disorders with grade badge + progress bar.
-// Unscored disorders shown as greyed "Not checked yet" cards.
-// Called after every assessment AND after partial saves.
-// ============================================================
-function renderHomeDisorders(){
-  const el = document.getElementById('home-disorder-list');
-  if(!el) return;
-
-  const timestamps = getDisorderTimestamps();
-
-  function getStalenessLabel(disorderId){
-    const ts = timestamps[disorderId];
-    if(!ts) return null;
-    const days = Math.floor((Date.now() - ts) / 86400000);
-    if(days === 0) return { text: 'Checked today',            color: '#2ecc71', warn: false };
-    if(days === 1) return { text: 'Checked yesterday',        color: '#00c9a7', warn: false };
-    if(days < 7)  return { text: `Checked ${days} days ago`, color: '#f5a623', warn: false };
-    if(days < 30) return { text: `Checked ${days} days ago`, color: '#ff6b35', warn: false };
-    return { text: `Last checked ${days} days ago`, color: '#ff4757', warn: true };
-  }
-
-  el.innerHTML = DISORDERS.map(d => {
-    const score     = disorderScores[d.id];
-    const hasScore  = score !== undefined;
-    const level     = hasScore ? getLevel(d, score) : null;
-    const pct       = hasScore
-      ? Math.round(((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100)
-      : 0;
-    const staleness = hasScore ? getStalenessLabel(d.id) : null;
-
-    if(hasScore){
-      return `
-        <div class="assess-disorder-card" onclick="startSingleAssessment(${DISORDERS.indexOf(d)})"
-          style="border-color:${d.color}40;background:linear-gradient(135deg,var(--card) 80%,${d.bg})">
-          <div class="assess-card-icon" style="background:${d.bg}">
-            <span style="font-size:22px">${d.icon}</span>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
-              <span style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</span>
-              <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;padding:2px 9px;border-radius:20px;background:${level.bg};color:${level.color};border:1px solid ${level.color}40">${level.label.toUpperCase()}</span>
-              ${staleness?.warn ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(255,71,87,0.12);color:#ff4757;border:1px solid rgba(255,71,87,0.3)">⚠ Recheck</span>` : ''}
-            </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
-                <div style="width:${pct}%;height:100%;background:${level.color};border-radius:3px;transition:width 0.5s ease"></div>
-              </div>
-              <span style="font-size:10px;color:var(--muted);flex-shrink:0">${score}/${d.maxScore}</span>
-            </div>
-            <div style="font-size:10px;margin-top:4px;color:${staleness ? staleness.color : 'var(--muted)'}">
-              ${staleness ? staleness.text + ' · ' : ''}${d.scale} · Tap to recheck
-            </div>
-          </div>
-        </div>`;
-    } else {
-      return `
-        <div class="assess-disorder-card" onclick="showScaleInfo(${DISORDERS.indexOf(d)})"
-          style="opacity:0.65">
-          <div class="assess-card-icon" style="background:var(--bg)">
-            <span style="font-size:22px">${d.icon}</span>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</span>
-              <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border)">Not checked</span>
-            </div>
-            <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden"></div>
-            <div style="font-size:10px;color:var(--muted);margin-top:3px">${d.scale} · Tap to start</div>
-          </div>
-          <div class="assess-card-chevron">›</div>
-        </div>`;
-    }
-  }).join('');
-}
+// C1 FIX: renderHomeDisorders() is defined ONLY in assessment.js (loads first).
+// The duplicate here was removed because results.js loads after assessment.js,
+// causing this version (which used startSingleAssessment instead of
+// startSingleAssessmentWithCheck) to silently overwrite the correct one.
 
 // ============================================================
 // FEATURE3: Before/After comparison card
