@@ -286,7 +286,7 @@ function renderPostAssessmentPrompt(){
   const questionBank = {
     cyberchondria: [
       {
-        q: 'How long have you been experiencing anxiety-driven online health searches?',
+        q: 'How long have you been noticing this pattern of frequently searching for health information online?',
         opts: ['Less than 1 month','1–6 months','6–12 months','More than 1 year']
       },
       {
@@ -300,30 +300,30 @@ function renderPostAssessmentPrompt(){
     ],
     socialmedia: [
       {
-        q: 'Which platform consumes most of your social media time?',
-        opts: ['Instagram','Facebook','X (Twitter)','WhatsApp','YouTube','Other']
+        q: 'When during the day do you most commonly check social media?',
+        opts: ['First thing in the morning (before getting up)','Throughout the day constantly','Mainly in the evenings','Late at night before sleep','Only at specific times I set']
       },
       {
-        q: 'How often do you compare yourself negatively to others on social media?',
-        opts: ['Very often','Often','Sometimes','Rarely','Never']
+        q: 'When you see other people\'s posts, how do they tend to make you feel?',
+        opts: ['Usually inspired or happy for them','Mixed — sometimes good, sometimes not','Often make me feel like I\'m missing out','Rarely affect my mood','No effect on my mood']
       },
       {
-        q: 'Have you tried and failed to reduce social media use in the past?',
-        opts: ['Yes, multiple times','Yes, once','No, but I\'ve thought about it','No, I haven\'t tried']
+        q: 'Have you ever consciously tried to spend less time on social media?',
+        opts: ['Yes, and it worked well','Yes, but I kept going back','I\'ve thought about it but haven\'t tried','No, I don\'t feel the need to']
       }
     ],
     shortform: [
       {
-        q: 'Which short-form video platform do you use most?',
-        opts: ['Instagram Reels','YouTube Shorts','TikTok','Moj / Josh / other Indian app','Multiple equally']
+        q: 'What usually triggers you to open a short video app?',
+        opts: ['Boredom','Stress or low mood','Habit — I open it automatically','To relax after work or study','Seeing others use it']
       },
       {
         q: 'Do you find it difficult to stop watching short videos once you start?',
         opts: ['Almost always','Often','Sometimes','Rarely','Never']
       },
       {
-        q: 'Has short-form video watching interfered with your sleep or work?',
-        opts: ['Yes, significantly','Yes, somewhat','Rarely','No, not at all']
+        q: 'Have you noticed short-form video watching affecting your sleep or focus?',
+        opts: ['Yes, both significantly','Yes, mainly sleep','Yes, mainly focus','Only occasionally','Not really']
       }
     ],
     gaming: [
@@ -332,12 +332,12 @@ function renderPostAssessmentPrompt(){
         opts: ['Mobile casual','Mobile MOBA / Battle Royale','PC / Console','Online multiplayer (MMORPG)','Multiple types']
       },
       {
-        q: 'Do you experience irritability or restlessness when unable to play games?',
-        opts: ['Yes, frequently','Yes, sometimes','Rarely','No, never']
+        q: 'How do you tend to feel when you are unable to play games for a day or two?',
+        opts: ['Very unsettled or on edge','Somewhat restless','A little distracted','Completely fine']
       },
       {
-        q: 'Has gaming negatively affected your relationships, studies, or work?',
-        opts: ['Yes, significantly','Yes, to some extent','Rarely','No, not at all']
+        q: 'Have you noticed gaming affecting your relationships, studies, or work in any way?',
+        opts: ['Yes, significantly','Yes, to some extent','Only occasionally','Not really']
       }
     ],
     ai: [
@@ -346,12 +346,12 @@ function renderPostAssessmentPrompt(){
         opts: ['Writing / communication','Learning / studying','Work / professional tasks','Creative tasks','Decision-making','Multiple equally']
       },
       {
-        q: 'Do you feel anxious or stuck when you cannot access an AI assistant?',
-        opts: ['Yes, frequently','Yes, sometimes','Rarely','No, never']
+        q: 'How do you tend to feel when AI tools are unavailable and you need to complete a task?',
+        opts: ['Very uncomfortable — I struggle to proceed','Somewhat unsettled','Mildly inconvenienced','Completely fine — I manage easily']
       },
       {
-        q: 'Do you feel your independent thinking or problem-solving has weakened due to AI use?',
-        opts: ['Yes, definitely','Possibly yes','Not sure','No, not at all']
+        q: 'Do you feel your confidence in independent thinking has changed since you started using AI tools regularly?',
+        opts: ['It has reduced significantly','It has reduced somewhat','No real change','It has actually improved']
       }
     ],
     workaddiction: [
@@ -364,8 +364,8 @@ function renderPostAssessmentPrompt(){
         opts: ['Yes, constantly','Yes, frequently','Occasionally','Rarely / Never']
       },
       {
-        q: 'Has overworking negatively affected your personal relationships or physical health?',
-        opts: ['Yes, significantly','Yes, to some extent','Possibly','No, not at all']
+        q: 'Have you noticed your work habits having any impact on your personal relationships or physical health?',
+        opts: ['Yes, a significant impact','Yes, some impact','Only occasionally','Not that I\'ve noticed']
       }
     ]
   };
