@@ -159,15 +159,15 @@ function renderAccountSection(){
         <div style="width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff">${currentUser.email.charAt(0).toUpperCase()}</div>
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--text)">${currentUser.email}</div>
-          <div style="font-size:11px;color:var(--muted)">Logged in · Data synced</div>
+          <div style="font-size:11px;color:var(--muted)">Signed in · Your data is safe</div>
         </div>
       </div>
       <button class="btn-secondary" style="margin-top:0;margin-bottom:8px" onclick="openEditProfile()">✏️ Edit My Details</button>
       <button class="btn-secondary" style="margin-top:0" onclick="logoutUser()">Sign Out</button>`;
   } else {
     el.innerHTML = `
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Login to save your data and sync across devices.</p>
-      <button class="btn-primary" onclick="openLoginFlow()">🔐 Login / Create Account</button>`;
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Sign in to keep your progress safe and sync across your devices.</p>
+      <button class="btn-primary" onclick="openLoginFlow()">🔐 Sign In / Create Account</button>`;
   }
 }
 

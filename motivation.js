@@ -16,10 +16,10 @@ const MOTIVATION_MESSAGES = {
     "Today: Check social media only after you've done your most important task of the day.",
     "Reminder: Every notification is a request for your attention. You decide if it's worth it.",
     "Try this today: Put your phone face-down for your first hour awake.",
-    "The people you scroll past don't know you're watching. The life you're missing does.",
-    "Today's goal: 45 minutes of social media maximum. Set the timer.",
-    "Unfollow one account today that makes you feel worse about yourself.",
-    "Real connections > digital ones. Call someone instead of scrolling today."
+    "The people you scroll past are sharing their highlights. Your real life is happening right now.",
+    "Today's goal: 45 minutes of social media maximum. Set the timer — you've got this.",
+    "Unfollow one account today that leaves you feeling drained or not good enough.",
+    "Real connections nourish us in ways digital ones can't. Reach out to someone today."
   ],
   shortform: [
     "Today: Before opening Reels or TikTok, ask yourself — what am I avoiding right now?",
@@ -32,12 +32,12 @@ const MOTIVATION_MESSAGES = {
   ],
   gaming: [
     "Today: Set your 2-hour timer before you start. Honor it when it goes off.",
-    "Gaming is most fun when it's a reward, not a refuge. Earn it today.",
-    "Reminder: The game will still be there tomorrow. Your relationships might not wait.",
-    "Today: Play with purpose — pick one goal in the game, achieve it, then stop.",
-    "The life outside the screen needs your attention today. Give it one hour.",
-    "Gaming became a problem when it replaced other things. Reclaim one of those things today.",
-    "Today's mantra: I play to enjoy, not to escape. There is a difference."
+    "Gaming is most fun when it's something you look forward to, not something you escape into. Enjoy it intentionally today.",
+    "Reminder: the game will always be there. Give a little extra presence to the people around you today.",
+    "Today: play with purpose — pick one goal in the game, achieve it, then take a break.",
+    "Life outside the screen has so much to offer. Give it an hour of your attention today.",
+    "Gaming is a wonderful hobby when it sits alongside your life, not on top of it.",
+    "Today's reminder: I play to enjoy, not to escape. There is a meaningful difference."
   ],
   ai: [
     "Today: Solve one problem entirely on your own before asking AI. Trust your brain.",
@@ -51,11 +51,11 @@ const MOTIVATION_MESSAGES = {
   workaddiction: [
     "Today's rule: Work ends at [your cutoff time]. Set the alarm now.",
     "Reminder: No email after 7pm. The world will not end. Your evening might begin.",
-    "Today: Take your full lunch break. Away from your desk. Without checking messages.",
-    "Productivity is not the same as being busy. Rest is productive. Rest today.",
-    "Your family and friends remember what you missed. Be present today.",
-    "Today: One hour completely off. Phone down, laptop closed. Non-negotiable.",
-    "Work will always expand to fill the time you give it. Give it less today."
+    "Today: take your full lunch break. Away from your desk. Let yourself rest.",
+    "Productivity and busyness are not the same thing. Rest is productive. Give yourself permission today.",
+    "The people who matter to you love having you fully present. Be here today.",
+    "Today: one hour completely off. Phone down, laptop closed. You deserve this.",
+    "Work will always expand to fill the time you give it. Today, give it a little less."
   ],
   default: [
     "Small steps every day create lasting change. You are doing well.",
@@ -101,7 +101,7 @@ function renderMotivationCard(){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
       <div style="width:36px;height:36px;border-radius:10px;background:${color}20;display:flex;align-items:center;justify-content:center;font-size:18px">${icon}</div>
       <div>
-        <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Today's Motivation</div>
+        <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Today's Thought</div>
         <div style="font-size:11px;color:${color};font-weight:700">${d ? d.name : 'General Wellness'}</div>
       </div>
     </div>
@@ -156,7 +156,7 @@ function renderMoodCheck(){
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:28px">${mood?.emoji}</div>
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted)">TODAY'S MOOD</div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted)">How You're Feeling</div>
           <div style="font-size:14px;font-weight:700;color:${mood?.color}">${mood?.label}</div>
         </div>
         <button onclick="resetTodayMood()" style="margin-left:auto;font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:inherit">Change</button>
@@ -165,7 +165,7 @@ function renderMoodCheck(){
   }
 
   el.innerHTML = `
-    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">HOW ARE YOU FEELING TODAY?</div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">How are you feeling today?</div>
     <div style="display:flex;justify-content:space-between;gap:6px">
       ${MOODS.map(m => `
         <button onclick="logMood(${m.value})" style="flex:1;background:none;border:2px solid var(--border);border-radius:12px;padding:8px 4px;cursor:pointer;transition:all 0.2s;font-family:inherit">

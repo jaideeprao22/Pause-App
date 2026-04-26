@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Terms & Conditions — PAUSE App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#f4f6fb;color:#1a1a2e;padding:0 0 60px}
+  .hero{background:linear-gradient(135deg,#0f2d5e 0%,#1a4a8a 100%);color:#fff;padding:40px 20px 32px;text-align:center}
+  .hero-icon{font-size:48px;margin-bottom:12px}
+  .hero-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:10px}
+  .hero-sub{font-size:13px;opacity:0.85;line-height:1.8;max-width:420px;margin:0 auto}
+  .container{max-width:680px;margin:0 auto;padding:0 16px}
+  .welcome-card{background:#fff;border-radius:14px;padding:22px 20px;margin:20px 0 0;border:1.5px solid #e0e8f4;text-align:center}
+  .welcome-card p{font-size:14px;line-height:1.8;color:#555}
+  .toc{background:#fff;border-radius:14px;padding:18px 20px;margin:14px 0 0;border:1.5px solid #e0e8f4}
+  .toc-title{font-size:12px;font-weight:700;color:#0f2d5e;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em}
+  .toc a{display:block;font-size:13px;color:#0f2d5e;text-decoration:none;padding:6px 0;border-bottom:1px solid #f0f4f8;line-height:1.4}
+  .toc a:last-child{border-bottom:none}
+  .toc a span{color:#bbb;margin-right:8px;font-size:12px}
+  section{background:#fff;border-radius:14px;padding:22px 20px;margin-top:14px;border:1.5px solid #e0e8f4}
+  .sec-num{display:inline-block;background:#0f2d5e;color:#fff;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;margin-bottom:10px;font-family:'Syne',sans-serif}
+  h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#0f2d5e;margin-bottom:12px;line-height:1.3}
+  h3{font-size:14px;font-weight:700;color:#0f2d5e;margin:16px 0 6px}
+  p{font-size:13px;line-height:1.8;color:#444;margin-bottom:10px}
+  p:last-child{margin-bottom:0}
+  ul,ol{padding-left:18px;margin:8px 0}
+  li{font-size:13px;line-height:1.8;color:#444;margin-bottom:6px}
+  .green-box{background:#f0faf4;border-left:3px solid #27ae60;border-radius:0 10px 10px 0;padding:14px 16px;margin:14px 0}
+  .green-box p{margin:0;font-size:13px;color:#1e6b3c;line-height:1.7}
+  .blue-box{background:#e8f4fd;border-left:3px solid #2980b9;border-radius:0 10px 10px 0;padding:14px 16px;margin:14px 0}
+  .blue-box p{margin:0;font-size:13px;color:#1a5276;line-height:1.7}
+  .warm-box{background:#fff8e1;border-left:3px solid #f39c12;border-radius:0 10px 10px 0;padding:14px 16px;margin:14px 0}
+  .warm-box p{margin:0;font-size:13px;color:#7d5a00;line-height:1.7}
+  .benefit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .benefit-card{background:#f4f6fb;border-radius:10px;padding:14px;text-align:center}
+  .benefit-card .icon{font-size:28px;margin-bottom:6px}
+  .benefit-card .title{font-size:12px;font-weight:700;color:#0f2d5e;margin-bottom:4px}
+  .benefit-card .desc{font-size:11px;color:#666;line-height:1.5}
+  .data-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px}
+  .data-table th{background:#0f2d5e;color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:11px}
+  .data-table td{padding:8px 10px;border-bottom:1px solid #f0f4f8;vertical-align:top;color:#444;line-height:1.5}
+  .data-table tr:last-child td{border-bottom:none}
+  .data-table tr:nth-child(even) td{background:#f8fafd}
+  .promise-list{padding-left:0 !important;list-style:none}
+  .promise-list li{padding-left:0;margin-bottom:10px}
+  .promise-list li::before{content:'✅  ';margin-right:2px}
+  .team-card{background:#f4f6fb;border-radius:10px;padding:4px 0;margin-top:12px}
+  .member{padding:14px 16px;border-bottom:1px solid #e0e8f4}
+  .member:last-child{border-bottom:none}
+  .member-name{font-size:13px;font-weight:700;color:#0f2d5e}
+  .member-role{font-size:12px;color:#666;margin-top:3px;line-height:1.6}
+  .consent-box{background:linear-gradient(135deg,#0f2d5e,#1a4a8a);border-radius:14px;padding:26px 20px;margin-top:14px;text-align:center;color:#fff}
+  .consent-box h2{font-size:18px;margin-bottom:10px;color:#fff;font-family:'Syne',sans-serif}
+  .consent-box p{font-size:13px;color:rgba(255,255,255,0.88);line-height:1.8;margin-bottom:0}
+  .footer{text-align:center;font-size:11px;color:#888;margin-top:24px;line-height:1.9}
+  .version-pill{background:#e8eef7;color:#0f2d5e;border-radius:20px;padding:3px 14px;font-size:11px;font-weight:600;display:inline-block;margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-icon">🧠</div>
+  <div class="hero-title">You're in good hands.</div>
+  <div class="hero-sub">PAUSE App was built by doctors, for the community — to help people understand and improve their digital wellbeing, freely and safely.</div>
+</div>
+
+<div class="container">
+
+  <div class="welcome-card">
+    <p>👋 Before you begin, here's a friendly, plain-English summary of what PAUSE App is, what happens with your information, and how using this app helps build better health for your community. No jargon, no fine print — just honesty.</p>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">What's inside</div>
+    <a href="#s1"><span>1.</span>What is PAUSE App?</a>
+    <a href="#s2"><span>2.</span>Who can use it?</a>
+    <a href="#s3"><span>3.</span>What you get — for free</a>
+    <a href="#s4"><span>4.</span>What information we collect</a>
+    <a href="#s5"><span>5.</span>How your information helps the community</a>
+    <a href="#s6"><span>6.</span>How we keep your data safe</a>
+    <a href="#s7"><span>7.</span>You're always in control</a>
+    <a href="#s8"><span>8.</span>A note on clinical use</a>
+    <a href="#s9"><span>9.</span>Simple ground rules</a>
+    <a href="#s10"><span>10.</span>Meet the team</a>
+  </div>
+
+  <!-- Section 1 -->
+  <section id="s1">
+    <div class="sec-num">Section 1</div>
+    <h2>What is PAUSE App? 🌱</h2>
+    <p>PAUSE App is a free digital wellness tool created by the Department of Community Medicine at Government Medical College, Maheshwaram. It was built with one simple goal — to help everyday people understand how their digital habits are affecting their health, and to give them practical tools to feel better.</p>
+    <p>Using internationally validated screening tools, PAUSE helps you check in on six areas of digital health: health-related internet searching, social media use, short-form video habits, gaming, AI tool dependency, and digital work stress. It then gives you personalised, evidence-based guidance to improve.</p>
+    <div class="green-box">
+      <p>🏥 <strong>Built by community medicine doctors.</strong> Our department's mission is the health of the whole community — not just individuals. Every feature in PAUSE App was designed with that public health spirit in mind. This is our gift to the community we serve.</p>
+    </div>
+  </section>
+
+  <!-- Section 2 -->
+  <section id="s2">
+    <div class="sec-num">Section 2</div>
+    <h2>Who can use PAUSE App? 🙋</h2>
+    <p>PAUSE App is open to anyone who is <strong>18 years or older</strong> and wants to take a friendly, honest look at their digital habits. Whether you're a student, a working professional, a healthcare worker, or simply a curious member of the public — you are welcome here.</p>
+    <p>The app works on any smartphone or computer with an internet browser and is completely free to use.</p>
+    <div class="warm-box">
+      <p>💙 If you are going through a very difficult time emotionally right now, we gently suggest speaking to a trusted person or healthcare professional first. PAUSE App is a wellness tool — it's here to support you, but it's not designed for crisis situations.</p>
+    </div>
+  </section>
+
+  <!-- Section 3 -->
+  <section id="s3">
+    <div class="sec-num">Section 3</div>
+    <h2>What you get — completely free 🎁</h2>
+    <p>PAUSE App gives you a lot, and charges you nothing:</p>
+    <div class="benefit-grid">
+      <div class="benefit-card">
+        <div class="icon">📊</div>
+        <div class="title">Know your score</div>
+        <div class="desc">Instant results across 6 validated screening tools with your personal Digital Wellness Score</div>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">🧘</div>
+        <div class="title">CBT wellness tools</div>
+        <div class="desc">Guided exercises to reduce anxiety, manage urges, and build healthier digital habits</div>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">📈</div>
+        <div class="title">Track your progress</div>
+        <div class="desc">Watch your wellness improve over time with trend graphs and weekly reports</div>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">🏅</div>
+        <div class="title">Challenges & badges</div>
+        <div class="desc">Daily mood check-ins, a 7-day digital detox challenge, and achievements to celebrate growth</div>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">📓</div>
+        <div class="title">Personal logbook</div>
+        <div class="desc">A private daily journal with voice input to reflect on your digital habits</div>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">🤝</div>
+        <div class="title">Give back</div>
+        <div class="desc">Your anonymised data helps build better digital health for your entire community</div>
+      </div>
+    </div>
+    <div class="blue-box">
+      <p>📱 <strong>No advertisements. No subscription. No hidden charges.</strong> PAUSE App is a public health initiative built for people, not profit.</p>
+    </div>
+  </section>
+
+  <!-- Section 4 -->
+  <section id="s4">
+    <div class="sec-num">Section 4</div>
+    <h2>What information we collect 📋</h2>
+    <p>We keep this purposeful and minimal. Here is exactly what we collect and why:</p>
+
+    <h3>Your account</h3>
+    <table class="data-table">
+      <tr><th>What</th><th>Why</th><th>Where it stays</th></tr>
+      <tr><td>Email address (via Google login)</td><td>To save your progress and sync across devices</td><td>Secure cloud, encrypted</td></tr>
+      <tr><td>Google profile photo &amp; name</td><td>Display only — never stored for research</td><td>Your device only</td></tr>
+    </table>
+
+    <h3>Your profile (filled in once)</h3>
+    <p>We ask for some background information such as your age, occupation, and lifestyle habits. This helps us understand how digital health challenges vary across different sections of society, so we can build better tools and advocate for the right support for everyone.</p>
+    <table class="data-table">
+      <tr><th>Information</th><th>How it helps your community</th></tr>
+      <tr><td>Age &amp; gender</td><td>Helps us understand which groups are most affected so we can design targeted help</td></tr>
+      <tr><td>Education &amp; occupation</td><td>Helps identify communities that may need more awareness and support</td></tr>
+      <tr><td>Where you live &amp; income range</td><td>Helps advocate for equitable digital health resources across urban and rural areas</td></tr>
+      <tr><td>Screen time &amp; smartphone habits</td><td>Core data for understanding how digital exposure affects health</td></tr>
+      <tr><td>Sleep, health, and physical activity</td><td>Helps us understand the full picture of how digital habits affect overall wellbeing</td></tr>
+    </table>
+
+    <h3>Your assessment results</h3>
+    <p>Your screening scores are saved so you can track your personal progress over time. Your anonymised scores also contribute to a community-level picture of digital health in India — one that helps shape future public health guidance.</p>
+
+    <div class="green-box">
+      <p>🔒 <strong>We will never collect:</strong> your name, phone number, home address, contacts, location, camera, or microphone. Only what you choose to share with us is ever used.</p>
+    </div>
+  </section>
+
+  <!-- Section 5 -->
+  <section id="s5">
+    <div class="sec-num">Section 5</div>
+    <h2>How your information helps the community 🌍</h2>
+    <p>When you use PAUSE App, you are not just helping yourself — you are contributing to something much larger. Your anonymised data helps build a picture of digital health across India that simply does not exist yet, and that could shape public health decisions for years to come.</p>
+    <ul class="promise-list">
+      <li>Helps doctors and public health professionals understand how widespread digital disorders are in India</li>
+      <li>Provides evidence to advocate for digital wellness programmes in schools, colleges, and workplaces</li>
+      <li>Contributes to peer-reviewed research that shapes health guidelines and government policy</li>
+      <li>Helps future versions of PAUSE App become even more helpful for people like you</li>
+    </ul>
+    <div class="blue-box">
+      <p>🎓 <strong>Your data is used purely for community benefit.</strong> It will never be sold, shared with advertisers, or used for any commercial purpose — ever. This is a promise we make as healthcare professionals.</p>
+    </div>
+    <p>Research findings may be shared at medical conferences or published in health journals — always in aggregated, anonymised form. No one will ever be able to identify you from any published data.</p>
+  </section>
+
+  <!-- Section 6 -->
+  <section id="s6">
+    <div class="sec-num">Section 6</div>
+    <h2>How we keep your data safe 🔐</h2>
+    <p>We take the responsibility of holding your information very seriously. Here is what we have done to protect it:</p>
+    <ul class="promise-list">
+      <li>All data is stored on <strong>Supabase</strong> — a secure, modern cloud database with full encryption in transit and at rest</li>
+      <li>Your assessment scores are stored separately from your email address — they cannot be linked back to you in any published analysis</li>
+      <li>Your daily logbook, personal journal entries, and badges stay on your device only — we never see them</li>
+      <li>Only the core research team has any access to the anonymised dataset</li>
+    </ul>
+    <div class="warm-box">
+      <p>🛡️ Your trust means everything to us. We are doctors — protecting the wellbeing of the people we serve is fundamental to who we are, and that includes your data.</p>
+    </div>
+  </section>
+
+  <!-- Section 7 -->
+  <section id="s7">
+    <div class="sec-num">Section 7</div>
+    <h2>You're always in control 🙌</h2>
+    <p>This is your experience and your data. You are in charge at every step:</p>
+    <ul class="promise-list">
+      <li>Update your profile details at any time from within the app</li>
+      <li>Stop using the app whenever you like — no questions asked, no consequences</li>
+      <li>Ask us to delete all your data at any time using the Feedback form in the app</li>
+      <li>Request a copy of the information we hold about you if you wish</li>
+    </ul>
+    <p>We will respond to any such request within 30 days. Your participation is entirely voluntary — and choosing to stop at any point is completely fine. We will always respect that decision.</p>
+  </section>
+
+  <!-- Section 8 -->
+  <section id="s8">
+    <div class="sec-num">Section 8</div>
+    <h2>A note on clinical use 🏥</h2>
+    <p>PAUSE App is designed to be a helpful, honest first step — a friendly way to check in on your digital health using validated tools. It is not a replacement for a consultation with your doctor.</p>
+    <ul>
+      <li>Your results give you useful, evidence-based insight — but they are not a clinical diagnosis</li>
+      <li>The CBT tools are general wellness exercises and are not a substitute for formal psychotherapy</li>
+      <li>If your scores suggest a Moderate or Severe level in any area, we warmly encourage you to speak with a healthcare professional</li>
+    </ul>
+    <div class="warm-box">
+      <p>💙 Think of PAUSE as a caring, knowledgeable friend who helps you understand what's going on — and always points you toward the right support when you need it.</p>
+    </div>
+  </section>
+
+  <!-- Section 9 -->
+  <section id="s9">
+    <div class="sec-num">Section 9</div>
+    <h2>Simple ground rules 📝</h2>
+    <p>To keep PAUSE App trustworthy and useful for everyone, we simply ask that you:</p>
+    <ul>
+      <li>Are 18 years of age or older</li>
+      <li>Answer profile and assessment questions honestly — your results are only as useful as your answers</li>
+      <li>Use the app for your own personal wellness journey</li>
+    </ul>
+    <p>These terms may be updated occasionally as the app grows and improves. If anything significant changes, we will let you know within the app. Your continued use means you are comfortable with the current version.</p>
+    <p style="margin-top:10px;font-size:12px;color:#999">Last updated: April 2026 · Version 1.0</p>
+  </section>
+
+  <!-- Section 10 -->
+  <section id="s10">
+    <div class="sec-num">Section 10</div>
+    <h2>Meet the team 👩‍⚕️👨‍⚕️</h2>
+    <p>PAUSE App was built by doctors who genuinely care about community health. We are from the Department of Community Medicine — a specialty whose entire purpose is the health and wellbeing of the population as a whole. This app is an extension of that mission, and we are proud of it.</p>
+    <div class="team-card">
+      <div class="member">
+        <div class="member-name">Dr. Jaideep Rao M.</div>
+        <div class="member-role">MBBS, MD Community Medicine · Senior Resident<br>Principal Investigator — PAUSE App</div>
+      </div>
+      <div class="member">
+        <div class="member-name">Dr. Sridhar D.</div>
+        <div class="member-role">MBBS, MD Community Medicine · Associate Professor<br>Co-Investigator</div>
+      </div>
+      <div class="member">
+        <div class="member-name">Dr. Kiranmai B.</div>
+        <div class="member-role">MBBS, MD Community Medicine · Professor &amp; Head of Department<br>Guide &amp; Research Supervisor</div>
+      </div>
+    </div>
+    <p style="margin-top:16px">📍 Department of Community Medicine, Government Medical College, Maheshwaram, Rangareddy District, Telangana – 501510, India</p>
+    <p style="margin-top:10px">Have a question, a suggestion, or just want to say hello? Use the <strong>Feedback form</strong> inside the app — we read every message and genuinely appreciate hearing from you.</p>
+  </section>
+
+  <!-- Closing -->
+  <div class="consent-box">
+    <h2>🤝 Thank you for being part of this</h2>
+    <p>By agreeing to these terms, you are joining a growing community of people taking their digital wellbeing seriously — and helping us build better health tools for everyone in India. We are grateful for your trust, and we will not take it lightly.</p>
+  </div>
+
+  <div class="footer">
+    <div>PAUSE App — Digital Wellness for the Community</div>
+    <div>Department of Community Medicine · Govt. Medical College, Maheshwaram</div>
+    <div>Rangareddy District, Telangana – 501510, India</div>
+    <div class="version-pill">Version 1.0 · April 2026</div>
+  </div>
+
+</div>
+</body>
+</html>

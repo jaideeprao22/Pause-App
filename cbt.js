@@ -23,8 +23,8 @@ const CBT_MODULES = {
     severe: [
       { icon:'🗺️', title:'Safety Behaviour Mapping', color:'#e11d48', bg:'#ffe4e6', anim:'bar',
         steps:['List every safety behaviour: searching, asking others, body checking','Safety behaviours maintain anxiety — they must be reduced gradually','Pick the smallest one to challenge first this week','Resist it once today. Anxiety rises, then falls — this is habituation.','Each week, drop one more behaviour and track progress'] },
-      { icon:'👨‍⚕️', title:'Seek Professional Support', color:'#0f2d5e', bg:'#e8eef7', anim:'thought',
-        steps:['Severe health anxiety causing daily distress warrants professional help','Speak to your GP — they can refer you to a CBT therapist','Explain you have health anxiety triggered by internet searching','CBT targeting health anxiety is highly effective (80% respond well)','You do not need to manage this alone — reaching out is the bravest step'] }
+      { icon:'👨‍⚕️', title:'Talk to Someone Who Can Help', color:'#0f2d5e', bg:'#e8eef7', anim:'thought',
+        steps:['When health anxiety is affecting your daily life, talking to a professional can make a real difference','A visit to your doctor is a good first step — explain how online searches have been affecting you','They can offer reassurance, referrals, or a structured plan tailored to your needs','CBT targeting health anxiety is highly effective and usually shows results within a few sessions','You don\'t have to manage this alone — reaching out is a sign of strength, not weakness'] }
     ]
   },
 
@@ -70,8 +70,8 @@ const CBT_MODULES = {
         steps:['Rate these 5 areas 1–10: sleep, relationships, work/study, health, hobbies','Identify which areas dropped since gaming increased','Set one small, measurable goal per under-rated area this week','Gaming belongs in your life when it does not displace your life','Repeat this audit in 2 weeks — track whether scores improve'] }
     ],
     severe: [
-      { icon:'🚨', title:'30-Day Reset', color:'#e11d48', bg:'#ffe4e6', anim:'urge',
-        steps:['Honestly ask: is gaming replacing real-world relationships?','Commit to a 30-day gaming break — all platforms, all games','Tell one trusted person and agree to brief daily check-ins','Replace gaming time with social or outdoor activities','After 30 days, reassess with someone you trust before reintroducing gaming'] }
+      { icon:'🌱', title:'30-Day Fresh Start', color:'#e11d48', bg:'#ffe4e6', anim:'urge',
+        steps:['Gently reflect: are there areas of life — relationships, sleep, study — that have taken a back seat to gaming?','A short break can help reset your relationship with gaming and reconnect with other things that matter','Tell a trusted friend or family member — having someone in your corner makes a big difference','Fill that time with something physical, social, or creative — even a short walk helps','After 30 days, check in with yourself (and someone you trust) before deciding how you want to move forward'] }
     ]
   },
 
@@ -100,8 +100,8 @@ const CBT_MODULES = {
         steps:['List 3 non-work activities that bring you genuine joy','Schedule them this week as calendar appointments — non-negotiable','Plan one full work-free day per week and protect it fiercely','Communicate your work hours clearly to colleagues','Reflect: is your work volume self-imposed or externally driven?'] }
     ],
     severe: [
-      { icon:'🆘', title:'Burnout Prevention', color:'#e11d48', bg:'#ffe4e6', anim:'urge',
-        steps:['Work addiction causing daily distress is a serious health risk','Speak to your manager or HR about sustainable workload','Consult your GP — burnout has real physical health consequences','Engage a counsellor or occupational therapist if available','Remember: no job is worth your health. Boundaries protect performance too.'] }
+      { icon:'🌿', title:'Protecting Your Wellbeing', color:'#e11d48', bg:'#ffe4e6', anim:'urge',
+        steps:['When work is consistently affecting your sleep, relationships, or health, your body is asking for support','Consider speaking to your manager or HR about finding a more sustainable balance','A conversation with your doctor can also be helpful — they understand work-related stress well','A counsellor or occupational therapist can provide practical strategies tailored to your situation','Remember: taking care of yourself makes you better at everything else. Boundaries are a strength.'] }
     ]
   }
 };
@@ -196,20 +196,21 @@ function renderCBTSection(){
 
   if(activeDisorders.length === 0){
     html += `<div style="background:#d1fae5;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#059669;font-weight:600;display:flex;align-items:center;gap:8px">
-      ✅ All your disorder scores are in the healthy range — great work!
+      ✅ Your wellness scores are all looking healthy — wonderful work. Keep it going!
     </div>`;
     modulesToRender = GENERAL_MODULES;
   } else {
     const [topKey, topSev] = activeDisorders[0];
     const sevColors = {severe:'#c0392b', moderate:'#d97706', mild:'#059669'};
     const sevBgs    = {severe:'#ffe4e6', moderate:'#fef3c7', mild:'#d1fae5'};
+    const sevLabels = {severe:'needs some attention', moderate:'worth working on', mild:'mild — great that you caught it early'};
     let disName = topKey;
     if(typeof DISORDERS !== 'undefined'){
       const found = DISORDERS.find(d => d.id === topKey);
       if(found) disName = found.name;
     }
     html += `<div style="background:${sevBgs[topSev]||'#f3f4f6'};border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:${sevColors[topSev]||'#333'};font-weight:600">
-      🎯 Personalised for <strong>${disName}</strong> — ${topSev} level
+      💙 Tailored for you — <strong>${disName}</strong> (${sevLabels[topSev]||topSev})
     </div>`;
     const topMods = (CBT_MODULES[topKey] && CBT_MODULES[topKey][topSev]) || [];
     modulesToRender = [...topMods, GENERAL_MODULES[1], GENERAL_MODULES[2]];
@@ -236,7 +237,7 @@ function renderTrendShareButton(assessmentCount){
     area.innerHTML = `<button class="trend-share-btn" onclick="shareTrendImage()">📤 Share My Progress Trend</button>`;
   } else {
     const rem = 2 - assessmentCount;
-    area.innerHTML = `<div class="trend-need-more">Complete ${rem} more assessment${rem>1?'s':''} to unlock trend sharing</div>`;
+    area.innerHTML = `<div class="trend-need-more">Complete ${rem} more check-up${rem>1?'s':''} to unlock progress sharing 🌱</div>`;
   }
 }
 

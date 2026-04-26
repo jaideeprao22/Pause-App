@@ -35,7 +35,7 @@ function renderResults(){
       </div>`;
     }).join('');
   } else {
-    dList.innerHTML = '<div class="notice yellow"><div class="notice-title">No disorder screens completed</div>Complete a Full Assessment or individual disorder screen.</div>';
+    dList.innerHTML = '<div class="notice yellow"><div class="notice-title">No areas checked yet</div>Start a Full Check-up or tap any wellness area on the home screen to begin.</div>';
   }
 
   const iCard = document.getElementById('resultImpactCard');
@@ -50,7 +50,7 @@ function renderResults(){
       </div>`;
     }).join('');
   } else {
-    iCard.innerHTML = '<div style="font-size:13px;color:var(--muted)">Complete a Quick Scan or Full Assessment to see health impact.</div>';
+    iCard.innerHTML = '<div style="font-size:13px;color:var(--muted)">Complete a Quick Check or Full Check-up to see how your digital habits are affecting your health.</div>';
   }
 
   renderActionPlan();
@@ -123,38 +123,38 @@ function renderActionPlan(){
     }
   });
   if(impactScores.sleep && impactScores.sleep > 5){
-    actions.push({icon:'😴',text:'Keep your phone charging outside the bedroom. Use a standalone alarm clock.',color:'#7c5cbf'});
-    actions.push({icon:'😴',text:'Set a digital curfew 1 hour before bedtime — no screens after that time.',color:'#7c5cbf'});
-    actions.push({icon:'😴',text:'Enable Night Shift or blue light filter from 8pm onwards on all devices.',color:'#7c5cbf'});
-    actions.push({icon:'😴',text:'Create a 15-minute wind-down routine: dim lights, no phone, light reading only.',color:'#7c5cbf'});
+    actions.push({icon:'😴',text:'Keeping your phone charging outside the bedroom can make a surprising difference to your sleep quality.',color:'#7c5cbf'});
+    actions.push({icon:'😴',text:'A gentle digital wind-down — no screens in the hour before bed — can really help you sleep more deeply.',color:'#7c5cbf'});
+    actions.push({icon:'😴',text:'Enabling Night Shift or a blue light filter from 8pm onwards is a small change with a big impact.',color:'#7c5cbf'});
+    actions.push({icon:'😴',text:'Try a 15-minute bedtime routine: dim lights, no phone, something light to read. Your sleep will thank you.',color:'#7c5cbf'});
   }
   if(impactScores.attention && impactScores.attention > 5){
-    actions.push({icon:'🧠',text:'Try the Pomodoro technique: 25 minutes of focused work, then a 5-minute break.',color:'#3d6fff'});
-    actions.push({icon:'🧠',text:'Put your phone face-down and on silent during any task requiring concentration.',color:'#3d6fff'});
-    actions.push({icon:'🧠',text:'Practice reading a physical book for 20 minutes daily to rebuild sustained attention.',color:'#3d6fff'});
-    actions.push({icon:'🧠',text:'Disable all non-essential notifications — keep only calls and messages from close contacts.',color:'#3d6fff'});
+    actions.push({icon:'🧠',text:'The Pomodoro technique — 25 minutes of focused work, then a 5-minute break — is a gentle way to rebuild concentration.',color:'#3d6fff'});
+    actions.push({icon:'🧠',text:'Putting your phone face-down during tasks that need your full attention is simple but genuinely effective.',color:'#3d6fff'});
+    actions.push({icon:'🧠',text:'Reading a physical book for even 20 minutes daily is a wonderful way to rebuild your focus gradually.',color:'#3d6fff'});
+    actions.push({icon:'🧠',text:'Reducing notifications — keeping only calls and messages from people who matter — can give you back remarkable amounts of focus.',color:'#3d6fff'});
   }
   if(impactScores.productivity && impactScores.productivity > 5){
-    actions.push({icon:'⚡',text:'Use app blockers like Forest or Cold Turkey during your peak work hours.',color:'#f5a623'});
-    actions.push({icon:'⚡',text:'Write a 3-item priority list each morning and complete it before opening social media.',color:'#f5a623'});
-    actions.push({icon:'⚡',text:'Batch all digital admin tasks (email, messages) into two fixed 30-minute windows daily.',color:'#f5a623'});
-    actions.push({icon:'⚡',text:'Keep your phone in another room during your most important 2 hours of the workday.',color:'#f5a623'});
+    actions.push({icon:'⚡',text:'App timers like Forest or Focus Mode during your peak work hours can gently nudge your focus back where it belongs.',color:'#f5a623'});
+    actions.push({icon:'⚡',text:'Writing down your 3 most important tasks each morning — before opening social media — is a small habit with a big payoff.',color:'#f5a623'});
+    actions.push({icon:'⚡',text:'Batching emails and messages into two fixed daily windows frees up remarkable amounts of mental energy.',color:'#f5a623'});
+    actions.push({icon:'⚡',text:'Keeping your phone in another room during your most important 2 hours of the day is one of the most effective things you can do.',color:'#f5a623'});
   }
   if(impactScores.emotional && impactScores.emotional > 5){
-    actions.push({icon:'❤️',text:'Take a 10-minute mindfulness or breathing break before any screen session.',color:'#ff4757'});
-    actions.push({icon:'❤️',text:'Unfollow or mute any accounts that consistently make you feel anxious or inadequate.',color:'#ff4757'});
-    actions.push({icon:'❤️',text:'Schedule one screen-free social activity per week with friends or family.',color:'#ff4757'});
-    actions.push({icon:'❤️',text:'Journal for 5 minutes before bed about how digital use affected your mood today.',color:'#ff4757'});
+    actions.push({icon:'❤️',text:'A 10-minute breathing or mindfulness pause before any screen session can transform how you feel during it.',color:'#ff4757'});
+    actions.push({icon:'❤️',text:'Muting or unfollowing content that consistently leaves you feeling less-than is a genuinely kind act of self-care.',color:'#ff4757'});
+    actions.push({icon:'❤️',text:'One screen-free social activity per week — a walk, a meal, a phone call — does wonders for your emotional wellbeing.',color:'#ff4757'});
+    actions.push({icon:'❤️',text:'A few minutes of journaling before bed about how you felt today is a surprisingly powerful way to build self-awareness.',color:'#ff4757'});
   }
-  actions.push({icon:'📊',text:'Reassess with PAUSE App in 4 weeks to track your digital wellness progress.',color:'#00c9a7'});
-  actions.push({icon:'💧',text:'Drink a glass of water every time you feel the urge to check your phone unnecessarily.',color:'#00c9a7'});
-  actions.push({icon:'🌿',text:'Spend at least 20 minutes outdoors daily without your phone — even a short walk counts.',color:'#2ecc71'});
-  actions.push({icon:'🛌',text:'Aim for 7-8 hours of sleep — poor sleep dramatically worsens digital addiction patterns.',color:'#7c5cbf'});
-  actions.push({icon:'👥',text:'Share your PAUSE score with someone you trust and discuss one change you will make together.',color:'#3d6fff'});
+  actions.push({icon:'📊',text:'Check in with PAUSE App again in 4 weeks — you may be surprised how much can change.',color:'#00c9a7'});
+  actions.push({icon:'💧',text:'Try drinking a glass of water every time you feel the urge to check your phone — it works better than you think.',color:'#00c9a7'});
+  actions.push({icon:'🌿',text:'Even 20 minutes outdoors without your phone can meaningfully improve your mood and focus.',color:'#2ecc71'});
+  actions.push({icon:'🛌',text:'Prioritising good sleep is one of the kindest things you can do for your digital health.',color:'#7c5cbf'});
+  actions.push({icon:'👥',text:'Share your PAUSE score with someone you trust — talking about it makes change much more likely.',color:'#3d6fff'});
 
   if(actions.length === 0){
-    actions.push({icon:'✅',text:'Your digital habits look healthy. Keep it up!',color:'#2ecc71'});
-    actions.push({icon:'📅',text:'Reassess in 4 weeks to track your progress.',color:'#3d6fff'});
+    actions.push({icon:'✅',text:'Your digital habits are looking healthy — that\'s something to feel genuinely good about. Keep going!',color:'#2ecc71'});
+    actions.push({icon:'📅',text:'A quick check-up in 4 weeks will help you stay on track and see your progress.',color:'#3d6fff'});
   }
 
   el.innerHTML = actions.slice(0,12).map((a,i) => `

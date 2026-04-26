@@ -84,17 +84,17 @@
   <div id="loginBannerHome"></div>
   <div class="hero-card fade-in">
     <div class="hero-badge">🔬 6 Validated Scales</div>
-    <div class="hero-title">Your Digital Health, Measured Scientifically</div>
-    <div class="hero-sub">Screen for 6 digital-age behavioral disorders using internationally validated psychometric instruments.</div>
-    <button class="btn-primary" onclick="showScreen('screen-assess-menu')">Start Full Assessment →</button>
-    <button class="btn-secondary" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#fff;margin-top:10px" onclick="showScreen('screen-quick')">⚡ Quick Impact Scan (5 min)</button>
+    <div class="hero-title">How is your digital life affecting your health?</div>
+    <div class="hero-sub">Take a friendly, science-backed check-up across 6 areas of digital wellbeing — and get personalised guidance to feel better.</div>
+    <button class="btn-primary" onclick="showScreen('screen-assess-menu')">Begin My Wellness Check →</button>
+    <button class="btn-secondary" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#fff;margin-top:10px" onclick="showScreen('screen-quick')">⚡ Quick Check (5 min)</button>
   </div>
-  <div class="section-label">Screen a Specific Disorder</div>
+  <div class="section-label">Check a Specific Area</div>
   <div id="home-disorder-list"></div>
-  <div class="section-label" style="margin-top:4px">Your Digital Wellness Score</div>
+  <div class="section-label" style="margin-top:4px">Your Wellness Score</div>
   <div class="card" style="text-align:center;padding:20px" id="home-dws-card">
     <div style="font-size:32px;font-weight:800;font-family:'Syne',sans-serif;color:var(--muted)" id="home-dws-num">--</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-dws-status">Complete an assessment to see your score</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-dws-status">Complete a check-up to see your score</div>
   </div>
   <div class="card" id="moodCheckCard" style="margin-bottom:12px"></div>
   <div class="section-label" style="margin-top:4px">🏆 Your Badges</div>
@@ -105,22 +105,22 @@
 <!-- ASSESSMENT MENU — FIX 4: Disorders & impact modules are now clickable -->
 <div class="screen" id="screen-assess-menu">
 <div class="screen-content">
-  <div class="notice blue"><div class="notice-title">📋 Full Assessment</div>Complete all 6 disorder screens + 4 health impact modules. Takes 20-25 minutes.</div>
-  <div class="section-label">6 Disorder Screens</div>
+  <div class="notice blue"><div class="notice-title">📋 Full Wellness Check</div>A gentle, thorough check across all 6 areas of digital health plus 4 health impact areas. Takes about 20–25 minutes at your own pace.</div>
+  <div class="section-label">6 Wellness Areas</div>
   <div id="assess-menu-list"></div>
-  <div class="section-label" style="margin-top:4px">4 Health Impact Modules</div>
+  <div class="section-label" style="margin-top:4px">4 Health Impact Areas</div>
   <div id="assess-impact-list"></div>
-  <button class="btn-primary" style="margin-top:8px" onclick="startFullAssessment()">Begin Full Assessment →</button>
+  <button class="btn-primary" style="margin-top:8px" onclick="startFullAssessment()">Begin Full Check-up →</button>
 </div>
 </div>
 
 <!-- QUICK SCAN -->
 <div class="screen" id="screen-quick">
 <div class="screen-content">
-  <div class="notice blue"><div class="notice-title">⚡ Quick Impact Scan</div>Answer 20 questions about how digital use affects your daily life. Takes 5 minutes.</div>
-  <div class="section-label">4 Impact Domains</div>
+  <div class="notice blue"><div class="notice-title">⚡ Quick Wellness Check</div>20 friendly questions about how your digital habits are affecting daily life. Takes just 5 minutes.</div>
+  <div class="section-label">4 Areas We'll Check</div>
   <div id="quick-impact-list"></div>
-  <button class="btn-primary" style="margin-top:8px" onclick="startQuickScan()">Start Quick Scan →</button>
+  <button class="btn-primary" style="margin-top:8px" onclick="startQuickScan()">Let's Begin →</button>
 </div>
 </div>
 
@@ -150,22 +150,22 @@
     <div class="share-tags" id="shareTags"></div>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="switchResultTab('disorders')">Disorders</button>
+    <button class="tab active" onclick="switchResultTab('disorders')">Your Results</button>
     <button class="tab" onclick="switchResultTab('impact')">Health Impact</button>
-    <button class="tab" onclick="switchResultTab('actions')">Actions</button>
+    <button class="tab" onclick="switchResultTab('actions')">What to Do</button>
   </div>
   <div id="result-tab-disorders">
-    <div class="section-label">Disorder Screening Results</div>
+    <div class="section-label">Your Wellness Results</div>
     <div id="resultDisorderList"></div>
-    <button class="btn-primary" style="margin-top:8px" onclick="switchResultTab('actions')">See your Action Plan →</button>
+    <button class="btn-primary" style="margin-top:8px" onclick="switchResultTab('actions')">See Your Action Plan →</button>
   </div>
   <div id="result-tab-impact" style="display:none">
-    <div class="section-label">Health Impact Report</div>
+    <div class="section-label">How Your Health Has Been Affected</div>
     <div class="card" id="resultImpactCard"></div>
-    <button class="btn-primary" style="margin-top:12px" onclick="switchResultTab('actions')">See your Action Plan →</button>
+    <button class="btn-primary" style="margin-top:12px" onclick="switchResultTab('actions')">See Your Action Plan →</button>
   </div>
   <div id="result-tab-actions" style="display:none">
-    <div class="section-label">Your Personalized Action Plan</div>
+    <div class="section-label">Your Personal Action Plan</div>
     <div id="resultActionPlan"></div>
   </div>
   <button class="btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px">← Back to Home</button>
@@ -180,7 +180,7 @@
     <div style="position:relative;z-index:1">
       <div style="font-size:11px;opacity:0.7;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">🎯 7-Day Digital Detox</div>
       <div class="challenge-streak" id="challengeStreakNum">0</div>
-      <div class="challenge-streak-label">days completed this week</div>
+      <div class="challenge-streak-label">days of your journey this week</div>
       <div style="margin-top:12px;background:rgba(255,255,255,0.15);border-radius:8px;height:8px;overflow:hidden">
         <div id="challengeProgressBar" style="height:100%;background:#fff;border-radius:8px;transition:width 0.5s ease;width:0%"></div>
       </div>
@@ -193,8 +193,8 @@
     <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px">🔔 Daily Reminder</div>
     <div class="notif-row">
       <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text)">Daily detox reminder</div>
-        <div style="font-size:11px;color:var(--muted)">Get notified to complete your challenge</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">Gentle daily nudge</div>
+        <div style="font-size:11px;color:var(--muted)">A friendly reminder to keep your streak going</div>
       </div>
       <button class="toggle" id="notifToggle" onclick="toggleNotification()"></button>
     </div>
@@ -204,16 +204,16 @@
     </div>
   </div>
   <!-- Score Trend -->
-  <div class="section-label" style="margin-top:4px">📈 Score Trend</div>
+  <div class="section-label" style="margin-top:4px">📈 Your Wellness Journey</div>
   <div class="trend-graph">
-    <div style="font-size:12px;font-weight:700;color:var(--text)">Digital Wellness Score Over Time</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text)">Wellness Score Over Time</div>
     <div class="trend-bars" id="trendBars"></div>
     <!-- FIX 5: Share trend -->
     <div id="trendShareArea"></div>
   </div>
-  <div class="section-label" style="margin-top:4px">😊 Mood Trend</div>
+  <div class="section-label" style="margin-top:4px">😊 How You've Been Feeling</div>
   <div class="card" id="moodTrendSection"></div>
-  <div class="section-label" style="margin-top:4px">Assessment History</div>
+  <div class="section-label" style="margin-top:4px">Your Check-up History</div>
   <div id="progressHistory"></div>
 </div>
 </div>
@@ -276,8 +276,8 @@
 
   <!-- Clinical disclaimer -->
   <div class="notice yellow" style="margin-bottom:12px">
-    <div class="notice-title">⚠️ Clinical Disclaimer</div>
-    PAUSE App is a screening and psychoeducation tool for educational and research purposes only. It does not constitute a clinical diagnosis or treatment. If you score Moderate or Severe on any scale, please consult a qualified mental health professional.
+    <div class="notice-title">💙 A Note on Clinical Use</div>
+    PAUSE App is a friendly wellness and screening tool — it is not a substitute for a doctor's advice. If your results suggest a Moderate or Severe level in any area, we warmly encourage you to speak with a healthcare professional who can support you properly.
   </div>
 
   <!-- Account card -->
@@ -305,8 +305,8 @@
   <!-- FEEDBACK SECTION                                           -->
   <!-- ══════════════════════════════════════════════════════════ -->
   <div class="card" style="margin-bottom:12px">
-    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">💬 Send Feedback</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Found a bug? Have a suggestion? Your feedback directly helps improve this research tool.</p>
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">💬 We'd Love to Hear From You</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Found something that could be better? Have a suggestion? Every message goes directly to our team and genuinely helps improve this tool for everyone.</p>
 
     <!-- Rating -->
     <div style="margin-bottom:14px">
@@ -335,7 +335,7 @@
     <!-- Message -->
     <div style="margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Your Message <span style="color:#c0392b">*</span></div>
-      <textarea id="feedbackMessage" placeholder="Describe your feedback, bug, or suggestion in detail..." style="width:100%;min-height:100px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--card);resize:vertical;line-height:1.6"></textarea>
+      <textarea id="feedbackMessage" placeholder="Tell us what's on your mind — a bug, a suggestion, a thought, or just how you're getting on with the app..." style="width:100%;min-height:100px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--card);resize:vertical;line-height:1.6"></textarea>
     </div>
 
     <!-- Contact email (optional) -->
@@ -345,11 +345,11 @@
     </div>
 
     <div style="color:#c0392b;font-size:12px;margin-bottom:8px;display:none" id="feedbackError">Please add a message before submitting.</div>
-    <button class="btn-primary" onclick="submitFeedback()" id="feedbackSubmitBtn">Send Feedback →</button>
+    <button class="btn-primary" onclick="submitFeedback()" id="feedbackSubmitBtn">Send to Our Team →</button>
     <div style="display:none;text-align:center;padding:16px 0" id="feedbackSuccess">
       <div style="font-size:36px;margin-bottom:8px">🙏</div>
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">Thank you!</div>
-      <div style="font-size:13px;color:var(--muted)">Your feedback has been recorded and will help improve PAUSE App.</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">Thank you so much!</div>
+      <div style="font-size:13px;color:var(--muted)">We read every message. Your feedback genuinely helps us build a better tool for everyone.</div>
     </div>
   </div>
 
@@ -371,25 +371,24 @@
 <!-- WELLNESS TOOLS SCREEN -->
 <div class="screen" id="screen-tools">
 <div class="screen-content">
-  <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Wellness Tools</div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Clinically-informed tools for your digital wellbeing</div>
+  <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">Your Wellness Toolkit</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Friendly, evidence-based tools to support your digital wellbeing</div>
   <div id="reassessmentBanner" style="display:none"></div>
   <div class="section-label">Today's Motivation</div>
   <div class="card" id="motivationCard"></div>
   <div class="section-label" style="margin-top:4px">Weekly Summary</div>
   <div class="card" id="weeklyReportCard"></div>
-  <!-- FIX 7: CBT modules rendered by cbt.js -->
-  <div class="section-label" style="margin-top:4px">CBT Exercises</div>
+  <div class="section-label" style="margin-top:4px">Wellness Exercises (CBT)</div>
   <div id="cbtSection"></div>
   <div class="section-label" style="margin-top:4px">Screen Time Log</div>
   <div class="card" id="screenTimeSection"></div>
-  <div class="section-label" style="margin-top:4px">Clinical Report</div>
+  <div class="section-label" style="margin-top:4px">Share With Your Doctor</div>
   <div class="card">
-    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">🩺 Show Your Doctor</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">Generate a printable clinical report of your assessment results to share with your healthcare provider.</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">🩺 Doctor's Report</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">Generate a clear, printable summary of your results to share with your healthcare provider — so they can support you better.</div>
     <button class="btn-primary" onclick="generateDoctorReport()">📄 Generate Report</button>
   </div>
-  <div class="section-label" style="margin-top:4px">Caregiver Summary</div>
+  <div class="section-label" style="margin-top:4px">Share With a Loved One</div>
   <div class="card" id="caregiverSection"></div>
 </div>
 </div>
@@ -431,8 +430,8 @@
         <div class="dws-number" id="modalDWSNum">--</div>
         <div class="dws-label">out of 100</div>
       </div>
-      <div class="dws-status" id="modalDWSStatus">Not assessed yet</div>
-      <div class="dws-sub" id="modalDWSSub">Complete a Full Assessment to get your Digital Wellness Score.</div>
+      <div class="dws-status" id="modalDWSStatus">Not checked yet</div>
+      <div class="dws-sub" id="modalDWSSub">Complete a check-up to see your Digital Wellness Score.</div>
     </div>
     <div style="margin-top:12px" id="modalDWSBreakdown"></div>
     <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Close</button>
@@ -457,7 +456,7 @@
       <div class="terms-box" style="margin-top:0">
         <input type="checkbox" id="termsCheckbox"/>
         <label for="termsCheckbox">
-          I have read and understood the Terms &amp; Conditions and I am 18 years or older.
+          I have read and understood the Terms &amp; Conditions. I am 18 or older, and I <strong>consent to my anonymised data being stored and used for academic research</strong> on digital health.
         </label>
       </div>
       <div class="terms-error" id="termsError">⚠️ You must tick the checkbox above to continue.</div>
@@ -472,13 +471,13 @@
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:36px;margin-bottom:8px">✅</div>
-      <div class="modal-title" style="margin-bottom:4px">Terms Accepted</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">Now sign in with Google to create your account and save your progress securely.</p>
+      <div style="font-size:36px;margin-bottom:8px">👋</div>
+      <div class="modal-title" style="margin-bottom:4px">Welcome — you're all set!</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Sign in with Google to save your progress and sync your data across devices. It only takes a moment.</p>
     </div>
     <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">Your Google account is only used for login. We do not access your Google data.</p>
-    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Back</button>
+    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">We only use Google to verify your identity. We never access your Google contacts, emails, or any other data.</p>
+    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Go back</button>
   </div>
 </div>
 
@@ -486,9 +485,9 @@
 <div class="modal-overlay" id="profileModal">
   <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
     <div class="modal-handle"></div>
-    <div class="modal-title">👋 Tell Us About Yourself</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps personalise your experience and contributes to anonymous research on digital health. All fields required unless marked optional.</p>
-    <div class="notice blue" style="margin-bottom:14px;font-size:12px"><strong>🔬 Research note:</strong> Your anonymised profile data will be used for academic research on digital wellness (GMC Maheshwaram). Your identity is never shared.</div>
+    <div class="modal-title">👋 Tell Us a Little About Yourself</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps us personalise your experience and — with your permission — contributes to community health research. All fields are required unless marked optional.</p>
+    <div class="notice blue" style="margin-bottom:14px;font-size:12px">🤝 Your responses help us understand digital health across different communities in India, so we can build better tools for everyone. Your identity is never shared.</div>
 
     <!-- SECTION: Demographics -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Demographics</div>
@@ -644,7 +643,7 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">How would you rate your overall health?</label>
+      <label class="form-label">How would you describe your overall health?</label>
       <div class="form-options" id="selfRatedHealthOptions">
         <button class="form-option" onclick="selectOption('self_rated_health','Excellent',this)">Excellent</button>
         <button class="form-option" onclick="selectOption('self_rated_health','Good',this)">Good</button>
@@ -709,7 +708,6 @@
     </div>
 
     <button class="btn-primary" onclick="saveProfile()">Save &amp; Continue →</button>
-    <!-- "Skip for now" removed intentionally — profile is mandatory -->
   </div>
 </div>
 
@@ -837,12 +835,12 @@
 <div class="modal-overlay" id="postAssessmentModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Research Contribution</div>
-    <div class="modal-title" id="postAssessTitle">3 Quick Research Questions</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Based on your highest-scoring area, answering these 3 optional questions significantly helps our research. Responses are anonymous.</p>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">3 Quick Questions</div>
+    <div class="modal-title" id="postAssessTitle">Help Us Understand a Little More</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Based on your results, these 3 short questions help our team better understand this area of digital health in the community. Completely optional, and anonymous.</p>
     <div id="postAssessQuestions"></div>
-    <button class="btn-primary" style="margin-top:12px" onclick="savePostAssessmentData()">Submit &amp; Help Research 🔬</button>
-    <button class="btn-ghost" onclick="closeModal('postAssessmentModal')">Skip for now</button>
+    <button class="btn-primary" style="margin-top:12px" onclick="savePostAssessmentData()">Submit — Happy to Help 🤝</button>
+    <button class="btn-ghost" onclick="closeModal('postAssessmentModal')">Maybe next time</button>
   </div>
 </div>
 
