@@ -407,10 +407,16 @@ function selectFeedbackCategory(value, btn){
 }
 
 async function submitFeedback(){
-  const msg = (document.getElementById('feedbackMessage')?.value || '').trim();
+  const msg   = (document.getElementById('feedbackMessage')?.value || '').trim();
+  const email = (document.getElementById('feedbackEmail')?.value || '').trim();
   const errEl = document.getElementById('feedbackError');
+
   if(!msg){
-    if(errEl) errEl.style.display = 'block';
+    if(errEl){ errEl.textContent = 'Please add a message before submitting.'; errEl.style.display = 'block'; }
+    return;
+  }
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    if(errEl){ errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; }
     return;
   }
   if(errEl) errEl.style.display = 'none';
