@@ -1,7 +1,7 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v4';
+const CACHE_NAME = 'pause-app-v5'; // BUG8 FIX: bumped from v4 — forces cache refresh after recent file changes
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
@@ -11,6 +11,7 @@ const BASE = self.location.pathname.replace(/sw\.js$/, '');
 const PRECACHE_ASSETS = [
   BASE,
   BASE + 'index.html',
+  BASE + 'terms.html',        // BUG5 FIX: was missing — now available offline
   BASE + 'style.css',
   BASE + 'manifest.json',
   BASE + 'data.js',

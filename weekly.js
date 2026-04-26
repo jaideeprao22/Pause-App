@@ -38,7 +38,7 @@ function generateWeeklyReport(){
     challengeDaysCompleted: challenge.length,
     latestDWS: latest?.dws || null,
     dwsChange,
-    topConcern: getTopDisorder(),
+    topConcern: typeof getTopDisorder === 'function' ? getTopDisorder() : null,
     weekLabel: weekStart.toLocaleDateString('en-IN',{day:'numeric',month:'short'})
   };
 }

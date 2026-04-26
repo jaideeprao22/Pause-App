@@ -35,25 +35,30 @@ function loadSavedScores(){
   }
 }
 
-function saveScores(){
+// BUG3 FIX: Split into two functions.
+// saveScoresLocal() — localStorage + AppGrades only. Safe to call on every answer (partial progress).
+// saveScores()      — also adds a history entry + syncs to Supabase. Called ONLY when assessment is fully complete.
+function saveScoresLocal(){
   localStorage.setItem('pauseV2Scores', JSON.stringify({disorder:disorderScores, impact:impactScores, dws:dwsScore}));
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
-  history.unshift({dws:dwsScore, disorder:{...disorderScores}, impact:{...impactScores}, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
-  if(history.length > 20) history.splice(20);
-  localStorage.setItem('pauseV2History', JSON.stringify(history));
-
-  // FIX 3: Persist disorder grades using AppGrades so they survive app restarts
   if(window.AppGrades){
     const grades = {};
     DISORDERS.forEach(d => {
       if(disorderScores[d.id] !== undefined){
         const level = getLevel(d, disorderScores[d.id]);
-        grades[d.id] = level.label.toLowerCase(); // 'minimal','mild','moderate','severe'
+        grades[d.id] = level.label.toLowerCase();
       }
     });
     window.AppGrades.save(grades);
   }
+}
 
+function saveScores(){
+  saveScoresLocal();
+  // History entry + Supabase sync — only runs when a full assessment is finished
+  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  history.unshift({dws:dwsScore, disorder:{...disorderScores}, impact:{...impactScores}, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
+  if(history.length > 20) history.splice(20);
+  localStorage.setItem('pauseV2History', JSON.stringify(history));
   saveToSupabase();
 }
 

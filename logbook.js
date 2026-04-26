@@ -2,6 +2,16 @@
 // DAILY LOGBOOK — Guided journaling with speech-to-text
 // ============================================================
 
+// BUG6 FIX: escape user-entered text before inserting via innerHTML to prevent XSS
+function _escHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
 const LOGBOOK_PROMPTS = [
   {icon:'🌅', text:'How are you feeling about your digital habits today?'},
   {icon:'📱', text:'Which app did you use the most today, and how did it make you feel?'},
@@ -56,7 +66,7 @@ function renderLogbookScreen(){
             <div style="font-size:12px;font-weight:700;color:var(--accent)">${formatLogDate(e.date)}</div>
             <div style="font-size:10px;color:var(--muted)">${e.prompt}</div>
           </div>
-          <div style="font-size:13px;color:var(--text);line-height:1.6">${e.text}</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.6">${_escHtml(e.text)}</div>
           <button onclick="deleteLogEntry('${e.id}')" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;margin-top:8px;font-family:inherit">Delete</button>
         </div>`).join('')
     }`;
