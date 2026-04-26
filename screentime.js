@@ -36,7 +36,6 @@ function renderScreenTimeSection(){
       ${log.slice(0,14).reverse().map(e => {
         const pct = Math.min(100, (e.hours / 12) * 100);
         const color = e.hours <= 4 ? '#2ecc71' : e.hours <= 8 ? '#f5a623' : '#ff4757';
-        // FIX: Merged two separate style attributes into one — HTML ignores duplicate style attrs
         return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
           <div style="width:100%;border-radius:3px 3px 0 0;background:${color};height:${pct}%"></div>
           <div style="font-size:8px;color:var(--muted)">${e.hours}h</div>
@@ -85,7 +84,8 @@ async function saveResearchConsentToSupabase(){
 function generateDoctorReport(){
   const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
   const latest = history[0];
-  if(!latest){ alert('Please complete an assessment first.'); return; }
+  // Bug 1 FIX: alert() → showToast() (alert blocked in TWA/WebView)
+  if(!latest){ showToast('Please complete an assessment first.'); return; }
 
   const date = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
   const s = dwsScore ? getDWSStatus(dwsScore) : null;
@@ -173,6 +173,10 @@ function generateDoctorReport(){
 // CAREGIVER MODE
 // ============================================================
 
+// Bug 3 FIX: store share text in a module-level variable so onclick never
+// embeds a multi-line string literal in HTML (newlines → SyntaxError in JS)
+let _caregiverShareText = '';
+
 function renderCaregiverSection(){
   const el = document.getElementById('caregiverSection');
   if(!el) return;
@@ -184,19 +188,24 @@ function renderCaregiverSection(){
   const trend = latest.dws > previous.dws ? '📈 Improving' : latest.dws < previous.dws ? '📉 Declining' : '➡️ Stable';
   const trendColor = latest.dws > previous.dws ? '#2ecc71' : latest.dws < previous.dws ? '#ff4757' : '#64748b';
 
-  const shareText = `PAUSE App Wellness Update\n\nDWS Score Trend: ${trend}\nLatest Score: ${latest.dws}/100\nPrevious Score: ${previous.dws}/100\nChange: ${latest.dws > previous.dws ? '+' : ''}${latest.dws - previous.dws} points\n\nThis is an anonymous wellness trend summary. Individual scores and disorder details are not included.\n\n— Shared via PAUSE App`;
+  // Bug 3 FIX: assign to variable, not to inline onclick — avoids newline injection
+  _caregiverShareText = `PAUSE App Wellness Update\n\nDWS Score Trend: ${trend}\nPrevious Score: ${previous.dws}/100\nLatest Score: ${latest.dws}/100\nChange: ${latest.dws > previous.dws ? '+' : ''}${latest.dws - previous.dws} points\n\nThis is an anonymous wellness trend summary. Individual scores and disorder details are not included.\n\n— Shared via PAUSE App`;
 
   el.innerHTML = `
     <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px">
       <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Wellness Trend (last 2 assessments)</div>
       <div style="font-size:18px;font-weight:700;color:${trendColor}">${trend}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">${latest.dws}/100 → ${previous.dws}/100</div>
+      <!-- Bug 4 FIX: show previous→latest (chronological direction) not latest→previous -->
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${previous.dws}/100 → ${latest.dws}/100</div>
     </div>
-    <button class="btn-secondary" style="margin-top:0" onclick="shareCaregiverSummary('${shareText.replace(/'/g, "\\'")}')">📤 Share Trend with Caregiver</button>
+    <button class="btn-secondary" style="margin-top:0" onclick="shareCaregiverSummary()">📤 Share Trend with Caregiver</button>
     <div style="font-size:11px;color:var(--muted);margin-top:8px">Only the trend direction is shared — no disorder details or personal data.</div>`;
 }
 
-function shareCaregiverSummary(text){
+// Bug 3 FIX: no text argument — reads from module-level _caregiverShareText
+// Bug 2 FIX: alert() → showToast()
+function shareCaregiverSummary(){
+  const text = _caregiverShareText;
   if(navigator.share){ navigator.share({title:'PAUSE App Wellness Trend', text}); }
-  else { navigator.clipboard.writeText(text).then(() => alert('Summary copied to clipboard!')); }
+  else { navigator.clipboard.writeText(text).then(() => showToast('Summary copied to clipboard!')); }
 }

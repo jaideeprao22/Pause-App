@@ -82,7 +82,9 @@ function getLogbookEntries(){
 
 function saveLogEntry(){
   const text = document.getElementById('logbookText')?.value?.trim();
-  if(!text){ alert('Please write something before saving.'); return; }
+  // Bug 5 FIX: alert() → showToast() (alert blocked in TWA/WebView)
+  if(!text){ showToast('Please write something before saving.'); return; }
+
   const entries = getLogbookEntries();
   const todayKey = getTodayKey();
   const prompt = LOGBOOK_PROMPTS[currentPromptIdx % LOGBOOK_PROMPTS.length];
@@ -99,12 +101,11 @@ function saveLogEntry(){
   else entries.unshift(entry);
   localStorage.setItem('pauseLogbook', JSON.stringify(entries));
 
-  // Save to Supabase if logged in
   saveLogToSupabase(entry);
 
-  // Show success
-  const btn = document.querySelector('#screen-logbook .btn-primary');
-  if(btn){ btn.textContent = '✓ Saved!'; btn.style.background = '#2ecc71'; setTimeout(() => { btn.textContent = 'Save Entry →'; btn.style.background = ''; }, 2000); }
+  // Bug 8 FIX: button text change was overwritten by renderLogbookScreen() before the
+  // browser could paint it — success feedback was invisible. Use showToast() instead.
+  showToast('✅ Entry saved!');
   renderLogbookScreen();
 }
 
@@ -123,15 +124,17 @@ async function saveLogToSupabase(entry){
 }
 
 function deleteLogEntry(id){
-  if(!confirm('Delete this entry?')) return;
+  // Bug 6 FIX: confirm() is blocked in TWA/WebView — delete directly with toast notification
   const entries = getLogbookEntries().filter(e => e.id !== id);
   localStorage.setItem('pauseLogbook', JSON.stringify(entries));
+  showToast('Entry deleted.');
   renderLogbookScreen();
 }
 
 function toggleSpeechRecognition(){
   if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
-    alert('Speech recognition is not supported on this browser. Try Chrome on Android.');
+    // Bug 7 FIX: alert() → showToast()
+    showToast('Voice input works in Chrome on Android — not supported on this browser.');
     return;
   }
   if(isRecording){ stopRecording(); return; }

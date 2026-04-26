@@ -10,7 +10,11 @@ const PERCENTILE_REFS = {
   workaddiction:  [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,25,27,30,35]
 };
 
-function getPercentile(disorderId, score){
+// Bug 11 FIX: getPercentile() and getDWSPercentile() are also defined in assessment.js
+// (with PERCENTILE_DATA_READY guard). Renaming to private names here so share.js
+// doesn't overwrite the authoritative assessment.js versions for the rest of the app.
+// These private versions use reference data arrays for the canvas share card only.
+function _shareGetPercentile(disorderId, score){
   const ref = PERCENTILE_REFS[disorderId];
   if(!ref) return null;
   let rank = 0;
@@ -18,7 +22,7 @@ function getPercentile(disorderId, score){
   return Math.round((rank/ref.length)*100);
 }
 
-function getDWSPercentile(dws){
+function _shareDWSPercentile(dws){
   const ref = [20,25,30,35,40,45,50,55,60,62,65,67,69,71,73,75,78,81,85,90,100];
   let rank = 0;
   for(let i=0; i<ref.length; i++){ if(dws > ref[i]) rank = i+1; }
@@ -65,7 +69,7 @@ async function shareResults(){
 
   if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
-    const pct = getDWSPercentile(dwsScore);
+    const pct = getDWSPercentile ? _shareDWSPercentile(dwsScore) : 0;
     // Score arc
     ctx.beginPath();
     ctx.arc(cx, cy, r, -Math.PI/2, (-Math.PI/2) + (dwsScore/100)*Math.PI*2);
@@ -107,7 +111,7 @@ async function shareResults(){
     const score = disorderScores[d.id];
     const level = getLevel(d, score);
     const pct = ((score - d.questions.length)/(d.maxScore - d.questions.length))*100;
-    const percentile = getPercentile(d.id, score);
+    const percentile = _shareGetPercentile(d.id, score);
 
     // Card background
     ctx.fillStyle = 'rgba(255,255,255,0.06)';

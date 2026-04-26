@@ -2,13 +2,31 @@
 // WEEKLY REPORT — Auto-generated Sunday summary
 // ============================================================
 
+// Bug 9+10 FIX: new Date("26 Apr 2026") fails on Safari/WebKit.
+// History dates are stored in en-IN locale format ("26 Apr 2026").
+// Parse them manually to guarantee cross-browser reliability.
+function _parseHistoryDate(dateStr){
+  const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const parts = (dateStr || '').trim().split(/\s+/);
+  if(parts.length === 3){
+    const day   = parseInt(parts[0], 10);
+    const month = months[parts[1]];
+    const year  = parseInt(parts[2], 10);
+    if(!isNaN(day) && month !== undefined && !isNaN(year)){
+      return new Date(year, month, day);
+    }
+  }
+  return new Date(dateStr); // fallback for unexpected formats
+}
+
 function generateWeeklyReport(){
   const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
   const challenge = JSON.parse(localStorage.getItem('pauseChallenge') || '[]');
   const weekStart = getWeekStart();
-  const weekEntries = history.filter(h => new Date(h.date) >= weekStart);
+  // Bug 9 FIX: use _parseHistoryDate instead of new Date(h.date)
+  const weekEntries = history.filter(h => _parseHistoryDate(h.date) >= weekStart);
   const latest = weekEntries[0];
-  const previous = history.find(h => new Date(h.date) < weekStart);
+  const previous = history.find(h => _parseHistoryDate(h.date) < weekStart);
 
   let dwsChange = null;
   if(latest?.dws && previous?.dws){
@@ -83,7 +101,8 @@ function renderWeeklyReport(){
 function checkReassessmentReminder(){
   const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
   if(!history.length) return;
-  const lastDate = new Date(history[0].date);
+  // Bug 10 FIX: use _parseHistoryDate — new Date(locale string) fails on Safari
+  const lastDate = _parseHistoryDate(history[0].date);
   const now = new Date();
   const daysSince = Math.floor((now - lastDate) / (1000*60*60*24));
   if(daysSince >= 28){
@@ -101,7 +120,4 @@ function checkReassessmentReminder(){
     }
   }
 }
-
-document.addEventListener('DOMContentLoaded', function(){
-  checkReassessmentReminder();
-});
+// Removed redundant DOMContentLoaded listener — app.js init() already calls checkReassessmentReminder()
