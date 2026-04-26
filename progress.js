@@ -19,7 +19,8 @@ function renderPersonalSummary(){
 
   const latest  = history[0];
   const prev    = history.length > 1 ? history[1] : null;
-  const best    = Math.max(...history.filter(h => h.dws).map(h => h.dws));
+  const _dwsVals  = history.filter(h => h.dws).map(h => h.dws);
+  const best    = _dwsVals.length ? Math.max(..._dwsVals) : null; // BUG6 FIX: avoid -Infinity
   const s       = latest.dws ? getDWSStatus(latest.dws) : null;
   const total   = history.length;
 
@@ -166,10 +167,11 @@ function renderMoodTrend(){
   if(!el) return;
   const moodLog = JSON.parse(localStorage.getItem('moodLog') || '[]').slice(0,14).reverse();
   if(!moodLog.length){ el.innerHTML='<div style="font-size:12px;color:var(--muted)">Log your mood daily to see trends here.</div>'; return; }
-  const MOODS = [{value:5,emoji:'😊',color:'#2ecc71'},{value:4,emoji:'🙂',color:'#00c9a7'},{value:3,emoji:'😐',color:'#f5a623'},{value:2,emoji:'😔',color:'#ff6b35'},{value:1,emoji:'😰',color:'#ff4757'}];
+  // BUG16 FIX: use global MOODS from motivation.js instead of redeclaring
+  const _moodRef = (typeof MOODS !== 'undefined') ? MOODS : [{value:5,emoji:'😊',color:'#2ecc71'},{value:4,emoji:'🙂',color:'#00c9a7'},{value:3,emoji:'😐',color:'#f5a623'},{value:2,emoji:'😔',color:'#ff6b35'},{value:1,emoji:'😰',color:'#ff4757'}];
   el.innerHTML = `<div style="display:flex;align-items:flex-end;gap:4px;height:60px">
     ${moodLog.map(m => {
-      const mood = MOODS.find(x => x.value === m.value);
+      const mood = _moodRef.find(x => x.value === m.value);
       const pct = (m.value/5)*100;
       return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
         <div style="width:100%;background:${mood?.color||'var(--border)'};border-radius:3px 3px 0 0;height:${pct}%"></div>
@@ -183,6 +185,7 @@ function renderProgress(){
   renderPersonalSummary();
   renderDisorderProgress();
   renderMoodTrend();
+  if(typeof renderTrajectoryBadges==='function') renderTrajectoryBadges(); // BUG4 FIX
   const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
 
   // Trend graph
@@ -322,4 +325,169 @@ function toggleChallenge(idx){
   localStorage.setItem('pauseChallenge', JSON.stringify(completed));
   renderChallenge();
   checkAndAwardBadges();
+}
+
+// ============================================================
+// FEATURE6: Severity trajectory badge rendering
+// ============================================================
+function renderTrajectoryBadges(){
+  // BUG6 FIX: both elements coexist in DOM (results + progress screen)
+  // getElementById('trajectoryBadgesRow') always finds results element first, so populate BOTH explicitly
+  const els = [
+    document.getElementById('trajectoryBadgesRow'),
+    document.getElementById('trajectoryBadgesRowProgress')
+  ].filter(Boolean);
+  if(!els.length) return;
+  const badges=JSON.parse(localStorage.getItem('pause_trajectory_badges')||'[]');
+  if(!badges.length){ els.forEach(el=>el.innerHTML=''); return; }
+  const _html=`<div class="section-label" style="margin-top:4px">🌟 Improvement Milestones</div>
+    <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;padding:14px">
+    ${badges.slice(0,5).map((b,i)=>{
+      const date=new Date(b.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+      return `<div style="display:flex;align-items:center;gap:6px;background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);border-radius:20px;padding:5px 12px">
+        <span style="font-size:14px">📈</span>
+        <div><div style="font-size:11px;font-weight:700;color:#2ecc71">Severity Improved</div>
+        <div style="font-size:10px;color:var(--muted)">${date}${b.dws?' · DWS '+b.dws:''}</div></div>
+      </div>`;
+    }).join('')}
+    </div>`;
+  els.forEach(el => el.innerHTML = _html); // BUG6 FIX: both screens get updated
+}
+
+// ============================================================
+// FEATURE7: Digital Detox Day Planner
+// ============================================================
+const DETOX_PLAN = [
+  {time:'7:00 AM',icon:'🌅',title:'Morning Grounding',desc:'Before touching your phone, do the 5-4-3-2-1 grounding exercise. Notice 5 things you can see, 4 you can touch, 3 you can hear.',action:'groundingExercise'},
+  {time:'9:00 AM',icon:'📵',title:'Phone-Free Work Block',desc:'Put your phone in another room for 2 hours. Work or study on one task without digital interruptions.',action:null},
+  {time:'12:00 PM',icon:'🍽️',title:'Screen-Free Meal',desc:'Have lunch without any screen — no phone, TV, or laptop. Notice the food, the flavours, the room around you.',action:null},
+  {time:'2:00 PM',icon:'🚶',title:'Outdoor Walk',desc:'A 20-minute walk outside without your phone. Leave it at home or on silent in your bag.',action:null},
+  {time:'4:00 PM',icon:'🌊',title:'Urge Surfing Practice',desc:'When you feel the urge to check your phone, practice urge surfing — observe it, rate it, breathe through it.',action:'surfingExercise'},
+  {time:'7:00 PM',icon:'👥',title:'Real Connection',desc:'Have a conversation with someone in person — a family member, friend, or neighbour — for at least 20 minutes.',action:null},
+  {time:'9:00 PM',icon:'📴',title:'Digital Sunset',desc:'All screens off by 9pm. Charge your phone outside the bedroom. Read a physical book or journal instead.',action:null},
+  {time:'10:00 PM',icon:'💨',title:'4-7-8 Breathing',desc:'Before sleep, do 4 cycles of 4-7-8 breathing to calm your nervous system and prepare for deep sleep.',action:'breathingExercise'}
+];
+
+
+// BUG19 FIX: local timezone date helper — avoids UTC midnight reset issue
+function getLocalDateStr(){ return new Date().toLocaleDateString('en-CA'); } // en-CA gives YYYY-MM-DD
+
+function renderDetoxPlanner(){
+  const el=document.getElementById('detoxPlannerContent');
+  if(!el) return;
+  // BUG17 FIX: use stored date so midnight crossing doesn't reset progress
+  const storedDate=localStorage.getItem('pause_detox_active_date')||getLocalDateStr(); // BUG19 FIX
+  const today=new Date(storedDate).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const completed=JSON.parse(localStorage.getItem('pause_detox_completed_'+storedDate)||'[]');
+
+  el.innerHTML=`
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:13px;color:var(--muted)">📅 ${today}</div>
+      <div style="font-size:12px;color:var(--accent);font-weight:700;margin-top:4px">${completed.length} of ${DETOX_PLAN.length} steps completed</div>
+      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px">
+        <div style="height:100%;background:#2ecc71;width:${Math.round((completed.length/DETOX_PLAN.length)*100)}%;transition:width 0.4s ease"></div>
+      </div>
+    </div>
+    ${DETOX_PLAN.map((step,i)=>{
+      const done=completed.includes(i);
+      // BUG13 FIX: render action link for steps that have one
+      const actionMap={groundingExercise:'5-4-3-2-1 Grounding',surfingExercise:'Urge Surfing',breathingExercise:'4-7-8 Breathing'};
+      const actionLabel=step.action?actionMap[step.action]||null:null;
+      return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);opacity:${done?'0.7':'1'}">
+        <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="font-size:20px">${done?'✅':step.icon}</div>
+          <div style="font-size:9px;color:var(--muted);font-weight:700">${step.time}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">${step.title}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5">${step.desc}</div>
+          ${actionLabel?`<div style="margin-top:6px"><span onclick="closeModal('detoxPlannerModal');showScreen('screen-tools')" style="font-size:11px;font-weight:700;color:var(--accent);cursor:pointer;text-decoration:underline">→ Open ${actionLabel} in Tools</span></div>`:''}
+        </div>
+        <button onclick="toggleDetoxStep(${i})" style="flex-shrink:0;padding:6px 12px;border-radius:8px;border:1px solid ${done?'#2ecc71':'var(--border)'};background:${done?'rgba(46,204,113,0.1)':'none'};color:${done?'#2ecc71':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;align-self:flex-start;margin-top:4px">${done?'Done ✓':'Mark Done'}</button>
+      </div>`;
+    }).join('')}`;
+}
+
+function toggleDetoxStep(idx){
+  // BUG17 FIX: use stored active date
+  const key='pause_detox_completed_'+(localStorage.getItem('pause_detox_active_date')||getLocalDateStr()); // BUG19 FIX
+  const completed=JSON.parse(localStorage.getItem(key)||'[]');
+  const pos=completed.indexOf(idx);
+  if(pos===-1) completed.push(idx); else completed.splice(pos,1);
+  localStorage.setItem(key,JSON.stringify(completed));
+  renderDetoxPlanner();
+  if(completed.length===DETOX_PLAN.length) showToast('🎉 You completed your Digital Detox Day!');
+}
+
+function openDetoxPlanner(){
+  // BUG17 FIX: stamp active date when user opens planner (not at midnight)
+  if(!localStorage.getItem('pause_detox_active_date')){
+    localStorage.setItem('pause_detox_active_date', getLocalDateStr()); // BUG19 FIX
+  } else {
+    // Reset if stored date is from a previous day
+    const stored=localStorage.getItem('pause_detox_active_date');
+    if(stored!==getLocalDateStr()){ // BUG19 FIX
+      localStorage.removeItem('pause_detox_active_date');
+      localStorage.setItem('pause_detox_active_date', getLocalDateStr()); // BUG19 FIX
+    }
+  }
+  renderDetoxPlanner();
+  openModal('detoxPlannerModal');
+}
+
+// ============================================================
+// FEATURE2: Weekly check-in
+// ============================================================
+const PAUSE_WEEKLY_CHECKIN_KEY='pause_weekly_checkin'; // BUG9 FIX: prefixed to avoid weekly.js conflict
+const PAUSE_WEEKLY_QUESTIONS=[ // BUG9 FIX
+  {id:'q1',text:'Did you manage to reduce your most problematic digital habit this week?',opts:['Yes, significantly','Yes, somewhat','No change','It got worse']},
+  {id:'q2',text:'How many times did you use the wellness exercises in PAUSE App?',opts:['5 or more times','2–4 times','Once','Not at all']},
+  {id:'q3',text:'How would you rate your overall digital wellbeing this week compared to last week?',opts:['Much better','A little better','About the same','A little worse','Much worse']}
+];
+
+function checkWeeklyCheckin(){
+  const last=localStorage.getItem(PAUSE_WEEKLY_CHECKIN_KEY);
+  if(!last){
+    // First ever — schedule for 7 days, don't show immediately
+    localStorage.setItem(PAUSE_WEEKLY_CHECKIN_KEY, JSON.stringify({lastShown:new Date().toISOString(),responses:[]}));
+    return;
+  }
+  try{
+    const data=JSON.parse(last);
+    const daysSince=Math.floor((Date.now()-new Date(data.lastShown).getTime())/86400000);
+    if(daysSince>=7) setTimeout(()=>{ if(typeof currentScreen!=='undefined'&&currentScreen!=='screen-home') return; const rcModal=document.getElementById('reConsentModal'); if(rcModal&&rcModal.classList.contains('open')) return; // BUG16 FIX
+      renderWeeklyCheckinModal(); },3000); // BUG15+16 FIX
+  }catch(e){}
+}
+
+function submitWeeklyCheckin(){
+  const responses={};
+  let allAnswered=true;
+  PAUSE_WEEKLY_QUESTIONS.forEach(q=>{
+    const sel=document.querySelector(`#weeklyQ_${q.id} .form-option.selected`);
+    if(!sel){ allAnswered=false; return; }
+    responses[q.id]=sel.dataset.value;
+  });
+  if(!allAnswered){ showToast('Please answer all questions.'); return; }
+  const data={lastShown:new Date().toISOString(),responses};
+  localStorage.setItem(PAUSE_WEEKLY_CHECKIN_KEY,JSON.stringify(data));
+  if(currentUser){
+    sb.from('WeeklyCheckin').insert({user_id:currentUser.id,...responses,checked_at:data.lastShown}).then(()=>{}).catch(()=>{});
+  }
+  closeModal('weeklyCheckinModal');
+  showToast('✅ Weekly check-in saved — keep it up!');
+}
+
+function renderWeeklyCheckinModal(){
+  // BUG11 FIX: open modal first so DOM elements exist, then populate
+  openModal('weeklyCheckinModal');
+  PAUSE_WEEKLY_QUESTIONS.forEach(q=>{
+    const container=document.getElementById(`weeklyQ_${q.id}`);
+    if(!container) return; // guard against missing elements
+    container.innerHTML=`
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.5">${q.text}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${q.opts.map(opt=>`<button class="form-option" data-value="${opt}" onclick="this.closest('[id]').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">${opt}</button>`).join('')}
+      </div>`;
+  });
 }

@@ -16,6 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- FIX 2: Offline banner styles -->
@@ -48,6 +49,30 @@
 /* Feedback stars */
 .feedback-star{background:none;border:none;font-size:28px;cursor:pointer;padding:4px;border-radius:8px;opacity:0.35;transition:opacity 0.15s,transform 0.15s;-webkit-tap-highlight-color:transparent}
 .feedback-star.active{opacity:1;transform:scale(1.15)}
+
+/* ── DARK MODE ─────────────────────────────── */
+body.dark-mode {
+  --bg: #0a0f1e;
+  --card: #111827;
+  --border: #1f2937;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --accent: #4f8ef7;
+}
+body.dark-mode .hero-card { background: linear-gradient(135deg,#1a2744,#0f2d5e); }
+body.dark-mode .nav-bar { background: #111827; border-top-color: #1f2937; }
+body.dark-mode .modal-overlay { background: rgba(0,0,0,0.8); }
+body.dark-mode input, body.dark-mode select { background: #1f2937; color: #f1f5f9; }
+body.dark-mode .modal-card { background: #111827; color: #f1f5f9; }
+body.dark-mode .modal-title { color: #f1f5f9; }
+body.dark-mode .notice { background: #1f2937; }
+body.dark-mode .form-option { background: #1f2937; border-color: #374151; color: #f1f5f9; }
+body.dark-mode .form-option.selected { background: rgba(79,142,247,0.2); border-color: #4f8ef7; color: #4f8ef7; }
+body.dark-mode .q-option { background: #1f2937; border-color: #374151; color: #f1f5f9; }
+body.dark-mode .q-option.selected { background: rgba(79,142,247,0.2); border-color: #4f8ef7; }
+body.dark-mode .card { background: #111827; }
+body.dark-mode .history-item { border-bottom-color: #1f2937; }
+#darkModeToggle { background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:16px;cursor:pointer;line-height:1; }
 </style>
 </head>
 <body>
@@ -73,6 +98,7 @@
     <div style="display:flex;gap:8px;align-items:center">
       <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
       <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
+      <button id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
       <div class="user-avatar" id="userAvatar" onclick="showUserModal()" style="display:none">?</div>
     </div>
   </div>
@@ -89,6 +115,7 @@
     <button class="btn-primary" onclick="showScreen('screen-assess-menu')">Begin My Wellness Check →</button>
     <button class="btn-secondary" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#fff;margin-top:10px" onclick="showScreen('screen-quick')">⚡ Quick Check (5 min)</button>
   </div>
+  <button onclick="renderUrgeJournal();openModal('urgeJournalModal')" style="width:100%;margin-bottom:12px;padding:12px 16px;background:rgba(61,111,255,0.08);border:1.5px solid rgba(61,111,255,0.25);border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;font-family:inherit;text-align:left"><span style="font-size:22px">⚡</span><div><div style="font-size:13px;font-weight:700;color:var(--accent)">Log an Urge</div><div style="font-size:11px;color:var(--muted)">Track & resist digital urges · build awareness</div></div></button>
   <div class="section-label">Check a Specific Area</div>
   <div id="home-disorder-list"></div>
   <div class="section-label" style="margin-top:4px">Your Digital Wellness Score</div>
@@ -97,6 +124,10 @@
     <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-dws-status">Complete a check-up to see your score</div>
   </div>
   <div class="card" id="moodCheckCard" style="margin-bottom:12px"></div>
+  <div style="display:flex;gap:10px;margin-bottom:12px">
+    <button onclick="openDetoxPlanner()" style="flex:1;padding:12px;background:rgba(46,204,113,0.08);border:1.5px solid rgba(46,204,113,0.25);border-radius:14px;cursor:pointer;font-family:inherit;text-align:center"><div style="font-size:20px">📵</div><div style="font-size:11px;font-weight:700;color:#2ecc71;margin-top:4px">Detox Day</div></button>
+    <button onclick="renderWeeklyCheckinModal()" style="flex:1;padding:12px;background:rgba(245,166,35,0.08);border:1.5px solid rgba(245,166,35,0.25);border-radius:14px;cursor:pointer;font-family:inherit;text-align:center"><div style="font-size:20px">📋</div><div style="font-size:11px;font-weight:700;color:#f5a623;margin-top:4px">Weekly Check-In</div></button>
+  </div>
   <div class="section-label" style="margin-top:4px">🏆 Your Badges</div>
   <div class="badge-grid" id="homeBadgeGrid"></div>
 </div>
@@ -136,6 +167,7 @@
   <div class="q-options" id="qOptions"></div>
   <div class="q-nav">
     <button class="q-prev" id="qPrevBtn" onclick="prevQuestion()">←</button>
+    <button id="qSaveExitBtn" onclick="saveAndExitAssessment()" style="display:none;padding:10px 14px;background:none;border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit">💾 Save & Exit</button>
     <button class="btn-primary" style="flex:1" id="qNextBtn" onclick="nextQuestion()">Next →</button>
   </div>
 </div>
@@ -150,13 +182,16 @@
     <div class="share-tags" id="shareTags"></div>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="switchResultTab('disorders')">Your Results</button>
-    <button class="tab" onclick="switchResultTab('impact')">Health Impact</button>
-    <button class="tab" onclick="switchResultTab('actions')">Action Plan</button>
+    <button class="tab active" data-tab="disorders" onclick="switchResultTab('disorders')">Your Results</button>
+    <button class="tab" data-tab="impact" onclick="switchResultTab('impact')">Health Impact</button>
+    <button class="tab" data-tab="actions" onclick="switchResultTab('actions')">Action Plan</button>
   </div>
   <div id="result-tab-disorders">
+    <div id="comparisonCard" style="display:none"></div>
+    <div id="correlationInsightsCard"></div>
     <div class="section-label">Your Wellness Results</div>
     <div id="resultDisorderList"></div>
+    <div id="disorderShareButtons"></div>
     <button class="btn-primary" style="margin-top:8px" onclick="switchResultTab('actions')">See Your Action Plan →</button>
   </div>
   <div id="result-tab-impact" style="display:none">
@@ -168,6 +203,7 @@
     <div class="section-label">Your Personal Action Plan</div>
     <div id="resultActionPlan"></div>
   </div>
+  <div id="trajectoryBadgesRow"></div>
   <button class="btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px">← Back to Home</button>
   <button class="btn-ghost" onclick="shareResults()">📤 Share My Score</button>
 </div>
@@ -182,6 +218,8 @@
 
   <!-- NEW: Area-by-area disorder progress -->
   <div id="disorderProgressCards"></div>
+  <!-- BUG2 FIX: Trajectory badges shown on progress screen too -->
+  <div id="trajectoryBadgesRowProgress"></div>
 
   <!-- EXISTING: 7-Day Challenge -->
   <div class="challenge-header-card">
@@ -387,6 +425,7 @@
   <div class="section-label" style="margin-top:4px">Weekly Summary</div>
   <div class="card" id="weeklyReportCard"></div>
   <div class="section-label" style="margin-top:4px">Wellness Exercises (CBT)</div>
+  <div id="breathingTimerCard" style="margin-bottom:16px"></div>
   <div id="cbtSection"></div>
   <div class="section-label" style="margin-top:4px">Screen Time Log</div>
   <div class="card" id="screenTimeSection"></div>
@@ -910,5 +949,114 @@
 <script src="screentime.js"></script>
 <script src="app.js"></script>
 <script src="nav.js"></script>
+<script>
+// ── App init hooks for new features ──
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof initDarkMode==='function') initDarkMode();
+  // nav.js now calls renderBreathingTimerCard() and resetBreathingTimerState() directly on screen-tools show/hide
+  setTimeout(()=>{ if(typeof checkReConsentNeeded==='function') checkReConsentNeeded(); },5000);
+  setTimeout(()=>{ if(typeof checkWeeklyCheckin==='function') checkWeeklyCheckin(); },8000);
+  // BUG20 FIX: defer renderHomeDisorders so nav.js loadScores() can populate disorderScores first
+  setTimeout(()=>{ if(typeof renderHomeDisorders==='function') renderHomeDisorders(); },200);
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- NEW MODALS — added by full feature update                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- FEATURE1: Urge Journal Modal -->
+<div class="modal-overlay" id="urgeJournalModal">
+  <div class="modal-card">
+    <div class="modal-title">⚡ Urge Journal</div>
+    <div id="urgeJournalStats"></div>
+    <button onclick="openUrgeLogModal()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:inherit">+ Log a New Urge</button>
+    <div id="urgeJournalList" style="max-height:300px;overflow-y:auto"></div>
+    <button class="btn-ghost" onclick="closeModal('urgeJournalModal')">Close</button>
+  </div>
+</div>
+
+<!-- FEATURE1: Log Urge Modal -->
+<div class="modal-overlay" id="urgeLogModal">
+  <div class="modal-card">
+    <div class="modal-title">Log an Urge</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">What kind of urge are you experiencing right now?</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Which area?</div>
+      <select id="urgeDisorderSelect" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;background:var(--card);color:var(--text)">
+        <option value="cyberchondria">🔍 Cyberchondria</option>
+        <option value="socialmedia">📱 Social Media</option>
+        <option value="shortform">🎬 Short-Form Video</option>
+        <option value="gaming">🎮 Gaming</option>
+        <option value="ai">🤖 AI Dependency</option>
+        <option value="workaddiction">💼 Work Addiction</option>
+      </select>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">What triggered it?</div>
+      <div id="urgeTriggerOptions" style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="form-option" data-value="Boredom" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">😴 Boredom</button>
+        <button class="form-option" data-value="Stress" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">😰 Stress</button>
+        <button class="form-option" data-value="Habit" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">🔁 Habit</button>
+        <button class="form-option" data-value="Procrastinating" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">📚 Procrastinating</button>
+        <button class="form-option" data-value="Low mood" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">😔 Low Mood</button>
+        <button class="form-option" data-value="Social pressure" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">👥 Social Pressure</button>
+        <button class="form-option" data-value="Other" onclick="this.closest('#urgeTriggerOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">💭 Other</button>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Did you resist it?</div>
+      <div id="urgeResistedOptions" style="display:flex;gap:8px">
+        <button class="form-option" data-value="yes" onclick="this.closest('#urgeResistedOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')" style="flex:1">✅ Yes, I resisted</button>
+        <button class="form-option" data-value="no" onclick="this.closest('#urgeResistedOptions').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')" style="flex:1">📝 No, just logging</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="submitUrgeLog()">Log This Urge →</button>
+    <button class="btn-ghost" onclick="closeModal('urgeLogModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- FEATURE2: Weekly Check-In Modal -->
+<div class="modal-overlay" id="weeklyCheckinModal">
+  <div class="modal-card">
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">📋</div>
+    <div class="modal-title">Weekly Check-In</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;line-height:1.6">3 quick questions about your week — takes under a minute.</div>
+    <div id="weeklyQ_q1" style="margin-bottom:16px"></div>
+    <div id="weeklyQ_q2" style="margin-bottom:16px"></div>
+    <div id="weeklyQ_q3" style="margin-bottom:20px"></div>
+    <button class="btn-primary" onclick="submitWeeklyCheckin()">Submit Check-In →</button>
+    <button class="btn-ghost" onclick="closeModal('weeklyCheckinModal')">Maybe later</button>
+  </div>
+</div>
+
+<!-- FEATURE7: Digital Detox Day Planner Modal -->
+<div class="modal-overlay" id="detoxPlannerModal">
+  <div class="modal-card">
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">📵</div>
+    <div class="modal-title">Digital Detox Day</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.6">A guided 24-hour plan to reset your digital habits. Mark each step as you complete it.</div>
+    <div id="detoxPlannerContent" style="max-height:420px;overflow-y:auto"></div>
+    <button class="btn-ghost" style="margin-top:12px" onclick="closeModal('detoxPlannerModal')">Close</button>
+  </div>
+</div>
+
+<!-- FEATURE8: 3-Month Re-Consent Modal -->
+<div class="modal-overlay" id="reConsentModal">
+  <div class="modal-card">
+    <div style="font-size:32px;text-align:center;margin-bottom:8px">🔬</div>
+    <div class="modal-title">Research Participation Check-In</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:18px">
+      It's been 3 months since you joined PAUSE App. We'd like to check that you're still happy for your anonymised assessment data to contribute to our research on digital wellbeing at GMC Maheshwaram.<br><br>
+      <strong style="color:var(--text)">What this means:</strong> Your scores (not your name or email) may be included in a research publication on cyberchondria and digital health behaviours in the Indian population.
+    </div>
+    <div style="font-size:11px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:20px;line-height:1.6">
+      Principal Investigator: Dr. Jaideep Rao M. · GMC Maheshwaram · Telangana – 501510
+    </div>
+    <button class="btn-primary" onclick="acceptReConsent()">✅ Yes, I'm happy to continue</button>
+    <button class="btn-ghost" style="margin-top:8px" onclick="declineReConsent()">I'd prefer to withdraw from research</button>
+  </div>
+</div>
+
 </body>
 </html>

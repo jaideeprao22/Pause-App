@@ -42,6 +42,18 @@ window.AppGrades = {
   }
 };
 
+
+// ============================================================
+// TOAST — defined here (state.js loads first) so all files can call it
+// ============================================================
+function showToast(msg, duration=3000){
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f2d5e;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:90vw;text-align:center';
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), duration);
+}
+
 // ============================================================
 // SUPABASE AUTH
 // ============================================================
@@ -103,6 +115,7 @@ async function handleGoogleCredential(response){
 }
 
 async function handleUser(user){
+  localStorage.removeItem('guestAssessWarningShown'); // BUG8 FIX: reset so warning shows for new users on shared devices
   currentUser = user;
   const avatar = document.getElementById('userAvatar');
   avatar.style.display = 'flex';
@@ -112,7 +125,8 @@ async function handleUser(user){
 
   // FIX 1: Profile is mandatory — no skip path
   const profile = localStorage.getItem('pause_profile_' + user.id)
-               || localStorage.getItem('pauseProfile_' + user.id); // migrate old key
+               || localStorage.getItem('pauseProfile_' + user.id) // migrate old key
+               || localStorage.getItem('pause_profile_guest'); // migrate from guest session
   if(!profile){
     setTimeout(() => openModal('profileModal'), 800);
   } else {
@@ -124,6 +138,14 @@ async function handleUser(user){
 
 function handleLogout(){
   currentUser = null;
+  userProfile = {}; // BUG19 FIX: clear profile so next user doesn't see stale data
+  // BUG7 FIX: reset profileSelections so previous user's radio buttons don't bleed through
+  profileSelections = {
+    gender:'', marital:'', occupation:'', residence:'', living_situation:'',
+    device:'', morning_habit:'', bedroom_charge:'',
+    self_rated_health:'', chronic_illness:'', family_member_ill:'',
+    physical_activity:'', prev_detox_attempt:'', followup_consent:''
+  };
   document.getElementById('userAvatar').style.display = 'none';
   renderLoginBanner();
   renderAccountSection();
@@ -228,7 +250,7 @@ function saveProfile(){
     marital_status:     profileSelections.marital,
     occupation:         profileSelections.occupation,
     income_bracket:     document.getElementById('profileIncome').value,
-    country:            document.getElementById('profileCountry').value,
+    country:            document.getElementById('profileCountry').value || null,
     residence_type:     profileSelections.residence,
     living_situation:   profileSelections.living_situation,
     primary_device:     profileSelections.device,
@@ -251,6 +273,8 @@ function saveProfile(){
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
     localStorage.setItem('pauseProfile_' + currentUser.id, JSON.stringify(userProfile));
+  } else {
+    localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile)); // BUG5 FIX: persist for guests
   }
   closeModal('profileModal');
 }
@@ -279,9 +303,12 @@ function saveEditProfile(){
   userProfile.country        = document.getElementById('editCountry').value || userProfile.country;
   userProfile.primary_device = document.getElementById('editDevice').value || userProfile.primary_device;
   userProfile.updatedAt      = new Date().toISOString();
+  // BUG7 FIX: persist for both logged-in and guest users
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
     localStorage.setItem('pauseProfile_' + currentUser.id, JSON.stringify(userProfile));
+  } else {
+    localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile));
   }
   closeModal('editProfileModal');
   setTimeout(() => showUserModal(), 200);
@@ -297,10 +324,37 @@ function showUserModal(){
 }
 
 // ============================================================
+// BUG14 FIX: Run these Supabase migrations before deploying new features
+// ============================================================
+// -- UrgeLog table (Feature 1)
+// CREATE TABLE IF NOT EXISTS "UrgeLog" (
+//   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//   user_id uuid REFERENCES auth.users(id),
+//   disorder text, trigger text, resisted boolean,
+//   logged_at timestamptz DEFAULT now()
+// );
+// ALTER TABLE "UrgeLog" ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Users manage own urges" ON "UrgeLog"
+//   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+//
+// -- WeeklyCheckin table (Feature 2)
+// CREATE TABLE IF NOT EXISTS "WeeklyCheckin" (
+//   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//   user_id uuid REFERENCES auth.users(id),
+//   q1 text, q2 text, q3 text,
+//   checked_at timestamptz DEFAULT now()
+// );
+// ALTER TABLE "WeeklyCheckin" ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Users manage own checkins" ON "WeeklyCheckin"
+//   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+// ============================================================
+
+// ============================================================
 // SAVE TO SUPABASE
 // ============================================================
 async function saveToSupabase(){
   if(!currentUser) return;
+  if(localStorage.getItem('pause_research_withdrawn')) return; // BUG19 FIX: respect withdrawal
   try {
     const { data, error } = await sb.from('Assessments').insert({
       user_id:            currentUser.id,
@@ -376,12 +430,7 @@ async function savePostAssessmentData(){
   }
 
   closeModal('postAssessmentModal');
-  // Toast confirmation
-  const toast = document.createElement('div');
-  toast.textContent = '🔬 Thank you for contributing to research!';
-  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f2d5e;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3)';
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  showToast('🔬 Thank you for contributing to research!'); // BUG6 FIX: use showToast()
 }
 
 // ============================================================
@@ -519,3 +568,153 @@ function openModal(id){
   }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ============================================================
+// FEATURE8: Informed consent re-confirmation (3 months)
+// ============================================================
+function checkReConsentNeeded(){
+  const accepted = localStorage.getItem('pause_terms_accepted');
+  if(!accepted) return; // handled by normal flow
+  try{
+    const data = JSON.parse(accepted);
+    const acceptedAt = new Date(data.timestamp).getTime();
+    const ninetyDays = 90*24*60*60*1000;
+    const lastReconfirm = localStorage.getItem('pause_terms_reconfirmed');
+    const lastCheck = lastReconfirm ? new Date(JSON.parse(lastReconfirm).timestamp).getTime() : acceptedAt;
+    if(Date.now() - lastCheck > ninetyDays){
+      setTimeout(()=>openModal('reConsentModal'), 2000);
+    }
+  }catch(e){}
+}
+
+function acceptReConsent(){
+  localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({
+    timestamp: new Date().toISOString(), version:'1.0'
+  }));
+  closeModal('reConsentModal'); // BUG16 FIX: close first so toast appears above, not under overlay
+  showToast('Thank you for confirming — your research participation continues. 🙏');
+}
+
+function declineReConsent(){
+  // User withdraws — clear research data flag, keep app usable
+  localStorage.setItem('pause_research_withdrawn', JSON.stringify({timestamp:new Date().toISOString()}));
+  // BUG14 FIX: reset re-consent clock so modal doesn't re-fire every session after withdrawal
+  localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), version:'1.0'}));
+  closeModal('reConsentModal'); // BUG16 FIX: close modal BEFORE showToast so toast isn't hidden under overlay
+  showToast('Understood. Your data will no longer be shared for research.');
+}
+
+// ============================================================
+// FEATURE1: Urge Journal
+// ============================================================
+const URGE_LOG_KEY = 'pause_urge_log';
+
+function logUrge(disorderId, trigger, resisted){
+  const log = JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  log.unshift({
+    date: new Date().toISOString(),
+    disorder: disorderId,
+    trigger,
+    resisted,
+    id: Date.now()
+  });
+  if(log.length>200) log.splice(200);
+  localStorage.setItem(URGE_LOG_KEY, JSON.stringify(log));
+  // Save to Supabase if logged in
+  if(currentUser){
+    sb.from('UrgeLog').insert({
+      user_id:currentUser.id, disorder:disorderId,
+      trigger, resisted, logged_at:new Date().toISOString()
+    }).then(()=>{}).catch(()=>{});
+  }
+  renderUrgeJournal();
+  closeModal('urgeLogModal');
+  showToast(resisted?'✅ Well done resisting that urge! 💪':'📝 Urge logged — awareness is the first step.');
+}
+
+function renderUrgeJournal(){
+  const el=document.getElementById('urgeJournalList');
+  if(!el) return;
+  const log=JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  if(!log.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">No urges logged yet. Use the button above when you feel the urge to scroll, search, or game.</div>';
+    return;
+  }
+  const TRIGGER_ICONS={'Boredom':'😴','Stress':'😰','Habit':'🔁','Procrastinating':'📚','Low mood':'😔','Social pressure':'👥','Other':'💭'};
+  el.innerHTML=log.slice(0,30).map(entry=>{
+    const d=DISORDERS.find(x=>x.id===entry.disorder);
+    const tIcon=TRIGGER_ICONS[entry.trigger]||'💭';
+    const date=new Date(entry.date);
+    const timeStr=date.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+date.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:${d?d.bg:'var(--bg)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${d?d.icon:'⚡'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">${d?d.name:'Unknown'} — ${tIcon} ${entry.trigger}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeStr}</div>
+      </div>
+      <div style="font-size:18px">${entry.resisted?'✅':'📝'}</div>
+    </div>`;
+  }).join('');
+
+  // Stats
+  const total=log.length, resisted=log.filter(e=>e.resisted).length;
+  const statsEl=document.getElementById('urgeJournalStats');
+  if(statsEl){
+    statsEl.innerHTML=`<div style="display:flex;gap:16px;padding:12px 0;margin-bottom:4px">
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:var(--accent)">${total}</div><div style="font-size:10px;color:var(--muted)">Total Logged</div></div>
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:#2ecc71">${resisted}</div><div style="font-size:10px;color:var(--muted)">Resisted</div></div>
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:var(--accent)">${total?Math.round((resisted/total)*100):0}%</div><div style="font-size:10px;color:var(--muted)">Resistance Rate</div></div>
+    </div>`;
+  }
+}
+
+function openUrgeLogModal(){
+  renderUrgeJournal(); // BUG15 FIX: refresh stats before modal opens so data is current
+  // Pre-fill disorder select with top disorder — BUG17 FIX: read AppGrades not in-memory disorderScores
+  const grades = window.AppGrades ? window.AppGrades.load() : {};
+  const topId = Object.keys(grades).length > 0
+    ? Object.entries(grades).sort((a,b) => {
+        const o = {severe:3,moderate:2,mild:1,'low risk':0,minimal:0};
+        return (o[b[1]]||0) - (o[a[1]]||0);
+      })[0][0]
+    : (typeof getTopDisorder==='function' ? getTopDisorder() : 'cyberchondria');
+  const sel=document.getElementById('urgeDisorderSelect');
+  if(sel && topId !== 'default') sel.value=topId;
+  openModal('urgeLogModal');
+}
+
+function submitUrgeLog(){
+  const disorder=document.getElementById('urgeDisorderSelect')?.value;
+  const trigger=document.querySelector('#urgeTriggerOptions .form-option.selected')?.dataset.value;
+  const resisted=document.querySelector('#urgeResistedOptions .form-option.selected')?.dataset.value;
+  if(!disorder||!trigger||resisted===undefined){
+    showToast('Please fill in all fields before logging.'); return;
+  }
+  logUrge(disorder, trigger, resisted==='yes');
+}
+
+// ============================================================
+// FEATURE12: Dark mode
+// ============================================================
+function initDarkMode(){
+  const saved=localStorage.getItem('pause_dark_mode');
+  if(saved==='true') applyDarkMode(true);
+}
+
+function toggleDarkMode(){
+  const isDark=document.body.classList.contains('dark-mode');
+  applyDarkMode(!isDark);
+  localStorage.setItem('pause_dark_mode', String(!isDark));
+}
+
+function applyDarkMode(dark){
+  if(dark){
+    document.body.classList.add('dark-mode');
+    const btn=document.getElementById('darkModeToggle');
+    if(btn) btn.textContent='☀️';
+  } else {
+    document.body.classList.remove('dark-mode');
+    const btn=document.getElementById('darkModeToggle');
+    if(btn) btn.textContent='🌙';
+  }
+}

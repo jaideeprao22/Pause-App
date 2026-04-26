@@ -179,6 +179,7 @@ function renderCBTSection(){
     style.textContent = `
       @keyframes cbtFill{from{width:12%}to{width:100%}}
       @keyframes cbtBreathe{0%,100%{transform:scale(0.82);opacity:0.6}50%{transform:scale(1.18);opacity:1}}
+      @keyframes cbtBreatheOut{0%,100%{transform:scale(1.18);opacity:1}50%{transform:scale(0.82);opacity:0.6}}
       @keyframes cbtUrge{0%,100%{width:72%}50%{width:22%}}
     `;
     document.head.appendChild(style);
@@ -270,3 +271,98 @@ async function shareTrendImage(){
 window.renderCBTSection       = renderCBTSection;
 window.renderTrendShareButton = renderTrendShareButton;
 window.shareTrendImage        = shareTrendImage;
+
+// ============================================================
+// FEATURE10: 4-7-8 Breathing Timer with sound (Tone.js)
+// ============================================================
+let breathingTimerActive = false;
+let breathingTimerHandle = null;
+
+async function startBreathingTimer(containerId){ // BUG7 FIX: async for Tone.start()
+  if(breathingTimerActive) return;
+  breathingTimerActive = true;
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  // BUG7 FIX: resume AudioContext on user gesture (required by browsers)
+  try{ if(typeof Tone!=='undefined') await Tone.start(); }catch(e){}
+  // BUG10 FIX: ensure keyframes exist even if renderCBTSection hasn't been called
+  if(!document.getElementById('cbtKeyframes')){
+    const ks = document.createElement('style');
+    ks.id = 'cbtKeyframes';
+    ks.textContent = '@keyframes cbtBreathe{0%,100%{transform:scale(0.82);opacity:0.6}50%{transform:scale(1.18);opacity:1}}@keyframes cbtBreatheOut{0%,100%{transform:scale(1.18);opacity:1}50%{transform:scale(0.82);opacity:0.6}}';
+    document.head.appendChild(ks);
+  }
+
+  const phases = [
+    {label:'Breathe In',duration:4,color:'#7c3aed'},
+    {label:'Hold',duration:7,color:'#0f2d5e'},
+    {label:'Breathe Out',duration:8,color:'#2ecc71'}
+  ];
+  let cycle=0, phaseIdx=0, secondsLeft=phases[0].duration;
+
+  function playTone(freq, dur){
+    try{
+      if(typeof Tone !== 'undefined' && Tone.context && Tone.context.state === 'running'){
+        const synth = new Tone.Synth({oscillator:{type:'sine'},envelope:{attack:0.3,decay:0.1,sustain:0.8,release:0.8}}).toDestination();
+        synth.triggerAttackRelease(freq, dur+'n');
+      }
+    }catch(e){ /* audio unavailable — silent fallback */ }
+  }
+
+  function tick(){
+    const phase = phases[phaseIdx];
+    el.innerHTML=`
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:13px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Cycle ${cycle+1} · ${phase.label}</div>
+        <div style="width:80px;height:80px;border-radius:50%;background:${phase.color};margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;
+          animation:${phaseIdx===0?'cbtBreathe':phaseIdx===1?'none':'cbtBreatheOut'} ${phase.duration}s ease-in-out">${secondsLeft}</div>
+        <div style="font-size:12px;color:${phase.color};margin-top:12px;font-weight:700">${phase.label}</div>
+        <button onclick="stopBreathingTimer('${containerId}')" style="margin-top:14px;padding:8px 20px;background:none;border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit">Stop</button>
+      </div>`;
+
+    secondsLeft--;
+    if(secondsLeft<0){
+      phaseIdx++;
+      if(phaseIdx>=phases.length){ phaseIdx=0; cycle++; }
+      if(cycle>=4){ stopBreathingTimer(containerId); showToast('✅ Breathing exercise complete. Well done.'); return; }
+      secondsLeft=phases[phaseIdx].duration;
+      if(phaseIdx===0) playTone('C4',4);
+      else if(phaseIdx===2) playTone('G3',8);
+    }
+    breathingTimerHandle = setTimeout(tick,1000);
+  }
+  playTone('C4',4);
+  tick();
+}
+
+function stopBreathingTimer(containerId){
+  breathingTimerActive=false;
+  if(breathingTimerHandle){ clearTimeout(breathingTimerHandle); breathingTimerHandle=null; }
+  const el=document.getElementById(containerId);
+  if(el) el.innerHTML=`<button onclick="startBreathingTimer('${containerId}')" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">▶ Start 4-7-8 Timer</button>`;
+}
+
+function renderBreathingTimerCard(){
+  const el=document.getElementById('breathingTimerCard');
+  if(!el) return;
+  el.innerHTML=`
+    <div id="breathTimerContainer">
+      <button onclick="startBreathingTimer('breathTimerContainer')" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">▶ Start 4-7-8 Breathing Timer</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">4 cycles · ~2 minutes · optional gentle sound</div>`;
+}
+
+// BUG18 FIX: reset when user navigates away so button works on return
+function resetBreathingTimerState(){
+  if(breathingTimerActive){
+    breathingTimerActive = false;
+    if(breathingTimerHandle){ clearTimeout(breathingTimerHandle); breathingTimerHandle = null; }
+    // Re-render start button in case user returns to tools screen
+    renderBreathingTimerCard();
+  }
+}
+
+window.startBreathingTimer = startBreathingTimer;
+window.stopBreathingTimer = stopBreathingTimer;
+window.renderBreathingTimerCard = renderBreathingTimerCard;
+window.resetBreathingTimerState = resetBreathingTimerState;

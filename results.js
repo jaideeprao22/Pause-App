@@ -38,6 +38,15 @@ function renderResults(){
     dList.innerHTML = '<div class="notice yellow"><div class="notice-title">No areas checked yet</div>Start a Full Check-up or tap any wellness area on the home screen to begin.</div>';
   }
 
+  // BUG5 FIX: Populate share buttons for each scored disorder
+  const shareButtonsEl = document.getElementById('disorderShareButtons');
+  if(shareButtonsEl && Object.keys(disorderScores).length > 0){
+    shareButtonsEl.innerHTML = '<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Share a result</div><div style="display:flex;flex-wrap:wrap;gap:6px">' +
+      DISORDERS.filter(d => disorderScores[d.id] !== undefined).map(d =>
+        `<button onclick="shareDisorderCard('${d.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;border:1px solid ${d.color}40;background:${d.bg};color:${d.color};font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">${d.icon} Share ${d.name}</button>`
+      ).join('') + '</div></div>';
+  }
+
   const iCard = document.getElementById('resultImpactCard');
   if(Object.keys(impactScores).length > 0){
     iCard.innerHTML = IMPACT_MODULES.map(m => {
@@ -55,7 +64,8 @@ function renderResults(){
 
   renderActionPlan();
   renderHomeDisorders();
-  renderProgress();
+  // BUG4 FIX: renderProgress() removed — its DOM targets are in screen-progress not screen-results
+  // Progress screen refreshes itself when navigated to via nav.js showScreen()
 
   // FIX 3 + FIX 7: After rendering results, persist grades & refresh CBT modules
   if(window.AppGrades && Object.keys(disorderScores).length > 0){
@@ -82,22 +92,27 @@ function renderResults(){
   setTimeout(() => {
     DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
       const el = document.getElementById('pct-' + d.id);
-      if(el){
+      if(el && typeof getPercentile === 'function'){
         const p = getPercentile(d.id, disorderScores[d.id]);
         if(p !== null) el.innerHTML = '📊 Higher than <strong style="color:var(--accent)">' + p + '%</strong> of PAUSE App users';
       }
     });
-    if(dwsScore !== null && Object.keys(disorderScores).length === 6){
+    // BUG12 FIX: always refresh tag content, don't skip if already exists
+    if(dwsScore !== null && Object.keys(disorderScores).length === 6 && typeof getDWSPercentile === 'function'){
       const dp = getDWSPercentile(dwsScore);
       const shareCard = document.getElementById('shareCard');
-      if(shareCard && !document.getElementById('dwsPercentileTag')){
-        const tag = document.createElement('div');
-        tag.id = 'dwsPercentileTag';
-        tag.style.cssText = 'font-size:12px;color:rgba(255,255,255,0.7);margin-top:8px';
+      if(shareCard){
+        let tag = document.getElementById('dwsPercentileTag');
+        if(!tag){ tag=document.createElement('div'); tag.id='dwsPercentileTag'; tag.style.cssText='font-size:12px;color:rgba(255,255,255,0.7);margin-top:8px'; shareCard.appendChild(tag); }
         tag.innerHTML = '📊 Better than ' + dp + '% of all PAUSE App users';
-        shareCard.appendChild(tag);
       }
     }
+    // FEATURE3: Show before/after comparison if this is a recheck
+    renderComparisonCard();
+    // FEATURE13: Show correlation insights
+    renderCorrelationInsights();
+    // BUG3 FIX: wire trajectory badge check
+    if(typeof checkTrajectoryBadge==='function') checkTrajectoryBadge();
   }, 100);
 }
 
@@ -107,7 +122,9 @@ function renderActionPlan(){
   DISORDERS.forEach(d => {
     if(disorderScores[d.id] === undefined) return;
     const level = getLevel(d, disorderScores[d.id]);
-    if(level.label==='Severe'||level.label==='Moderate'||level.label==='Mild'){
+    // BUG8 FIX: 'Low Risk' is excluded (correct), but make the condition explicit
+    const concernLabels = ['Severe','Moderate','Mild'];
+    if(concernLabels.includes(level.label)){
       const tips = {
         cyberchondria:["Set a strict 20-minute daily limit for health-related searches using screen time controls.","When you feel the urge to search symptoms, write them down and wait 30 minutes before searching.","Replace health search habits with a trusted medical helpline or your doctor's contact.","Unsubscribe from health newsletters and symptom-checker websites that trigger anxiety.","Schedule a monthly check-in with your doctor instead of daily online symptom searches.","Practice the 5-4-3-2-1 grounding technique when health anxiety urges arise.","Tell a trusted person about your health search habits — accountability reduces compulsion.","Use the PAUSE App to track how often you feel the urge to search health information."],
         socialmedia:["Enable built-in screen time limits on all social media apps — start with 45 minutes per day.","Turn off all social media push notifications. Check manually at fixed times only.","Install a grayscale filter on your phone to reduce the visual reward of scrolling.","Delete the social media apps from your phone and access them only via browser.","Designate two fixed 20-minute windows per day for checking social media — stick to them.","Audit who you follow — unfollow anyone whose content makes you feel worse about yourself.","Replace your morning social media check with a 5-minute journaling or stretching routine.","Try a 48-hour social media fast this weekend and note how you feel."],
@@ -117,7 +134,7 @@ function renderActionPlan(){
         workaddiction:["Set a firm daily work cut-off time and enforce it with a phone alarm labeled 'Stop Working'.","Disable work email notifications after 7pm on all devices.","Schedule at least one full screen-free hour per day for non-work activities.","Take your full lunch break away from your desk and without checking work messages.","Plan one full work-free day per week — protect it as non-negotiable.","List 3 non-work activities that bring you joy and schedule them this week.","Communicate your work hours clearly to colleagues to reduce after-hours expectations.","Reflect on whether your work volume is self-imposed or externally driven — the answer matters."]
       };
       if(tips[d.id]){
-        const count = level.label==='Severe'?5:level.label==='Moderate'?4:2;
+        const count = level.label==='Severe'?5:level.label==='Moderate'?4:2; // Mild or unknown → 2
         tips[d.id].slice(0,count).forEach(tip => actions.push({icon:d.icon,text:tip,color:d.color}));
       }
     }
@@ -168,11 +185,17 @@ function renderActionPlan(){
 }
 
 function switchResultTab(tab){
-  ['disorders','impact','actions'].forEach(t =>
-    document.getElementById(`result-tab-${t}`).style.display = t===tab ? 'block' : 'none'
+  ['disorders','impact','actions'].forEach(t =>{
+    const el=document.getElementById(`result-tab-${t}`);
+    if(el) el.style.display=t===tab?'block':'none';
+  });
+  // BUG13 FIX: use data-tab attribute instead of DOM order index
+  document.querySelectorAll('.tab[data-tab]').forEach(el=>
+    el.classList.toggle('active', el.dataset.tab===tab)
   );
-  document.querySelectorAll('.tab').forEach((el,i) =>
-    el.classList.toggle('active', ['disorders','impact','actions'][i]===tab)
+  // Fallback for tabs without data-tab (legacy)
+  document.querySelectorAll('.tab:not([data-tab])').forEach((el,i)=>
+    el.classList.toggle('active',['disorders','impact','actions'][i]===tab)
   );
 }
 
@@ -473,3 +496,100 @@ function renderHomeDisorders(){
     }
   }).join('');
 }
+
+// ============================================================
+// FEATURE3: Before/After comparison card
+// ============================================================
+function renderComparisonCard(){
+  const el = document.getElementById('comparisonCard');
+  if(!el) return;
+  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  if(history.length < 2){ el.innerHTML=''; el.style.display='none'; return; }
+  const latest = history[0], prev = history[1];
+  if(!prev.disorder || !latest.disorder){ el.innerHTML=''; el.style.display='none'; return; }
+
+  const rows = DISORDERS.filter(d=>latest.disorder[d.id]!==undefined && prev.disorder[d.id]!==undefined).map(d=>{
+    const cur=latest.disorder[d.id], pre=prev.disorder[d.id];
+    const curLevel=getLevel(d,cur), preLevel=getLevel(d,pre);
+    const diff=cur-pre;
+    const arrow=diff<0?'↓ Improved':diff>0?'↑ Increased':'→ No change';
+    const arrowColor=diff<0?'#2ecc71':diff>0?'#ff6b35':'var(--muted)';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">${d.icon}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${d.name}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:${preLevel.bg};color:${preLevel.color}">${preLevel.label}</span>
+        <span style="font-size:14px;color:${arrowColor}">→</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:${curLevel.bg};color:${curLevel.color}">${curLevel.label}</span>
+        <span style="font-size:10px;font-weight:700;color:${arrowColor};min-width:75px;text-align:right">${arrow}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  if(!rows){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.innerHTML=`
+    <div class="section-label" style="margin-top:16px">📊 Since Your Last Check-Up</div>
+    <div class="card">${rows}</div>`;
+}
+
+// ============================================================
+// FEATURE4: Share a specific disorder card
+// ============================================================
+async function shareDisorderCard(disorderId){
+  const d = DISORDERS.find(x=>x.id===disorderId);
+  if(!d||disorderScores[d.id]===undefined) return;
+  const score=disorderScores[d.id], level=getLevel(d,score);
+  const shareText=`${d.icon} ${d.name}: ${level.label} (${score}/${d.maxScore})\n\nI checked my digital wellbeing with PAUSE App. Take the free ${d.scale} check-up:\nhttps://jaideeprao22.github.io/Pause-App/`;
+  try{
+    if(navigator.share) await navigator.share({title:`My ${d.name} Result`,text:shareText});
+    else{ await navigator.clipboard.writeText(shareText); showToast('Result copied to clipboard — paste anywhere to share!'); }
+  }catch(err){ if(err.name!=='AbortError') console.error('Share failed:',err); }
+}
+
+// ============================================================
+// FEATURE6: Severity trajectory badge — check after each result
+// ============================================================
+function checkTrajectoryBadge(){
+  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  if(history.length<2) return;
+  const latest=history[0], prev=history[1];
+  if(!latest.disorder||!prev.disorder) return;
+  let improved=false;
+  DISORDERS.forEach(d=>{
+    const cur=latest.disorder[d.id], pre=prev.disorder[d.id];
+    if(cur!==undefined&&pre!==undefined){
+      const curLevel=getLevel(d,cur), preLevel=getLevel(d,pre);
+      const sevOrder={minimal:0,'low risk':0,mild:1,moderate:2,severe:3}; // BUG1 FIX: quoted key
+      if((sevOrder[curLevel.label.toLowerCase()]||0)<(sevOrder[preLevel.label.toLowerCase()]||0)) improved=true;
+    }
+  });
+  if(improved){
+    const badges=JSON.parse(localStorage.getItem('pause_trajectory_badges')||'[]');
+    badges.push({date:new Date().toISOString(),dws:latest.dws});
+    localStorage.setItem('pause_trajectory_badges',JSON.stringify(badges));
+    // Show celebration toast
+    setTimeout(()=>showToast('🌟 Severity Improved! Check your badges.'),1500);
+  }
+}
+
+// ============================================================
+// FEATURE13: Disorder correlation insight card
+// ============================================================
+function renderCorrelationInsights(){
+  const el=document.getElementById('correlationInsightsCard');
+  if(!el) return;
+  const insights = typeof getCorrelationInsights==='function' ? getCorrelationInsights() : [];
+  if(!insights.length){ el.innerHTML=''; return; }
+  el.innerHTML=`
+    <div class="section-label" style="margin-top:16px">🔗 Connections We Noticed</div>
+    ${insights.map(ins=>`
+      <div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;border-left:3px solid var(--accent)">
+        <div style="font-size:20px;flex-shrink:0">💡</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6">${ins}</div>
+      </div>`).join('')}`;
+}
+
+// showToast() is defined in state.js (loads first)
