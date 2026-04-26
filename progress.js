@@ -436,7 +436,7 @@ function openDetoxPlanner(){
 }
 
 // ============================================================
-// FEATURE2: Weekly check-in
+// FEATURE2: Weekly check-in — step-based flow
 // ============================================================
 const PAUSE_WEEKLY_CHECKIN_KEY='pause_weekly_checkin'; // BUG9 FIX: prefixed to avoid weekly.js conflict
 const PAUSE_WEEKLY_QUESTIONS=[ // BUG9 FIX
@@ -445,49 +445,121 @@ const PAUSE_WEEKLY_QUESTIONS=[ // BUG9 FIX
   {id:'q3',text:'How would you rate your overall digital wellbeing this week compared to last week?',opts:['Much better','A little better','About the same','A little worse','Much worse']}
 ];
 
+let _wcStep = 0;
+let _wcAnswers = {};
+
 function checkWeeklyCheckin(){
   const last=localStorage.getItem(PAUSE_WEEKLY_CHECKIN_KEY);
   if(!last){
-    // First ever — schedule for 7 days, don't show immediately
     localStorage.setItem(PAUSE_WEEKLY_CHECKIN_KEY, JSON.stringify({lastShown:new Date().toISOString(),responses:[]}));
     return;
   }
   try{
     const data=JSON.parse(last);
     const daysSince=Math.floor((Date.now()-new Date(data.lastShown).getTime())/86400000);
-    if(daysSince>=7) setTimeout(()=>{ if(typeof currentScreen!=='undefined'&&currentScreen!=='screen-home') return; const rcModal=document.getElementById('reConsentModal'); if(rcModal&&rcModal.classList.contains('open')) return; // BUG16 FIX
-      renderWeeklyCheckinModal(); },3000); // BUG15+16 FIX
+    if(daysSince>=7) setTimeout(()=>{
+      if(typeof currentScreen!=='undefined'&&currentScreen!=='screen-home') return;
+      const rcModal=document.getElementById('reConsentModal');
+      if(rcModal&&rcModal.classList.contains('open')) return;
+      renderWeeklyCheckinModal();
+    },3000);
   }catch(e){}
 }
 
-function submitWeeklyCheckin(){
-  const responses={};
-  let allAnswered=true;
-  PAUSE_WEEKLY_QUESTIONS.forEach(q=>{
-    const sel=document.querySelector(`#weeklyQ_${q.id} .form-option.selected`);
-    if(!sel){ allAnswered=false; return; }
-    responses[q.id]=sel.dataset.value;
-  });
-  if(!allAnswered){ showToast('Please answer all questions.'); return; }
-  const data={lastShown:new Date().toISOString(),responses};
-  localStorage.setItem(PAUSE_WEEKLY_CHECKIN_KEY,JSON.stringify(data));
-  if(currentUser){
-    sb.from('WeeklyCheckin').insert({user_id:currentUser.id,...responses,checked_at:data.lastShown}).then(()=>{}).catch(()=>{});
-  }
-  closeModal('weeklyCheckinModal');
-  showToast('✅ Weekly check-in saved — keep it up!');
+function renderWeeklyCheckinModal(){
+  _wcStep = 0;
+  _wcAnswers = {};
+  openModal('weeklyCheckinModal');
+  _wcRenderStep();
 }
 
-function renderWeeklyCheckinModal(){
-  // BUG11 FIX: open modal first so DOM elements exist, then populate
-  openModal('weeklyCheckinModal');
-  PAUSE_WEEKLY_QUESTIONS.forEach(q=>{
-    const container=document.getElementById(`weeklyQ_${q.id}`);
-    if(!container) return; // guard against missing elements
-    container.innerHTML=`
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.5">${q.text}</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${q.opts.map(opt=>`<button class="form-option" data-value="${opt}" onclick="this.closest('[id]').querySelectorAll('.form-option').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">${opt}</button>`).join('')}
-      </div>`;
-  });
+function _wcRenderStep(){
+  const total = PAUSE_WEEKLY_QUESTIONS.length;
+  const q = PAUSE_WEEKLY_QUESTIONS[_wcStep];
+
+  // Progress bar width: show how far through we are
+  const pct = Math.round(((_wcStep) / total) * 100) + Math.round((1 / total) * 50);
+  const bar = document.getElementById('weeklyProgressBar');
+  if(bar) bar.style.width = Math.min(pct, 95) + '%';
+
+  // Step label
+  const lbl = document.getElementById('weeklyStepLabel');
+  if(lbl) lbl.textContent = `Question ${_wcStep + 1} of ${total}`;
+
+  // Back button — hide on first step
+  const backBtn = document.getElementById('weeklyBackBtn');
+  if(backBtn) backBtn.style.visibility = _wcStep === 0 ? 'hidden' : 'visible';
+
+  // Next/Submit button label
+  const nextBtn = document.getElementById('weeklyNextBtn');
+  if(nextBtn) nextBtn.textContent = _wcStep === total - 1 ? 'Submit Check-In ✓' : 'Next →';
+
+  // Render question + options
+  const area = document.getElementById('weeklyQuestionArea');
+  if(!area) return;
+  const saved = _wcAnswers[q.id];
+  area.innerHTML = `
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:18px;line-height:1.65">${q.text}</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      ${q.opts.map(opt => `
+        <button class="wcheckin-opt${saved === opt ? ' selected' : ''}"
+          data-value="${opt}"
+          onclick="_wcSelect(this,'${q.id}')">${opt}</button>
+      `).join('')}
+    </div>`;
+}
+
+function _wcSelect(btn, qId){
+  btn.closest('div').querySelectorAll('.wcheckin-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _wcAnswers[qId] = btn.dataset.value;
+}
+
+function weeklyCheckinNext(){
+  const q = PAUSE_WEEKLY_QUESTIONS[_wcStep];
+  if(!_wcAnswers[q.id]){
+    showToast('Please select an answer to continue.');
+    return;
+  }
+  if(_wcStep < PAUSE_WEEKLY_QUESTIONS.length - 1){
+    _wcStep++;
+    _wcRenderStep();
+  } else {
+    submitWeeklyCheckin();
+  }
+}
+
+function weeklyCheckinBack(){
+  if(_wcStep > 0){
+    _wcStep--;
+    _wcRenderStep();
+  } else {
+    closeModal('weeklyCheckinModal');
+  }
+}
+
+function submitWeeklyCheckin(){
+  // Ensure all questions answered (safety net)
+  let allAnswered = true;
+  PAUSE_WEEKLY_QUESTIONS.forEach(q => { if(!_wcAnswers[q.id]) allAnswered = false; });
+  if(!allAnswered){ showToast('Please answer all questions.'); return; }
+
+  const data = { lastShown: new Date().toISOString(), responses: _wcAnswers };
+  localStorage.setItem(PAUSE_WEEKLY_CHECKIN_KEY, JSON.stringify(data));
+
+  // Complete progress bar before closing
+  const bar = document.getElementById('weeklyProgressBar');
+  if(bar) bar.style.width = '100%';
+
+  if(currentUser){
+    sb.from('WeeklyCheckin').insert({
+      user_id: currentUser.id,
+      ..._wcAnswers,
+      checked_at: data.lastShown
+    }).then(()=>{}).catch(()=>{});
+  }
+  setTimeout(() => {
+    closeModal('weeklyCheckinModal');
+    showToast('✅ Weekly check-in saved — keep it up!');
+  }, 300);
 }

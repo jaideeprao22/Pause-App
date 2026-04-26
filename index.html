@@ -51,6 +51,13 @@
 .feedback-star.active{opacity:1;transform:scale(1.15)}
 
 /* dark mode removed */
+
+/* ── WEEKLY CHECK-IN STEP UI ─────────────────── */
+.wcheckin-opt{width:100%;padding:13px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;text-align:left;line-height:1.4;transition:border-color 0.15s,background 0.15s;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:10px}
+.wcheckin-opt::before{content:'';width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:border-color 0.15s,background 0.15s}
+.wcheckin-opt.selected{background:rgba(15,45,94,0.06);border-color:#0f2d5e;color:#0f2d5e;font-weight:700}
+.wcheckin-opt.selected::before{border-color:#0f2d5e;background:#0f2d5e;box-shadow:inset 0 0 0 3px #fff}
+.wcheckin-opt:active{opacity:0.75}
 </style>
 </head>
 <body>
@@ -236,13 +243,13 @@
 
   <!-- Weekly Check-In at bottom of Progress -->
   <div style="margin-top:16px;margin-bottom:8px">
-    <button onclick="renderWeeklyCheckinModal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#0f2d5e,#1a4a8a);border:none;border-radius:16px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
-      <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📋</div>
+    <button onclick="renderWeeklyCheckinModal()" style="width:100%;padding:14px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
+      <div style="width:40px;height:40px;background:rgba(245,166,35,0.1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📋</div>
       <div style="text-align:left">
-        <div style="font-size:14px;font-weight:700;color:#fff">Weekly Check-In</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">3 quick questions · under a minute</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Weekly Check-In</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">3 quick questions · under a minute</div>
       </div>
-      <div style="margin-left:auto;color:rgba(255,255,255,0.5);font-size:20px">›</div>
+      <div style="margin-left:auto;color:var(--muted);font-size:20px">›</div>
     </button>
   </div>
 </div>
@@ -999,23 +1006,39 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
-<!-- FEATURE2: Weekly Check-In Modal -->
+<!-- FEATURE2: Weekly Check-In Modal — step-based -->
 <div class="modal-overlay" id="weeklyCheckinModal">
-  <div class="modal-card" style="padding:0;overflow:hidden;border-radius:20px">
+  <div class="modal-card" style="padding:0;border-radius:20px;overflow:hidden">
+
     <!-- Themed header -->
-    <div style="background:linear-gradient(135deg,#0f2d5e,#1a4a8a);padding:24px 20px 20px;text-align:center">
-      <div style="font-size:32px;margin-bottom:8px">📋</div>
-      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:4px">Weekly Check-In</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6">3 quick questions about your week — takes under a minute.</div>
+    <div style="background:linear-gradient(135deg,#0f2d5e,#1a4a8a);padding:18px 18px 16px">
+      <!-- Top row: back + step counter -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <button id="weeklyBackBtn" onclick="weeklyCheckinBack()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:6px 12px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px">← Back</button>
+        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.65)" id="weeklyStepLabel">Question 1 of 3</div>
+      </div>
+      <!-- Title -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="font-size:22px">📋</div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff">Weekly Check-In</div>
+      </div>
+      <!-- Progress bar -->
+      <div style="height:4px;background:rgba(255,255,255,0.2);border-radius:2px;overflow:hidden">
+        <div id="weeklyProgressBar" style="height:100%;background:#fff;border-radius:2px;width:33%;transition:width 0.35s ease"></div>
+      </div>
     </div>
-    <!-- Questions area -->
-    <div style="padding:20px">
-      <div id="weeklyQ_q1" style="margin-bottom:16px"></div>
-      <div id="weeklyQ_q2" style="margin-bottom:16px"></div>
-      <div id="weeklyQ_q3" style="margin-bottom:20px"></div>
-      <button class="btn-primary" onclick="submitWeeklyCheckin()">Submit Check-In →</button>
+
+    <!-- Question + options area -->
+    <div style="padding:20px 18px" id="weeklyQuestionArea">
+      <!-- populated by renderWeeklyCheckinModal() -->
+    </div>
+
+    <!-- Action buttons -->
+    <div style="padding:0 18px 18px;display:flex;flex-direction:column;gap:8px">
+      <button class="btn-primary" id="weeklyNextBtn" onclick="weeklyCheckinNext()">Next →</button>
       <button class="btn-ghost" onclick="closeModal('weeklyCheckinModal')">Maybe later</button>
     </div>
+
   </div>
 </div>
 
