@@ -1,6 +1,166 @@
 // ============================================================
 // PROGRESS & CHALLENGE
 // ============================================================
+
+// ─── PERSONAL SUMMARY CARD ───────────────────────────────────
+function renderPersonalSummary(){
+  const el = document.getElementById('progressSummaryCard');
+  if(!el) return;
+  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+
+  if(!history.length){
+    el.innerHTML = `<div class="card" style="text-align:center;padding:20px;margin-bottom:12px">
+      <div style="font-size:32px;margin-bottom:8px">🌱</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">Your journey starts here</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">Complete your first check-up to see a personalised progress summary.</div>
+    </div>`;
+    return;
+  }
+
+  const latest  = history[0];
+  const prev    = history.length > 1 ? history[1] : null;
+  const best    = Math.max(...history.filter(h => h.dws).map(h => h.dws));
+  const s       = latest.dws ? getDWSStatus(latest.dws) : null;
+  const total   = history.length;
+
+  // Trend vs last check-up
+  let trendHtml = '';
+  if(prev && prev.dws !== null && latest.dws !== null){
+    const diff  = latest.dws - prev.dws;
+    const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+    const col   = diff > 0 ? '#2ecc71' : diff < 0 ? '#ff6b35' : '#f5a623';
+    const label = diff > 0 ? `Improved by ${diff} pts` : diff < 0 ? `Decreased by ${Math.abs(diff)} pts` : 'No change';
+    trendHtml   = `<div style="font-size:12px;color:${col};font-weight:700;margin-top:4px">${arrow} ${label} since last check-up</div>`;
+  }
+
+  // Biggest improvement across disorders
+  let insightHtml = '';
+  if(prev && prev.disorder && latest.disorder){
+    let biggestGain = null, biggestGainAmt = 0;
+    let biggestConcern = null, biggestConcernNorm = -1;
+    DISORDERS.forEach(d => {
+      const cur = latest.disorder[d.id], pre = prev.disorder[d.id];
+      if(cur !== undefined && pre !== undefined){
+        const gain = pre - cur; // lower score = less disorder = improvement
+        if(gain > biggestGainAmt){ biggestGainAmt = gain; biggestGain = d; }
+      }
+      if(cur !== undefined){
+        const norm = (cur - d.questions.length) / (d.maxScore - d.questions.length);
+        if(norm > biggestConcernNorm){ biggestConcernNorm = norm; biggestConcern = d; }
+      }
+    });
+    if(biggestGain && biggestGainAmt > 0){
+      insightHtml += `<div style="font-size:12px;color:var(--text);margin-top:6px">🌱 Biggest improvement: <strong>${biggestGain.name}</strong></div>`;
+    }
+    if(biggestConcern && biggestConcernNorm > 0.35){
+      insightHtml += `<div style="font-size:12px;color:var(--text);margin-top:3px">💡 Focus area: <strong>${biggestConcern.name}</strong></div>`;
+    }
+  } else if(latest.disorder){
+    // First assessment — show worst area as focus
+    let biggestConcern = null, biggestConcernNorm = -1;
+    DISORDERS.forEach(d => {
+      const cur = latest.disorder[d.id];
+      if(cur !== undefined){
+        const norm = (cur - d.questions.length) / (d.maxScore - d.questions.length);
+        if(norm > biggestConcernNorm){ biggestConcernNorm = norm; biggestConcern = d; }
+      }
+    });
+    if(biggestConcern && biggestConcernNorm > 0.35){
+      insightHtml = `<div style="font-size:12px;color:var(--text);margin-top:6px">💡 Area to focus on: <strong>${biggestConcern.name}</strong></div>`;
+    }
+  }
+
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:4px">Digital Wellness Score</div>
+          <div style="font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:${s?s.color:'var(--muted)'};line-height:1">${latest.dws || '--'}</div>
+          <div style="font-size:12px;font-weight:700;color:${s?s.color:'var(--muted)'};margin-top:2px">${s?s.status:''}</div>
+          ${trendHtml}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Check-ups done</div>
+          <div style="font-size:28px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)">${total}</div>
+          ${best ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">Best score</div>
+          <div style="font-size:16px;font-weight:700;color:#2ecc71">${best}</div>` : ''}
+        </div>
+      </div>
+      ${insightHtml}
+    </div>`;
+}
+
+// ─── DISORDER PROGRESS CARDS ─────────────────────────────────
+function renderDisorderProgress(){
+  const el = document.getElementById('disorderProgressCards');
+  if(!el) return;
+  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+
+  if(!history.length){ el.innerHTML=''; return; }
+
+  const latest  = history[0];
+  const prev    = history.length > 1 ? history[1] : null;
+  const screened = typeof DISORDERS !== 'undefined'
+    ? DISORDERS.filter(d => latest.disorder && latest.disorder[d.id] !== undefined)
+    : [];
+
+  if(!screened.length){ el.innerHTML=''; return; }
+
+  const cards = screened.map(d => {
+    const score    = latest.disorder[d.id];
+    const level    = getLevel(d, score);
+    const prevScore = prev && prev.disorder ? prev.disorder[d.id] : undefined;
+    const pct      = Math.round(((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100);
+
+    let changeHtml = '';
+    if(prevScore !== undefined){
+      const diff = score - prevScore;
+      if(diff < 0)       changeHtml = `<span style="color:#2ecc71;font-size:11px;font-weight:700">↓ ${Math.abs(diff)} pts — Improved ✓</span>`;
+      else if(diff > 0)  changeHtml = `<span style="color:#ff6b35;font-size:11px;font-weight:700">↑ ${diff} pts — Increased</span>`;
+      else               changeHtml = `<span style="color:var(--muted);font-size:11px">→ No change since last check-up</span>`;
+    } else {
+      changeHtml = `<span style="font-size:11px;color:var(--muted);font-style:italic">First result for this area</span>`;
+    }
+
+    return `<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:10px;background:${d.bg};display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${d.icon}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</div>
+            <div style="font-size:10px;color:var(--muted)">${d.scale}</div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:700;color:${level.color}">${level.label}</div>
+          <div style="font-size:10px;color:var(--muted)">${score} / ${d.maxScore}</div>
+        </div>
+      </div>
+      <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin-bottom:6px">
+        <div style="height:100%;border-radius:4px;background:${level.color};width:${pct}%;transition:width 0.6s ease"></div>
+      </div>
+      ${changeHtml}
+    </div>`;
+  }).join('');
+
+  const unscreened = typeof DISORDERS !== 'undefined'
+    ? DISORDERS.filter(d => !latest.disorder || latest.disorder[d.id] === undefined)
+    : [];
+
+  const unscreenedHtml = unscreened.length
+    ? `<div style="font-size:12px;color:var(--muted);padding:10px 0 4px;line-height:1.7">
+        ${unscreened.map(d => `${d.icon} ${d.name}`).join(' · ')} — not yet checked. Complete a Full Check-up to see all areas.
+       </div>`
+    : '';
+
+  el.innerHTML = `
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px">📋 Area by Area</div>
+    ${cards}
+    ${unscreenedHtml}
+  `;
+}
+
+// ─── MOOD TREND ───────────────────────────────────────────────
 function renderMoodTrend(){
   const el = document.getElementById('moodTrendSection');
   if(!el) return;
@@ -20,6 +180,8 @@ function renderMoodTrend(){
 }
 
 function renderProgress(){
+  renderPersonalSummary();
+  renderDisorderProgress();
   renderMoodTrend();
   const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
 
