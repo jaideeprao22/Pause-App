@@ -395,3 +395,81 @@ function renderPostAssessmentPrompt(){
   // Show modal after a short delay (results should be visible first)
   setTimeout(() => openModal('postAssessmentModal'), 2000);
 }
+
+
+// ============================================================
+// HOME SCREEN — DISORDER GRADE CARDS
+// Shows scored disorders with grade badge + progress bar.
+// Unscored disorders shown as greyed "Not checked yet" cards.
+// Called after every assessment AND after partial saves.
+// ============================================================
+function renderHomeDisorders(){
+  const el = document.getElementById('home-disorder-list');
+  if(!el) return;
+
+  const timestamps = getDisorderTimestamps();
+
+  function getStalenessLabel(disorderId){
+    const ts = timestamps[disorderId];
+    if(!ts) return null;
+    const days = Math.floor((Date.now() - ts) / 86400000);
+    if(days === 0) return { text: 'Checked today',            color: '#2ecc71', warn: false };
+    if(days === 1) return { text: 'Checked yesterday',        color: '#00c9a7', warn: false };
+    if(days < 7)  return { text: `Checked ${days} days ago`, color: '#f5a623', warn: false };
+    if(days < 30) return { text: `Checked ${days} days ago`, color: '#ff6b35', warn: false };
+    return { text: `Last checked ${days} days ago`, color: '#ff4757', warn: true };
+  }
+
+  el.innerHTML = DISORDERS.map(d => {
+    const score     = disorderScores[d.id];
+    const hasScore  = score !== undefined;
+    const level     = hasScore ? getLevel(d, score) : null;
+    const pct       = hasScore
+      ? Math.round(((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100)
+      : 0;
+    const staleness = hasScore ? getStalenessLabel(d.id) : null;
+
+    if(hasScore){
+      return `
+        <div class="assess-disorder-card" onclick="startSingleAssessment(${DISORDERS.indexOf(d)})"
+          style="border-color:${d.color}40;background:linear-gradient(135deg,var(--card) 80%,${d.bg})">
+          <div class="assess-card-icon" style="background:${d.bg}">
+            <span style="font-size:22px">${d.icon}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</span>
+              <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;padding:2px 9px;border-radius:20px;background:${level.bg};color:${level.color};border:1px solid ${level.color}40">${level.label.toUpperCase()}</span>
+              ${staleness?.warn ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(255,71,87,0.12);color:#ff4757;border:1px solid rgba(255,71,87,0.3)">⚠ Recheck</span>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="width:${pct}%;height:100%;background:${level.color};border-radius:3px;transition:width 0.5s ease"></div>
+              </div>
+              <span style="font-size:10px;color:var(--muted);flex-shrink:0">${score}/${d.maxScore}</span>
+            </div>
+            <div style="font-size:10px;margin-top:4px;color:${staleness ? staleness.color : 'var(--muted)'}">
+              ${staleness ? staleness.text + ' · ' : ''}${d.scale} · Tap to recheck
+            </div>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div class="assess-disorder-card" onclick="showScaleInfo(${DISORDERS.indexOf(d)})"
+          style="opacity:0.65">
+          <div class="assess-card-icon" style="background:var(--bg)">
+            <span style="font-size:22px">${d.icon}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border)">Not checked</span>
+            </div>
+            <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden"></div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px">${d.scale} · Tap to start</div>
+          </div>
+          <div class="assess-card-chevron">›</div>
+        </div>`;
+    }
+  }).join('');
+}

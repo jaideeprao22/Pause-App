@@ -31,6 +31,22 @@ function buildSingleAssessment(dIdx){
 }
 
 // ============================================================
+// DISORDER TIMESTAMPS — track when each disorder was last scored
+// ============================================================
+const TIMESTAMPS_KEY = 'pause_disorder_timestamps';
+
+function stampDisorderTime(disorderId){
+  const ts = JSON.parse(localStorage.getItem(TIMESTAMPS_KEY) || '{}');
+  ts[disorderId] = Date.now();
+  localStorage.setItem(TIMESTAMPS_KEY, JSON.stringify(ts));
+}
+
+function getDisorderTimestamps(){
+  try { return JSON.parse(localStorage.getItem(TIMESTAMPS_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+
+// ============================================================
 // PARTIAL PROGRESS — Auto-save completed disorder blocks mid-assessment
 // ============================================================
 
@@ -45,8 +61,11 @@ function savePartialProgress(){
       .map((m, i) => ({...m, aIdx: i}))
       .filter(m => m.type === 'disorder' && m.dIdx === di);
     if(metas.length > 0 && metas.every(m => allAnswers[m.aIdx] !== null)){
+      const wasUnscored = disorderScores[d.id] === undefined;
       disorderScores[d.id] = metas.reduce((sum, m) => sum + (allAnswers[m.aIdx] || 0), 0);
       AppGrades.update(d.id, getLevel(d, disorderScores[d.id]).label);
+      // Stamp the time this disorder was first scored in this session
+      if(wasUnscored) stampDisorderTime(d.id);
     }
   });
 
@@ -67,6 +86,8 @@ function savePartialProgress(){
   // Persist completed scores so they survive a refresh/close
   if(Object.keys(disorderScores).length > 0 || Object.keys(impactScores).length > 0){
     saveScores();
+    // Refresh home screen disorder cards immediately
+    if(typeof renderHomeDisorders === 'function') renderHomeDisorders();
   }
 
   // Save full resume state
@@ -214,6 +235,7 @@ function finishAssessment(){
     DISORDERS.forEach((d,di) => {
       const qs = questionMeta.filter(m => m.type==='disorder' && m.dIdx===di);
       disorderScores[d.id] = qs.reduce((sum,m) => sum + (allAnswers[questionMeta.indexOf(m)]||0), 0);
+      stampDisorderTime(d.id);
     });
     // Score all 4 impact modules
     IMPACT_MODULES.forEach((m,mi) => {
@@ -237,6 +259,7 @@ function finishAssessment(){
     const d = DISORDERS[singleDisorderIdx];
     // Score the single disorder
     disorderScores[d.id] = allAnswers.reduce((a,b) => a+(b||0), 0);
+    stampDisorderTime(d.id);
     // FIX: Always recalculate DWS using all available scores
     // Removed the overly strict condition that required ALL disorders + ALL impacts
     // calculateDWS() already skips undefined scores gracefully
