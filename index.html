@@ -50,29 +50,7 @@
 .feedback-star{background:none;border:none;font-size:28px;cursor:pointer;padding:4px;border-radius:8px;opacity:0.35;transition:opacity 0.15s,transform 0.15s;-webkit-tap-highlight-color:transparent}
 .feedback-star.active{opacity:1;transform:scale(1.15)}
 
-/* ── DARK MODE ─────────────────────────────── */
-body.dark-mode {
-  --bg: #0a0f1e;
-  --card: #111827;
-  --border: #1f2937;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --accent: #4f8ef7;
-}
-body.dark-mode .hero-card { background: linear-gradient(135deg,#1a2744,#0f2d5e); }
-body.dark-mode .nav-bar { background: #111827; border-top-color: #1f2937; }
-body.dark-mode .modal-overlay { background: rgba(0,0,0,0.8); }
-body.dark-mode input, body.dark-mode select { background: #1f2937; color: #f1f5f9; }
-body.dark-mode .modal-card { background: #111827; color: #f1f5f9; }
-body.dark-mode .modal-title { color: #f1f5f9; }
-body.dark-mode .notice { background: #1f2937; }
-body.dark-mode .form-option { background: #1f2937; border-color: #374151; color: #f1f5f9; }
-body.dark-mode .form-option.selected { background: rgba(79,142,247,0.2); border-color: #4f8ef7; color: #4f8ef7; }
-body.dark-mode .q-option { background: #1f2937; border-color: #374151; color: #f1f5f9; }
-body.dark-mode .q-option.selected { background: rgba(79,142,247,0.2); border-color: #4f8ef7; }
-body.dark-mode .card { background: #111827; }
-body.dark-mode .history-item { border-bottom-color: #1f2937; }
-#darkModeToggle { background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:16px;cursor:pointer;line-height:1; }
+/* dark mode removed */
 </style>
 </head>
 <body>
@@ -98,7 +76,6 @@ body.dark-mode .history-item { border-bottom-color: #1f2937; }
     <div style="display:flex;gap:8px;align-items:center">
       <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
       <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
-      <button id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
       <div class="user-avatar" id="userAvatar" onclick="showUserModal()" style="display:none">?</div>
     </div>
   </div>
@@ -115,7 +92,6 @@ body.dark-mode .history-item { border-bottom-color: #1f2937; }
     <button class="btn-primary" onclick="showScreen('screen-assess-menu')">Begin My Wellness Check →</button>
     <button class="btn-secondary" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#fff;margin-top:10px" onclick="showScreen('screen-quick')">⚡ Quick Check (5 min)</button>
   </div>
-  <button onclick="renderUrgeJournal();openModal('urgeJournalModal')" style="width:100%;margin-bottom:12px;padding:12px 16px;background:rgba(61,111,255,0.08);border:1.5px solid rgba(61,111,255,0.25);border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;font-family:inherit;text-align:left"><span style="font-size:22px">⚡</span><div><div style="font-size:13px;font-weight:700;color:var(--accent)">Log an Urge</div><div style="font-size:11px;color:var(--muted)">Track & resist digital urges · build awareness</div></div></button>
   <div class="section-label">Check a Specific Area</div>
   <div id="home-disorder-list"></div>
   <div class="section-label" style="margin-top:4px">Your Digital Wellness Score</div>
@@ -124,10 +100,6 @@ body.dark-mode .history-item { border-bottom-color: #1f2937; }
     <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-dws-status">Complete a check-up to see your score</div>
   </div>
   <div class="card" id="moodCheckCard" style="margin-bottom:12px"></div>
-  <div style="display:flex;gap:10px;margin-bottom:12px">
-    <button onclick="openDetoxPlanner()" style="flex:1;padding:12px;background:rgba(46,204,113,0.08);border:1.5px solid rgba(46,204,113,0.25);border-radius:14px;cursor:pointer;font-family:inherit;text-align:center"><div style="font-size:20px">📵</div><div style="font-size:11px;font-weight:700;color:#2ecc71;margin-top:4px">Detox Day</div></button>
-    <button onclick="renderWeeklyCheckinModal()" style="flex:1;padding:12px;background:rgba(245,166,35,0.08);border:1.5px solid rgba(245,166,35,0.25);border-radius:14px;cursor:pointer;font-family:inherit;text-align:center"><div style="font-size:20px">📋</div><div style="font-size:11px;font-weight:700;color:#f5a623;margin-top:4px">Weekly Check-In</div></button>
-  </div>
   <div class="section-label" style="margin-top:4px">🏆 Your Badges</div>
   <div class="badge-grid" id="homeBadgeGrid"></div>
 </div>
@@ -261,6 +233,18 @@ body.dark-mode .history-item { border-bottom-color: #1f2937; }
   <div class="card" id="moodTrendSection"></div>
   <div class="section-label" style="margin-top:4px">Your Check-up History</div>
   <div id="progressHistory"></div>
+
+  <!-- Weekly Check-In at bottom of Progress -->
+  <div style="margin-top:16px;margin-bottom:8px">
+    <button onclick="renderWeeklyCheckinModal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#0f2d5e,#1a4a8a);border:none;border-radius:16px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
+      <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📋</div>
+      <div style="text-align:left">
+        <div style="font-size:14px;font-weight:700;color:#fff">Weekly Check-In</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">3 quick questions · under a minute</div>
+      </div>
+      <div style="margin-left:auto;color:rgba(255,255,255,0.5);font-size:20px">›</div>
+    </button>
+  </div>
 </div>
 </div>
 
@@ -952,7 +936,6 @@ body.dark-mode .history-item { border-bottom-color: #1f2937; }
 <script>
 // ── App init hooks for new features ──
 document.addEventListener('DOMContentLoaded', function(){
-  if(typeof initDarkMode==='function') initDarkMode();
   // nav.js now calls renderBreathingTimerCard() and resetBreathingTimerState() directly on screen-tools show/hide
   setTimeout(()=>{ if(typeof checkReConsentNeeded==='function') checkReConsentNeeded(); },5000);
   setTimeout(()=>{ if(typeof checkWeeklyCheckin==='function') checkWeeklyCheckin(); },8000);
@@ -1018,15 +1001,21 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- FEATURE2: Weekly Check-In Modal -->
 <div class="modal-overlay" id="weeklyCheckinModal">
-  <div class="modal-card">
-    <div style="font-size:28px;text-align:center;margin-bottom:8px">📋</div>
-    <div class="modal-title">Weekly Check-In</div>
-    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;line-height:1.6">3 quick questions about your week — takes under a minute.</div>
-    <div id="weeklyQ_q1" style="margin-bottom:16px"></div>
-    <div id="weeklyQ_q2" style="margin-bottom:16px"></div>
-    <div id="weeklyQ_q3" style="margin-bottom:20px"></div>
-    <button class="btn-primary" onclick="submitWeeklyCheckin()">Submit Check-In →</button>
-    <button class="btn-ghost" onclick="closeModal('weeklyCheckinModal')">Maybe later</button>
+  <div class="modal-card" style="padding:0;overflow:hidden;border-radius:20px">
+    <!-- Themed header -->
+    <div style="background:linear-gradient(135deg,#0f2d5e,#1a4a8a);padding:24px 20px 20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">📋</div>
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:4px">Weekly Check-In</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6">3 quick questions about your week — takes under a minute.</div>
+    </div>
+    <!-- Questions area -->
+    <div style="padding:20px">
+      <div id="weeklyQ_q1" style="margin-bottom:16px"></div>
+      <div id="weeklyQ_q2" style="margin-bottom:16px"></div>
+      <div id="weeklyQ_q3" style="margin-bottom:20px"></div>
+      <button class="btn-primary" onclick="submitWeeklyCheckin()">Submit Check-In →</button>
+      <button class="btn-ghost" onclick="closeModal('weeklyCheckinModal')">Maybe later</button>
+    </div>
   </div>
 </div>
 

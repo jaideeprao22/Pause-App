@@ -693,28 +693,4 @@ function submitUrgeLog(){
   logUrge(disorder, trigger, resisted==='yes');
 }
 
-// ============================================================
-// FEATURE12: Dark mode
-// ============================================================
-function initDarkMode(){
-  const saved=localStorage.getItem('pause_dark_mode');
-  if(saved==='true') applyDarkMode(true);
-}
-
-function toggleDarkMode(){
-  const isDark=document.body.classList.contains('dark-mode');
-  applyDarkMode(!isDark);
-  localStorage.setItem('pause_dark_mode', String(!isDark));
-}
-
-function applyDarkMode(dark){
-  if(dark){
-    document.body.classList.add('dark-mode');
-    const btn=document.getElementById('darkModeToggle');
-    if(btn) btn.textContent='☀️';
-  } else {
-    document.body.classList.remove('dark-mode');
-    const btn=document.getElementById('darkModeToggle');
-    if(btn) btn.textContent='🌙';
-  }
-}
+// dark mode removed
