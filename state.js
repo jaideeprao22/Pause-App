@@ -283,28 +283,41 @@ function saveProfile(){
 function openEditProfile(){
   closeModal('userModal');
   if(!userProfile || !userProfile.age){ openModal('profileModal'); return; }
-  // Pre-fill edit fields
-  const sv = function(id, val){ const el=document.getElementById(id); if(el && val!==undefined) el.value=val; };
-  sv('editAge', userProfile.age);
-  sv('editGender', userProfile.gender);
+  const sv = function(id, val){
+    const el = document.getElementById(id);
+    if(!el || val === undefined || val === null) return;
+    el.value = val;
+  };
+  // Personal
+  sv('editAge',        userProfile.age);
+  sv('editGender',     userProfile.gender);
+  sv('editEducation',  userProfile.education);
+  sv('editMarital',    userProfile.marital_status);
   sv('editOccupation', userProfile.occupation);
-  sv('editCountry', userProfile.country);
-  sv('editDevice', userProfile.primary_device);
+  sv('editIncome',     userProfile.income_bracket);
+  sv('editCountry',    userProfile.country);
+  // Digital habits
+  sv('editDevice',      userProfile.primary_device);
+  sv('editScreentime',  userProfile.daily_screentime);
+  sv('editSleep',       userProfile.avg_sleep);
   openModal('editProfileModal');
 }
 
 function saveEditProfile(){
   const age = parseInt(document.getElementById('editAge').value);
   if(!age || age < 18 || age > 100){ showToast('Please enter a valid age between 18 and 100.'); return; }
-  // Only update the 5 editable fields — all research fields are preserved from existing userProfile
-  userProfile.age            = age;
-  userProfile.gender         = document.getElementById('editGender').value || userProfile.gender;
-  userProfile.occupation     = document.getElementById('editOccupation').value || userProfile.occupation;
-  userProfile.country        = document.getElementById('editCountry').value || userProfile.country;
-  userProfile.primary_device = document.getElementById('editDevice').value || userProfile.primary_device;
-  userProfile.updatedAt      = new Date().toISOString();
-  // BUG7 FIX: persist for both logged-in and guest users
-  // L3 FIX: write only the canonical key
+  // Update all editable fields — all 20 research baseline fields are preserved via spread
+  userProfile.age             = age;
+  userProfile.gender          = document.getElementById('editGender').value       || userProfile.gender;
+  userProfile.education       = document.getElementById('editEducation').value    || userProfile.education;
+  userProfile.marital_status  = document.getElementById('editMarital').value      || userProfile.marital_status;
+  userProfile.occupation      = document.getElementById('editOccupation').value   || userProfile.occupation;
+  userProfile.income_bracket  = document.getElementById('editIncome').value       || userProfile.income_bracket;
+  userProfile.country         = document.getElementById('editCountry').value      || userProfile.country;
+  userProfile.primary_device  = document.getElementById('editDevice').value       || userProfile.primary_device;
+  userProfile.daily_screentime= document.getElementById('editScreentime').value   || userProfile.daily_screentime;
+  userProfile.avg_sleep       = document.getElementById('editSleep').value        || userProfile.avg_sleep;
+  userProfile.updatedAt       = new Date().toISOString();
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
   } else {
@@ -545,10 +558,7 @@ function acceptTermsAndLogin(){
 // MODALS
 // ============================================================
 function openModal(id){
-  // BUG1 FIX: null guard — prevents crash if modal was removed from HTML but JS still references it
-  const el = document.getElementById(id);
-  if(!el){ console.warn('[PAUSE] openModal: element not found —', id); return; }
-  el.classList.add('open');
+  document.getElementById(id).classList.add('open');
 
   // Reset T&C checkbox every time terms modal opens
   if(id === 'termsModal'){
@@ -570,12 +580,7 @@ function openModal(id){
     }
   }
 }
-function closeModal(id){
-  // BUG1 FIX: null guard
-  const el = document.getElementById(id);
-  if(!el){ console.warn('[PAUSE] closeModal: element not found —', id); return; }
-  el.classList.remove('open');
-}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 // ============================================================
 // FEATURE8: Informed consent re-confirmation (3 months)
@@ -610,6 +615,95 @@ function declineReConsent(){
   localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), version:'1.0'}));
   closeModal('reConsentModal'); // BUG16 FIX: close modal BEFORE showToast so toast isn't hidden under overlay
   showToast('Understood. Your data will no longer be shared for research.');
+}
+
+// ============================================================
+// FEATURE1: Urge Journal
+// ============================================================
+const URGE_LOG_KEY = 'pause_urge_log';
+
+function logUrge(disorderId, trigger, resisted){
+  const log = JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  log.unshift({
+    date: new Date().toISOString(),
+    disorder: disorderId,
+    trigger,
+    resisted,
+    id: Date.now()
+  });
+  if(log.length>200) log.splice(200);
+  localStorage.setItem(URGE_LOG_KEY, JSON.stringify(log));
+  // Save to Supabase if logged in
+  if(currentUser){
+    sb.from('UrgeLog').insert({
+      user_id:currentUser.id, disorder:disorderId,
+      trigger, resisted, logged_at:new Date().toISOString()
+    }).then(()=>{}).catch(()=>{});
+  }
+  renderUrgeJournal();
+  closeModal('urgeLogModal');
+  showToast(resisted?'✅ Well done resisting that urge! 💪':'📝 Urge logged — awareness is the first step.');
+}
+
+function renderUrgeJournal(){
+  const el=document.getElementById('urgeJournalList');
+  if(!el) return;
+  const log=JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  if(!log.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">No urges logged yet. Use the button above when you feel the urge to scroll, search, or game.</div>';
+    return;
+  }
+  const TRIGGER_ICONS={'Boredom':'😴','Stress':'😰','Habit':'🔁','Procrastinating':'📚','Low mood':'😔','Social pressure':'👥','Other':'💭'};
+  el.innerHTML=log.slice(0,30).map(entry=>{
+    const d=DISORDERS.find(x=>x.id===entry.disorder);
+    const tIcon=TRIGGER_ICONS[entry.trigger]||'💭';
+    const date=new Date(entry.date);
+    const timeStr=date.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+date.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:${d?d.bg:'var(--bg)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${d?d.icon:'⚡'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">${d?d.name:'Unknown'} — ${tIcon} ${entry.trigger}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeStr}</div>
+      </div>
+      <div style="font-size:18px">${entry.resisted?'✅':'📝'}</div>
+    </div>`;
+  }).join('');
+
+  // Stats
+  const total=log.length, resisted=log.filter(e=>e.resisted).length;
+  const statsEl=document.getElementById('urgeJournalStats');
+  if(statsEl){
+    statsEl.innerHTML=`<div style="display:flex;gap:16px;padding:12px 0;margin-bottom:4px">
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:var(--accent)">${total}</div><div style="font-size:10px;color:var(--muted)">Total Logged</div></div>
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:#2ecc71">${resisted}</div><div style="font-size:10px;color:var(--muted)">Resisted</div></div>
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:var(--accent)">${total?Math.round((resisted/total)*100):0}%</div><div style="font-size:10px;color:var(--muted)">Resistance Rate</div></div>
+    </div>`;
+  }
+}
+
+function openUrgeLogModal(){
+  renderUrgeJournal(); // BUG15 FIX: refresh stats before modal opens so data is current
+  // Pre-fill disorder select with top disorder — BUG17 FIX: read AppGrades not in-memory disorderScores
+  const grades = window.AppGrades ? window.AppGrades.load() : {};
+  const topId = Object.keys(grades).length > 0
+    ? Object.entries(grades).sort((a,b) => {
+        const o = {severe:3,moderate:2,mild:1,'low risk':0,minimal:0};
+        return (o[b[1]]||0) - (o[a[1]]||0);
+      })[0][0]
+    : (typeof getTopDisorder==='function' ? getTopDisorder() : 'cyberchondria');
+  const sel=document.getElementById('urgeDisorderSelect');
+  if(sel && topId !== 'default') sel.value=topId;
+  openModal('urgeLogModal');
+}
+
+function submitUrgeLog(){
+  const disorder=document.getElementById('urgeDisorderSelect')?.value;
+  const trigger=document.querySelector('#urgeTriggerOptions .form-option.selected')?.dataset.value;
+  const resisted=document.querySelector('#urgeResistedOptions .form-option.selected')?.dataset.value;
+  if(!disorder||!trigger||resisted===undefined){
+    showToast('Please fill in all fields before logging.'); return;
+  }
+  logUrge(disorder, trigger, resisted==='yes');
 }
 
 // dark mode removed

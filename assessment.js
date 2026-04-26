@@ -79,7 +79,6 @@ function savePartialProgress(){
   if(partialDWS!==null){ dwsScore=partialDWS; updateDWSDisplay(); }
 
   if(Object.keys(disorderScores).length>0 || Object.keys(impactScores).length>0){
-    // BUG3 FIX: saveScoresLocal() — no history entry, no Supabase INSERT. Safe on every answer.
     saveScoresLocal();
     if(typeof renderHomeDisorders==='function') renderHomeDisorders();
   }
@@ -470,7 +469,6 @@ function renderHomeDisorders(){
               <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
                 <div style="width:${pct}%;height:100%;background:${level.color};border-radius:3px;transition:width 0.5s ease"></div>
               </div>
-              <span style="font-size:10px;color:var(--muted);flex-shrink:0">${score}/${d.maxScore}</span>
             </div>
             <div style="font-size:10px;margin-top:4px;color:${staleness?staleness.color:'var(--muted)'}">
               ${staleness?staleness.text+' · ':''}${d.scale} · Tap to recheck

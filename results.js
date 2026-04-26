@@ -296,19 +296,26 @@ function showDWSModal(){
 // 3 disorder-specific questions based on highest-scoring disorder
 // ============================================================
 function renderPostAssessmentPrompt(){
-  // Find the highest-scoring disorder (by normalised score)
   if(Object.keys(disorderScores).length === 0) return;
 
-  const ranked = Object.entries(disorderScores).sort((a,b) => {
-    const da = DISORDERS.find(d => d.id === a[0]);
-    const db = DISORDERS.find(d => d.id === b[0]);
-    if(!da || !db) return 0;
-    const normA = (a[1] - da.questions.length) / (da.maxScore - da.questions.length);
-    const normB = (b[1] - db.questions.length) / (db.maxScore - db.questions.length);
-    return normB - normA;
-  });
+  let topId;
 
-  const topId = ranked[0][0];
+  // FIX: For single-disorder assessments, always show questions for the disorder
+  // just completed — not the highest-scoring one across all history.
+  if(assessMode === 'single' && typeof singleDisorderIdx !== 'undefined' && singleDisorderIdx >= 0 && DISORDERS[singleDisorderIdx]){
+    topId = DISORDERS[singleDisorderIdx].id;
+  } else {
+    // Full assessment: show questions for the highest-scoring disorder
+    const ranked = Object.entries(disorderScores).sort((a,b) => {
+      const da = DISORDERS.find(d => d.id === a[0]);
+      const db = DISORDERS.find(d => d.id === b[0]);
+      if(!da || !db) return 0;
+      const normA = (a[1] - da.questions.length) / (da.maxScore - da.questions.length);
+      const normB = (b[1] - db.questions.length) / (db.maxScore - db.questions.length);
+      return normB - normA;
+    });
+    topId = ranked[0][0];
+  }
   const topDisorder = DISORDERS.find(d => d.id === topId);
   if(!topDisorder) return;
 
