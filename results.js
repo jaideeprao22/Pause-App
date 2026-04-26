@@ -202,10 +202,26 @@ function showDWSModal(){
     document.getElementById('modalDWSNum').textContent = dwsScore;
     document.getElementById('modalDWSStatus').textContent = s.status;
     document.getElementById('modalDWSStatus').style.color = s.color;
-    document.getElementById('modalDWSSub').textContent = s.sub;
+
+    const screened = Object.keys(disorderScores).length;
+    const totalDisorders = DISORDERS.length; // 6
+
+    // Sub-text: warn if partial data
+    if(screened < totalDisorders){
+      document.getElementById('modalDWSSub').textContent =
+        `Based on ${screened} of ${totalDisorders} areas screened — complete a Full Check-up for your most accurate score.`;
+      document.getElementById('modalDWSSub').style.color = '#d97706';
+    } else {
+      document.getElementById('modalDWSSub').textContent = s.sub;
+      document.getElementById('modalDWSSub').style.color = '';
+    }
+
+    // Score breakdown
     let breakdown = '';
-    if(Object.keys(disorderScores).length > 0){
+    if(screened > 0){
       breakdown = '<div style="margin-top:8px"><div class="section-label">Score Breakdown</div>';
+
+      // Screened disorders
       DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
         const level = getLevel(d, disorderScores[d.id]);
         breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)">
@@ -213,13 +229,30 @@ function showDWSModal(){
           <span style="font-weight:700;color:${level.color}">${level.label}</span>
         </div>`;
       });
+
+      // Unscreened disorders — shown greyed out
+      const unscreened = DISORDERS.filter(d => disorderScores[d.id] === undefined);
+      if(unscreened.length > 0){
+        unscreened.forEach(d => {
+          breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);opacity:0.4">
+            <span>${d.icon} ${d.name}</span>
+            <span style="font-style:italic;color:var(--muted)">Not checked</span>
+          </div>`;
+        });
+        breakdown += `<div style="font-size:11px;color:#d97706;margin-top:8px;padding:6px 10px;background:#fff8e1;border-radius:8px;">
+          ⚠️ ${unscreened.length} area${unscreened.length > 1 ? 's' : ''} not yet screened — your DWS may improve or change after a Full Check-up.
+        </div>`;
+      }
+
       breakdown += '</div>';
     }
     document.getElementById('modalDWSBreakdown').innerHTML = breakdown;
+
   } else {
     document.getElementById('modalDWSNum').textContent = '--';
-    document.getElementById('modalDWSStatus').textContent = 'Not assessed yet';
-    document.getElementById('modalDWSSub').textContent = 'Complete a Full Assessment to get your Digital Wellness Score.';
+    document.getElementById('modalDWSStatus').textContent = 'Not checked yet';
+    document.getElementById('modalDWSSub').textContent = 'Complete a check-up to see your Digital Wellness Score.';
+    document.getElementById('modalDWSSub').style.color = '';
     document.getElementById('modalDWSBreakdown').innerHTML = '';
   }
   openModal('dwsModal');
