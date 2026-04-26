@@ -516,7 +516,7 @@ async function submitFeedback(){
 // LOGIN FLOW
 // ============================================================
 function openLoginFlow(){
-  // Show T&C if never accepted; go straight to sign-in modal if returning user
+  // Show T&C if never accepted; go straight to sign-in if returning user
   const alreadyAccepted = localStorage.getItem('pause_terms_accepted');
   if(alreadyAccepted){
     openModal('loginModal');

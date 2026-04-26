@@ -536,13 +536,14 @@
 <div class="modal-overlay" id="loginModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div style="text-align:center;padding:8px 0 4px">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Sign in with Google</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:20px">to save your progress and sync across devices</div>
-      <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:14px"></div>
-      <p style="font-size:11px;color:var(--muted);line-height:1.6">We only use Google to verify your identity — nothing else is accessed.</p>
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:36px;margin-bottom:8px">👋</div>
+      <div class="modal-title" style="margin-bottom:4px">Welcome — you're all set!</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Sign in with Google to save your progress and sync your data across devices. It only takes a moment.</p>
     </div>
-    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:8px">← Go back</button>
+    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
+    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">We only use Google to verify your identity. We never access your Google contacts, emails, or any other data.</p>
+    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Go back</button>
   </div>
 </div>
 
