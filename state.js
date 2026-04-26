@@ -515,32 +515,11 @@ async function submitFeedback(){
 // ============================================================
 // LOGIN FLOW
 // ============================================================
-
-// Uses Supabase OAuth redirect — works in TWA/WebView where Google One Tap is blocked.
-// Sends user directly to accounts.google.com, then redirects back to the app.
-async function _triggerGoogleSignIn(){
-  try {
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname
-      }
-    });
-    if(error){
-      console.warn('[PAUSE] OAuth redirect failed:', error.message);
-      openModal('loginModal'); // fallback to button-based sign-in
-    }
-  } catch(e){
-    console.warn('[PAUSE] OAuth error:', e);
-    openModal('loginModal'); // fallback
-  }
-}
-
 function openLoginFlow(){
-  // Show T&C if never accepted; trigger Google sign-in directly if returning user
+  // Show T&C if never accepted; go straight to sign-in modal if returning user
   const alreadyAccepted = localStorage.getItem('pause_terms_accepted');
   if(alreadyAccepted){
-    _triggerGoogleSignIn();
+    openModal('loginModal');
   } else {
     openModal('termsModal');
   }
@@ -559,8 +538,7 @@ function acceptTermsAndLogin(){
     accepted: true, timestamp: new Date().toISOString(), version: '1.0'
   }));
   closeModal('termsModal');
-  // Skip "Welcome" modal — redirect directly to Google sign-in
-  setTimeout(() => _triggerGoogleSignIn(), 250);
+  setTimeout(() => openModal('loginModal'), 250);
 }
 
 // ============================================================

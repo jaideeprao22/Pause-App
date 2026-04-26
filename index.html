@@ -536,14 +536,13 @@
 <div class="modal-overlay" id="loginModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:36px;margin-bottom:8px">👋</div>
-      <div class="modal-title" style="margin-bottom:4px">Welcome — you're all set!</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">Sign in with Google to save your progress and sync your data across devices. It only takes a moment.</p>
+    <div style="text-align:center;padding:8px 0 4px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Sign in with Google</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:20px">to save your progress and sync across devices</div>
+      <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:14px"></div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.6">We only use Google to verify your identity — nothing else is accessed.</p>
     </div>
-    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">We only use Google to verify your identity. We never access your Google contacts, emails, or any other data.</p>
-    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Go back</button>
+    <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:8px">← Go back</button>
   </div>
 </div>
 
@@ -791,12 +790,10 @@
 
 <!-- FIX 6: EDIT PROFILE MODAL -->
 <div class="modal-overlay" id="editProfileModal">
-  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
+  <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">✏️ Edit Profile</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Update your details below. Research baseline fields (health history, consent) are locked to preserve data integrity.</p>
-
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Personal Details</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Update your personal details below.</p>
     <div class="edit-profile-row">
       <label>Age</label>
       <input type="number" id="editAge" placeholder="Your age" min="13" max="100"/>
@@ -811,27 +808,6 @@
       </select>
     </div>
     <div class="edit-profile-row">
-      <label>Education</label>
-      <select id="editEducation">
-        <option value="Below 10th">Below 10th standard</option>
-        <option value="10th">10th standard / SSLC</option>
-        <option value="12th">12th standard / PUC</option>
-        <option value="Diploma">Diploma</option>
-        <option value="Graduate">Graduate (Bachelor's)</option>
-        <option value="Postgraduate">Postgraduate (Master's / MD)</option>
-        <option value="Doctorate">Doctorate (PhD / DrNB)</option>
-      </select>
-    </div>
-    <div class="edit-profile-row">
-      <label>Marital Status</label>
-      <select id="editMarital">
-        <option value="Single">Single</option>
-        <option value="Married">Married</option>
-        <option value="Divorced/Separated">Divorced / Separated</option>
-        <option value="Widowed">Widowed</option>
-      </select>
-    </div>
-    <div class="edit-profile-row">
       <label>Occupation</label>
       <select id="editOccupation">
         <option value="Student">Student</option>
@@ -839,17 +815,6 @@
         <option value="IT Professional">IT Professional</option>
         <option value="Other Professional">Other Professional</option>
         <option value="Not Working">Not Working</option>
-      </select>
-    </div>
-    <div class="edit-profile-row">
-      <label>Monthly Income (₹)</label>
-      <select id="editIncome">
-        <option value="Below 15,000">Below ₹15,000</option>
-        <option value="15,000–30,000">₹15,000 – ₹30,000</option>
-        <option value="30,000–60,000">₹30,000 – ₹60,000</option>
-        <option value="60,000–1,00,000">₹60,000 – ₹1,00,000</option>
-        <option value="Above 1,00,000">Above ₹1,00,000</option>
-        <option value="Prefer not to say">Prefer not to say</option>
       </select>
     </div>
     <div class="edit-profile-row">
@@ -863,8 +828,6 @@
         <option value="Other">Other</option>
       </select>
     </div>
-
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 10px">Digital Habits</div>
     <div class="edit-profile-row">
       <label>Primary Device</label>
       <select id="editDevice">
@@ -873,28 +836,7 @@
         <option value="Both equally">Both equally</option>
       </select>
     </div>
-    <div class="edit-profile-row">
-      <label>Daily Screen Time</label>
-      <select id="editScreentime">
-        <option value="Less than 2 hours">Less than 2 hours</option>
-        <option value="2–4 hours">2–4 hours</option>
-        <option value="4–6 hours">4–6 hours</option>
-        <option value="6–8 hours">6–8 hours</option>
-        <option value="More than 8 hours">More than 8 hours</option>
-      </select>
-    </div>
-    <div class="edit-profile-row">
-      <label>Average Sleep (hours)</label>
-      <select id="editSleep">
-        <option value="Less than 5">Less than 5 hours</option>
-        <option value="5–6">5–6 hours</option>
-        <option value="6–7">6–7 hours</option>
-        <option value="7–8">7–8 hours</option>
-        <option value="More than 8">More than 8 hours</option>
-      </select>
-    </div>
-
-    <button class="btn-primary" onclick="saveEditProfile()" style="margin-top:8px">Save Changes</button>
+    <button class="btn-primary" onclick="saveEditProfile()">Save Changes</button>
     <button class="btn-ghost" onclick="closeModal('editProfileModal')">Cancel</button>
   </div>
 </div>
