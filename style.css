@@ -165,3 +165,7 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
 .toggle.on{background:var(--teal)}
 .toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:all 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
 .toggle.on::after{left:23px}
+/* WEEKLY CHECK-IN OPTIONS */
+.wcheckin-opt{width:100%;padding:13px 18px;border-radius:14px;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.12);color:#ffffff;font-size:14px;font-weight:600;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.wcheckin-opt.selected{border-color:#ffffff;background:rgba(255,255,255,0.28);color:#ffffff}
+.wcheckin-opt:active{transform:scale(0.98)}

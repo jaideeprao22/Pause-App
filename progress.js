@@ -499,7 +499,7 @@ function _wcRenderStep(){
   if(!area) return;
   const saved = _wcAnswers[q.id];
   area.innerHTML = `
-    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:18px;line-height:1.65">${q.text}</div>
+    <div style="font-size:14px;font-weight:700;color:#ffffff;margin-bottom:18px;line-height:1.65">${q.text}</div>
     <div style="display:flex;flex-direction:column;gap:9px">
       ${q.opts.map(opt => `
         <button class="wcheckin-opt${saved === opt ? ' selected' : ''}"
