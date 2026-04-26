@@ -461,7 +461,7 @@ function renderHomeDisorders(){
           <div class="assess-card-icon" style="background:${d.bg}"><span style="font-size:22px">${d.icon}</span></div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
-              <span style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</span>
+              <span style="font-size:15px;font-weight:800;color:var(--navy);letter-spacing:-0.3px;font-family:'Syne',sans-serif">${d.name}</span>
               <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;padding:2px 9px;border-radius:20px;background:${level.bg};color:${level.color};border:1px solid ${level.color}40">${level.label.toUpperCase()}</span>
               ${staleness?.warn?`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(255,71,87,0.12);color:#ff4757;border:1px solid rgba(255,71,87,0.3)">⚠ Recheck</span>`:''}
             </div>
@@ -478,17 +478,16 @@ function renderHomeDisorders(){
         </div>`;
     } else {
       return `
-        <div class="assess-disorder-card" onclick="showScaleInfo('${d.id}', ${DISORDERS.indexOf(d)})" style="opacity:0.65">
+        <div class="assess-disorder-card" onclick="showScaleInfo('${d.id}', ${DISORDERS.indexOf(d)})" style="opacity:0.72">
           <div class="assess-card-icon" style="background:var(--bg)"><span style="font-size:22px">${d.icon}</span></div>
           <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="font-size:13px;font-weight:700;color:var(--text)">${d.name}</span>
-              <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border)">Not checked</span>
+            <div style="margin-bottom:4px">
+              <span style="font-size:15px;font-weight:800;color:var(--navy);letter-spacing:-0.3px;font-family:'Syne',sans-serif">${d.name}</span>
             </div>
             <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden"></div>
             <div style="font-size:10px;color:var(--muted);margin-top:3px">${d.scale} · Tap to start</div>
           </div>
-          <div class="assess-card-chevron">›</div>
+          <span style="flex-shrink:0;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border);margin-left:8px">Not checked</span>
         </div>`;
     }
   }).join('');
