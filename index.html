@@ -553,7 +553,7 @@
     <div class="modal-handle"></div>
     <div class="modal-title">👋 Tell Us a Little About Yourself</div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps us personalise your experience and — with your permission — contributes to community health research. All fields are required unless marked optional.</p>
-    <div class="notice blue" style="margin-bottom:14px;font-size:12px">🤝 Your responses help us understand digital health across different communities in India. Your identity is never shared.</div>
+    <div class="notice blue" style="margin-bottom:14px;font-size:12px">🤝 Your responses help us understand digital health across different communities in India, so we can build better tools for everyone. Your identity is never shared.</div>
 
     <!-- SECTION: Demographics -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Demographics</div>
@@ -571,15 +571,6 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Marital Status</label>
-      <div class="form-options" id="maritalOptions">
-        <button class="form-option" onclick="selectOption('marital','Single',this)">Single</button>
-        <button class="form-option" onclick="selectOption('marital','Married',this)">Married</button>
-        <button class="form-option" onclick="selectOption('marital','Divorced/Separated',this)">Divorced</button>
-        <button class="form-option" onclick="selectOption('marital','Widowed',this)">Widowed</button>
-      </div>
-    </div>
-    <div class="form-group">
       <label class="form-label">Education</label>
       <select class="form-input" id="profileEducation">
         <option value="" disabled selected>Select highest qualification</option>
@@ -592,139 +583,37 @@
         <option value="Doctorate">Doctorate (PhD / DrNB)</option>
       </select>
     </div>
-
-    <!-- OCCUPATION -->
+    <div class="form-group">
+      <label class="form-label">Marital Status</label>
+      <div class="form-options" id="maritalOptions">
+        <button class="form-option" onclick="selectOption('marital','Single',this)">Single</button>
+        <button class="form-option" onclick="selectOption('marital','Married',this)">Married</button>
+        <button class="form-option" onclick="selectOption('marital','Divorced/Separated',this)">Divorced</button>
+        <button class="form-option" onclick="selectOption('marital','Widowed',this)">Widowed</button>
+      </div>
+    </div>
     <div class="form-group">
       <label class="form-label">Occupation</label>
-      <div class="form-options" id="occupationOptions" style="flex-wrap:wrap">
-        <button class="form-option" onclick="selectOption('occupation','Student',this);showOccupationBranch('student')">Student</button>
-        <button class="form-option" onclick="selectOption('occupation','Healthcare',this);showOccupationBranch('healthcare')">Healthcare</button>
-        <button class="form-option" onclick="selectOption('occupation','IT Professional',this);showOccupationBranch('it')">IT Professional</button>
-        <button class="form-option" onclick="selectOption('occupation','Government / Public Sector',this);showOccupationBranch('govt')">Government / Public Sector</button>
-        <button class="form-option" onclick="selectOption('occupation','Other Professional',this);showOccupationBranch('other')">Other Professional</button>
-        <button class="form-option" onclick="selectOption('occupation','Not Working',this);showOccupationBranch('none')">Not Working</button>
+      <div class="form-options" id="occupationOptions">
+        <button class="form-option" onclick="selectOption('occupation','Student',this)">Student</button>
+        <button class="form-option" onclick="selectOption('occupation','Healthcare',this)">Healthcare</button>
+        <button class="form-option" onclick="selectOption('occupation','IT Professional',this)">IT Professional</button>
+        <button class="form-option" onclick="selectOption('occupation','Other Professional',this)">Other Professional</button>
+        <button class="form-option" onclick="selectOption('occupation','Not Working',this)">Not Working</button>
       </div>
     </div>
-
-    <!-- STUDENT BRANCH -->
-    <div id="branch-student" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">🎓 Student Details</div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label class="form-label">Field of Study</label>
-        <div class="form-options" id="studyFieldOptions" style="flex-wrap:wrap">
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Medical / MBBS',this)">Medical / MBBS</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Dental / BDS',this)">Dental / BDS</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Nursing',this)">Nursing</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Pharmacy',this)">Pharmacy</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Physiotherapy',this)">Physiotherapy</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','AYUSH (BAMS / BHMS / BNYS / BUMS)',this)">AYUSH</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Paramedical / Allied Health',this)">Paramedical</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Engineering',this)">Engineering</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Polytechnic',this)">Polytechnic</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Arts & Humanities',this)">Arts & Humanities</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Science',this)">Science</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Commerce',this)">Commerce</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Law',this)">Law</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Management / MBA',this)">Management / MBA</button>
-          <button class="form-option" onclick="selectProfessionDetail('study_field','Other',this)">Other</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">College / Institution Name</label>
-        <input type="text" class="form-input" id="profileCollegeName" placeholder="e.g. GMC Maheshwaram, IIT Bombay"/>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Household Income</label>
+      <select class="form-input" id="profileIncome">
+        <option value="" disabled selected>Select range</option>
+        <option value="Below ₹10,000">Below ₹10,000</option>
+        <option value="₹10,000–25,000">₹10,000 – ₹25,000</option>
+        <option value="₹25,000–50,000">₹25,000 – ₹50,000</option>
+        <option value="₹50,000–1,00,000">₹50,000 – ₹1,00,000</option>
+        <option value="Above ₹1,00,000">Above ₹1,00,000</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
     </div>
-
-    <!-- HEALTHCARE BRANCH -->
-    <div id="branch-healthcare" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">🏥 Healthcare Details</div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label class="form-label">Your Role</label>
-        <div class="form-options" id="healthcareRoleOptions" style="flex-wrap:wrap">
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Doctor',this)">Doctor</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Intern / PG Resident',this)">Intern / PG Resident</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Nurse',this)">Nurse</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Pharmacist',this)">Pharmacist</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Lab Technician',this)">Lab Technician</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Paramedic',this)">Paramedic</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Hospital Admin',this)">Hospital Admin</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Allied Health',this)">Allied Health</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other',this)">Other</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Hospital / Institution <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-        <input type="text" class="form-input" id="profileWorkplace" placeholder="e.g. AIIMS, Apollo, District Hospital"/>
-      </div>
-    </div>
-
-    <!-- IT PROFESSIONAL BRANCH -->
-    <div id="branch-it" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">💻 IT Professional Details</div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label class="form-label">Your Role</label>
-        <div class="form-options" id="itRoleOptions" style="flex-wrap:wrap">
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Software Developer',this)">Software Developer</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Data / AI Engineer',this)">Data / AI Engineer</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','DevOps / Cloud',this)">DevOps / Cloud</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','UI / UX Designer',this)">UI / UX Designer</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Product Manager',this)">Product Manager</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','IT Support',this)">IT Support</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','QA / Testing',this)">QA / Testing</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other',this)">Other</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Work Mode</label>
-        <div class="form-options" id="workModeOptions">
-          <button class="form-option" onclick="selectProfessionDetail('work_mode','Office',this)">Office</button>
-          <button class="form-option" onclick="selectProfessionDetail('work_mode','Remote',this)">Remote</button>
-          <button class="form-option" onclick="selectProfessionDetail('work_mode','Hybrid',this)">Hybrid</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- GOVERNMENT BRANCH -->
-    <div id="branch-govt" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">🏛️ Government / Public Sector Details</div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label class="form-label">Role / Service</label>
-        <div class="form-options" id="govtRoleOptions" style="flex-wrap:wrap">
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','IAS / IPS / IFS Officer',this)">IAS / IPS / IFS</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','State Government Employee',this)">State Government</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Central Government Employee',this)">Central Government</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','PSU / Public Sector Undertaking',this)">PSU</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Defence / Armed Forces',this)">Defence / Armed Forces</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Police / Law Enforcement',this)">Police</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Government Teacher / Professor',this)">Govt. Teacher</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Government Healthcare Worker',this)">Govt. Healthcare</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Municipal / Local Body',this)">Municipal / Local Body</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Judiciary',this)">Judiciary</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other Government',this)">Other</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Department / Office <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-        <input type="text" class="form-input" id="profileWorkplace" placeholder="e.g. District Collectorate, DRDO, NHM"/>
-      </div>
-    </div>
-
-    <!-- OTHER PROFESSIONAL BRANCH -->
-    <div id="branch-other" style="display:none;background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em">💼 Professional Details</div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Field / Sector</label>
-        <div class="form-options" id="otherProfessionOptions" style="flex-wrap:wrap">
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Teaching / Academia',this)">Teaching / Academia</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Legal',this)">Legal</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Finance / Banking',this)">Finance / Banking</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Business / Self-employed',this)">Business / Self-employed</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Media / Journalism',this)">Media / Journalism</button>
-          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other',this)">Other</button>
-        </div>
-      </div>
-    </div>
-
     <div class="form-group">
       <label class="form-label">Country</label>
       <select class="form-input" id="profileCountry">
@@ -776,6 +665,34 @@
         <option value="More than 8">More than 8 hours</option>
       </select>
     </div>
+    <div class="form-group">
+      <label class="form-label">Years Using a Smartphone</label>
+      <select class="form-input" id="profileSmartphoneYears">
+        <option value="" disabled selected>Select</option>
+        <option value="Less than 1">Less than 1 year</option>
+        <option value="1–3">1 – 3 years</option>
+        <option value="3–5">3 – 5 years</option>
+        <option value="5–8">5 – 8 years</option>
+        <option value="More than 8">More than 8 years</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">First thing you do after waking up?</label>
+      <div class="form-options" id="morningHabitOptions">
+        <button class="form-option" onclick="selectOption('morning_habit','Check phone',this)">Check phone</button>
+        <button class="form-option" onclick="selectOption('morning_habit','Freshen up first',this)">Freshen up first</button>
+        <button class="form-option" onclick="selectOption('morning_habit','Exercise',this)">Exercise</button>
+        <button class="form-option" onclick="selectOption('morning_habit','Other',this)">Other</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Do you charge your phone in the bedroom at night?</label>
+      <div class="form-options" id="bedroomChargeOptions">
+        <button class="form-option" onclick="selectOption('bedroom_charge','Yes',this)">Yes</button>
+        <button class="form-option" onclick="selectOption('bedroom_charge','No',this)">No</button>
+        <button class="form-option" onclick="selectOption('bedroom_charge','Sometimes',this)">Sometimes</button>
+      </div>
+    </div>
 
     <!-- SECTION: Health -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">Health &amp; Wellbeing</div>
@@ -801,11 +718,19 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Are you or any close family member chronically ill?</label>
+      <label class="form-label">Do you have any chronic illness?</label>
       <div class="form-options" id="chronicIllnessOptions">
         <button class="form-option" onclick="selectOption('chronic_illness','Yes',this)">Yes</button>
         <button class="form-option" onclick="selectOption('chronic_illness','No',this)">No</button>
         <button class="form-option" onclick="selectOption('chronic_illness','Prefer not to say',this)">Prefer not to say</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Is any close family member chronically ill?</label>
+      <div class="form-options" id="familyIllOptions">
+        <button class="form-option" onclick="selectOption('family_member_ill','Yes',this)">Yes</button>
+        <button class="form-option" onclick="selectOption('family_member_ill','No',this)">No</button>
+        <button class="form-option" onclick="selectOption('family_member_ill','Prefer not to say',this)">Prefer not to say</button>
       </div>
     </div>
     <div class="form-group">
@@ -818,7 +743,7 @@
       </div>
     </div>
 
-    <!-- SECTION: About This Visit -->
+    <!-- SECTION: App-specific -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">About This Visit</div>
 
     <div class="form-group">
@@ -866,10 +791,11 @@
 
 <!-- FIX 6: EDIT PROFILE MODAL -->
 <div class="modal-overlay" id="editProfileModal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div class="modal-title">✏️ Edit Profile</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Update your personal details below.</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">Update details that change over time. Fields like occupation, education and health history are locked to preserve research data integrity.</p>
+
     <div class="edit-profile-row">
       <label>Age</label>
       <input type="number" id="editAge" placeholder="Your age" min="13" max="100"/>
@@ -884,13 +810,12 @@
       </select>
     </div>
     <div class="edit-profile-row">
-      <label>Occupation</label>
-      <select id="editOccupation">
-        <option value="Student">Student</option>
-        <option value="Healthcare">Healthcare</option>
-        <option value="IT Professional">IT Professional</option>
-        <option value="Other Professional">Other Professional</option>
-        <option value="Not Working">Not Working</option>
+      <label>Marital Status</label>
+      <select id="editMarital">
+        <option value="Single">Single</option>
+        <option value="Married">Married</option>
+        <option value="Divorced/Separated">Divorced / Separated</option>
+        <option value="Widowed">Widowed</option>
       </select>
     </div>
     <div class="edit-profile-row">
@@ -912,7 +837,37 @@
         <option value="Both equally">Both equally</option>
       </select>
     </div>
-    <button class="btn-primary" onclick="saveEditProfile()">Save Changes</button>
+    <div class="edit-profile-row">
+      <label>Daily Screen Time</label>
+      <select id="editScreentime">
+        <option value="Less than 2">Less than 2 hours</option>
+        <option value="2–4">2 – 4 hours</option>
+        <option value="4–6">4 – 6 hours</option>
+        <option value="6–8">6 – 8 hours</option>
+        <option value="More than 8">More than 8 hours</option>
+      </select>
+    </div>
+    <div class="edit-profile-row">
+      <label>Average Sleep</label>
+      <select id="editSleep">
+        <option value="Less than 5">Less than 5 hours</option>
+        <option value="5–6">5 – 6 hours</option>
+        <option value="6–7">6 – 7 hours</option>
+        <option value="7–8">7 – 8 hours</option>
+        <option value="More than 8">More than 8 hours</option>
+      </select>
+    </div>
+    <div class="edit-profile-row">
+      <label>Physical Activity</label>
+      <select id="editPhysical">
+        <option value="Sedentary">Sedentary</option>
+        <option value="Light">Light</option>
+        <option value="Moderate">Moderate</option>
+        <option value="Active">Active</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="saveEditProfile()" style="margin-top:8px">Save Changes</button>
     <button class="btn-ghost" onclick="closeModal('editProfileModal')">Cancel</button>
   </div>
 </div>

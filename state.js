@@ -11,9 +11,9 @@ let currentUser = null;
 let userProfile = {};
 let profileSelections = {
   gender:'', marital:'', occupation:'', residence:'', living_situation:'',
-  device:'', self_rated_health:'', chronic_illness:'',
-  physical_activity:'', prev_detox_attempt:'', followup_consent:'',
-  study_field:'', profession_role:'', work_mode:''
+  device:'', morning_habit:'', bedroom_charge:'',
+  self_rated_health:'', chronic_illness:'', family_member_ill:'',
+  physical_activity:'', prev_detox_attempt:'', followup_consent:''
 };
 let postAssessDisorderId = null; // set by renderPostAssessmentPrompt, read by savePostAssessmentData
 let notifPermission = false;
@@ -142,9 +142,9 @@ function handleLogout(){
   // BUG7 FIX: reset profileSelections so previous user's radio buttons don't bleed through
   profileSelections = {
     gender:'', marital:'', occupation:'', residence:'', living_situation:'',
-    device:'', self_rated_health:'', chronic_illness:'',
-    physical_activity:'', prev_detox_attempt:'', followup_consent:'',
-    study_field:'', profession_role:'', work_mode:''
+    device:'', morning_habit:'', bedroom_charge:'',
+    self_rated_health:'', chronic_illness:'', family_member_ill:'',
+    physical_activity:'', prev_detox_attempt:'', followup_consent:''
   };
   document.getElementById('userAvatar').style.display = 'none';
   renderLoginBanner();
@@ -204,8 +204,11 @@ function selectOption(type, value, btn){
     residence:          'residenceOptions',
     living_situation:   'livingSituationOptions',
     device:             'deviceOptions',
+    morning_habit:      'morningHabitOptions',
+    bedroom_charge:     'bedroomChargeOptions',
     self_rated_health:  'selfRatedHealthOptions',
     chronic_illness:    'chronicIllnessOptions',
+    family_member_ill:  'familyIllOptions',
     physical_activity:  'physicalActivityOptions',
     prev_detox_attempt: 'prevDetoxOptions',
     followup_consent:   'followupConsentOptions'
@@ -216,89 +219,49 @@ function selectOption(type, value, btn){
   profileSelections[type] = value;
 }
 
-// ============================================================
-// OCCUPATION BRANCHES
-// ============================================================
-const _allBranches = ['student','healthcare','it','govt','other'];
-
-function showOccupationBranch(type){
-  _allBranches.forEach(b => {
-    const el = document.getElementById('branch-' + b);
-    if(el) el.style.display = 'none';
-  });
-  profileSelections.study_field    = '';
-  profileSelections.profession_role = '';
-  profileSelections.work_mode      = '';
-  ['studyFieldOptions','healthcareRoleOptions','itRoleOptions','workModeOptions','govtRoleOptions','otherProfessionOptions']
-    .forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.querySelectorAll('.form-option').forEach(b => b.classList.remove('selected'));
-    });
-  const college = document.getElementById('profileCollegeName');
-  if(college) college.value = '';
-  const workplace = document.getElementById('profileWorkplace');
-  if(workplace) workplace.value = '';
-  if(type !== 'none'){
-    const el = document.getElementById('branch-' + type);
-    if(el) el.style.display = 'block';
-  }
-}
-
-function selectProfessionDetail(key, value, btn){
-  profileSelections[key] = value;
-  if(btn && btn.parentElement){
-    btn.parentElement.querySelectorAll('.form-option').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-  }
-}
-
 function saveProfile(){
+  // Validate number inputs and selects directly from DOM
   const age = parseInt(document.getElementById('profileAge').value);
-  if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
-  if(!profileSelections.gender)            { showToast('Please select your gender.'); return; }
-  if(!profileSelections.marital)           { showToast('Please select your marital status.'); return; }
-  if(!document.getElementById('profileEducation').value){ showToast('Please select your education level.'); return; }
-  if(!profileSelections.occupation)        { showToast('Please select your occupation.'); return; }
-  if(profileSelections.occupation === 'Student'){
-    if(!profileSelections.study_field)     { showToast('Please select your field of study.'); return; }
-    const college = document.getElementById('profileCollegeName')?.value?.trim();
-    if(!college)                           { showToast('Please enter your college / institution name.'); return; }
-  }
-  if(profileSelections.occupation === 'Healthcare' && !profileSelections.profession_role)        { showToast('Please select your healthcare role.'); return; }
-  if(profileSelections.occupation === 'IT Professional' && !profileSelections.profession_role)   { showToast('Please select your IT role.'); return; }
-  if(profileSelections.occupation === 'IT Professional' && !profileSelections.work_mode)         { showToast('Please select your work mode.'); return; }
-  if(profileSelections.occupation === 'Government / Public Sector' && !profileSelections.profession_role){ showToast('Please select your government role.'); return; }
-  if(profileSelections.occupation === 'Other Professional' && !profileSelections.profession_role){ showToast('Please select your professional field.'); return; }
-  if(!profileSelections.residence)         { showToast('Please select your area of residence.'); return; }
-  if(!profileSelections.living_situation)  { showToast('Please select your living situation.'); return; }
-  if(!profileSelections.device)            { showToast('Please select your primary device.'); return; }
+  if(!age || age < 18 || age > 100){ showToast('Please enter a valid age (18 or older).'); return; }
+  if(!profileSelections.gender)           { showToast('Please select your gender.'); return; }
+  if(!document.getElementById('profileEducation').value) { showToast('Please select your education level.'); return; }
+  if(!profileSelections.marital)          { showToast('Please select your marital status.'); return; }
+  if(!profileSelections.occupation)       { showToast('Please select your occupation.'); return; }
+  if(!document.getElementById('profileIncome').value)    { showToast('Please select your income range.'); return; }
+  if(!profileSelections.residence)        { showToast('Please select your area of residence.'); return; }
+  if(!profileSelections.living_situation) { showToast('Please select your living situation.'); return; }
+  if(!profileSelections.device)           { showToast('Please select your primary device.'); return; }
   if(!document.getElementById('profileScreentime').value){ showToast('Please select your daily screen time.'); return; }
+  if(!document.getElementById('profileSmartphoneYears').value){ showToast('Please select years using a smartphone.'); return; }
+  if(!profileSelections.morning_habit)    { showToast('Please answer the morning habit question.'); return; }
+  if(!profileSelections.bedroom_charge)   { showToast('Please answer the bedroom charging question.'); return; }
   if(!document.getElementById('profileSleep').value)     { showToast('Please select your average sleep.'); return; }
-  if(!profileSelections.self_rated_health) { showToast('Please rate your overall health.'); return; }
-  if(!profileSelections.chronic_illness)   { showToast('Please answer the chronic illness question.'); return; }
-  if(!profileSelections.physical_activity) { showToast('Please select your physical activity level.'); return; }
+  if(!profileSelections.self_rated_health){ showToast('Please rate your overall health.'); return; }
+  if(!profileSelections.chronic_illness)  { showToast('Please answer the chronic illness question.'); return; }
+  if(!profileSelections.family_member_ill){ showToast('Please answer the family illness question.'); return; }
+  if(!profileSelections.physical_activity){ showToast('Please select your physical activity level.'); return; }
   if(!profileSelections.prev_detox_attempt){ showToast('Please answer the digital detox question.'); return; }
-  if(!profileSelections.followup_consent)  { showToast('Please answer the follow-up consent question.'); return; }
+  if(!profileSelections.followup_consent) { showToast('Please answer the follow-up consent question.'); return; }
 
   userProfile = {
     age,
     gender:             profileSelections.gender,
-    marital_status:     profileSelections.marital,
     education:          document.getElementById('profileEducation').value,
+    marital_status:     profileSelections.marital,
     occupation:         profileSelections.occupation,
-    study_field:        profileSelections.study_field    || null,
-    college_name:       document.getElementById('profileCollegeName')?.value?.trim() || null,
-    profession_role:    profileSelections.profession_role || null,
-    work_mode:          profileSelections.work_mode       || null,
-    workplace:          document.getElementById('profileWorkplace')?.value?.trim()   || null,
+    income_bracket:     document.getElementById('profileIncome').value,
     country:            document.getElementById('profileCountry').value || null,
     residence_type:     profileSelections.residence,
     living_situation:   profileSelections.living_situation,
     primary_device:     profileSelections.device,
     daily_screentime:   document.getElementById('profileScreentime').value,
+    smartphone_years:   document.getElementById('profileSmartphoneYears').value,
+    morning_habit:      profileSelections.morning_habit,
+    bedroom_charge:     profileSelections.bedroom_charge,
     avg_sleep:          document.getElementById('profileSleep').value,
     self_rated_health:  profileSelections.self_rated_health,
     chronic_illness:    profileSelections.chronic_illness,
+    family_member_ill:  profileSelections.family_member_ill,
     physical_activity:  profileSelections.physical_activity,
     prev_detox_attempt: profileSelections.prev_detox_attempt,
     referral_source:    document.getElementById('profileReferral').value || null,
@@ -317,38 +280,57 @@ function saveProfile(){
 }
 
 // FIX 6: Edit profile — opened from userModal "Edit My Details" button
+function toggleEditOccupationFields(){
+  const occ = document.getElementById('editOccupation')?.value;
+  const sf = document.getElementById('editStudentFields');
+  const pf = document.getElementById('editProfessionFields');
+  const wm = document.getElementById('editWorkModeRow');
+  if(sf) sf.style.display = occ === 'Student' ? 'block' : 'none';
+  if(pf) pf.style.display = ['Healthcare','IT Professional','Government / Public Sector','Other Professional'].includes(occ) ? 'block' : 'none';
+  if(wm) wm.style.display = occ === 'IT Professional' ? 'block' : 'none';
+}
+
 function openEditProfile(){
   closeModal('userModal');
   if(!userProfile || !userProfile.age){ openModal('profileModal'); return; }
-  // Pre-fill edit fields
-  const sv = function(id, val){ const el=document.getElementById(id); if(el && val!==undefined) el.value=val; };
-  sv('editAge', userProfile.age);
-  sv('editGender', userProfile.gender);
-  sv('editOccupation', userProfile.occupation);
-  sv('editCountry', userProfile.country);
-  sv('editDevice', userProfile.primary_device);
+  const sv = function(id, val){
+    const el = document.getElementById(id);
+    if(!el || val === undefined || val === null) return;
+    el.value = val;
+  };
+  // Only the 8 fields that legitimately change over time
+  sv('editAge',        userProfile.age);
+  sv('editGender',     userProfile.gender);
+  sv('editMarital',    userProfile.marital_status);
+  sv('editCountry',    userProfile.country);
+  sv('editDevice',     userProfile.primary_device);
+  sv('editScreentime', userProfile.daily_screentime);
+  sv('editSleep',      userProfile.avg_sleep);
+  sv('editPhysical',   userProfile.physical_activity);
   openModal('editProfileModal');
 }
 
 function saveEditProfile(){
   const age = parseInt(document.getElementById('editAge').value);
-  if(!age || age < 18 || age > 100){ showToast('Please enter a valid age between 18 and 100.'); return; }
-  // Only update the 5 editable fields — all research fields are preserved from existing userProfile
-  userProfile.age            = age;
-  userProfile.gender         = document.getElementById('editGender').value || userProfile.gender;
-  userProfile.occupation     = document.getElementById('editOccupation').value || userProfile.occupation;
-  userProfile.country        = document.getElementById('editCountry').value || userProfile.country;
-  userProfile.primary_device = document.getElementById('editDevice').value || userProfile.primary_device;
-  userProfile.updatedAt      = new Date().toISOString();
-  // BUG7 FIX: persist for both logged-in and guest users
-  // L3 FIX: write only the canonical key
+  if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
+  // Only update the 8 changeable fields — education, occupation, health baseline all preserved
+  userProfile.age              = age;
+  userProfile.gender           = document.getElementById('editGender').value     || userProfile.gender;
+  userProfile.marital_status   = document.getElementById('editMarital').value    || userProfile.marital_status;
+  userProfile.country          = document.getElementById('editCountry').value    || userProfile.country;
+  userProfile.primary_device   = document.getElementById('editDevice').value     || userProfile.primary_device;
+  userProfile.daily_screentime = document.getElementById('editScreentime').value || userProfile.daily_screentime;
+  userProfile.avg_sleep        = document.getElementById('editSleep').value      || userProfile.avg_sleep;
+  userProfile.physical_activity= document.getElementById('editPhysical').value   || userProfile.physical_activity;
+  userProfile.updatedAt        = new Date().toISOString();
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
   } else {
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile));
   }
   closeModal('editProfileModal');
-  setTimeout(() => showUserModal(), 200);
+  showToast('✅ Profile updated!');
+  setTimeout(() => showUserModal(), 300);
 }
 
 function showUserModal(){
