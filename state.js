@@ -10,10 +10,10 @@ let disorderScores = {}, impactScores = {}, dwsScore = null;
 let currentUser = null;
 let userProfile = {};
 let profileSelections = {
-  gender:'', occupation:'', residence:'', living_situation:'',
+  gender:'', marital:'', occupation:'', residence:'', living_situation:'',
   device:'', self_rated_health:'', chronic_illness:'',
   physical_activity:'', prev_detox_attempt:'', followup_consent:'',
-  study_field:''
+  study_field:'', profession_role:'', work_mode:''
 };
 let postAssessDisorderId = null; // set by renderPostAssessmentPrompt, read by savePostAssessmentData
 let notifPermission = false;
@@ -141,10 +141,10 @@ function handleLogout(){
   userProfile = {}; // BUG19 FIX: clear profile so next user doesn't see stale data
   // BUG7 FIX: reset profileSelections so previous user's radio buttons don't bleed through
   profileSelections = {
-    gender:'', occupation:'', residence:'', living_situation:'',
+    gender:'', marital:'', occupation:'', residence:'', living_situation:'',
     device:'', self_rated_health:'', chronic_illness:'',
     physical_activity:'', prev_detox_attempt:'', followup_consent:'',
-    study_field:''
+    study_field:'', profession_role:'', work_mode:''
   };
   document.getElementById('userAvatar').style.display = 'none';
   renderLoginBanner();
@@ -199,6 +199,7 @@ function renderAccountSection(){
 function selectOption(type, value, btn){
   const containerMap = {
     gender:             'genderOptions',
+    marital:            'maritalOptions',
     occupation:         'occupationOptions',
     residence:          'residenceOptions',
     living_situation:   'livingSituationOptions',
@@ -207,8 +208,7 @@ function selectOption(type, value, btn){
     chronic_illness:    'chronicIllnessOptions',
     physical_activity:  'physicalActivityOptions',
     prev_detox_attempt: 'prevDetoxOptions',
-    followup_consent:   'followupConsentOptions',
-    study_field:        'studyFieldOptions'
+    followup_consent:   'followupConsentOptions'
   };
   const containerId = containerMap[type];
   if(containerId) document.querySelectorAll(`#${containerId} .form-option`).forEach(b => b.classList.remove('selected'));
@@ -216,58 +216,81 @@ function selectOption(type, value, btn){
   profileSelections[type] = value;
 }
 
-// Student branch — show/hide field of study and college name
-function showStudentFields(){
-  const el = document.getElementById('studentFields');
-  if(el) el.style.display = 'block';
+// ============================================================
+// OCCUPATION BRANCHES
+// ============================================================
+const _allBranches = ['student','healthcare','it','govt','other'];
+
+function showOccupationBranch(type){
+  _allBranches.forEach(b => {
+    const el = document.getElementById('branch-' + b);
+    if(el) el.style.display = 'none';
+  });
+  profileSelections.study_field    = '';
+  profileSelections.profession_role = '';
+  profileSelections.work_mode      = '';
+  ['studyFieldOptions','healthcareRoleOptions','itRoleOptions','workModeOptions','govtRoleOptions','otherProfessionOptions']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.querySelectorAll('.form-option').forEach(b => b.classList.remove('selected'));
+    });
+  const college = document.getElementById('profileCollegeName');
+  if(college) college.value = '';
+  const workplace = document.getElementById('profileWorkplace');
+  if(workplace) workplace.value = '';
+  if(type !== 'none'){
+    const el = document.getElementById('branch-' + type);
+    if(el) el.style.display = 'block';
+  }
 }
-function hideStudentFields(){
-  const el = document.getElementById('studentFields');
-  if(el) el.style.display = 'none';
-  profileSelections.study_field = '';
-  document.querySelectorAll('#studyFieldOptions .form-option').forEach(b => b.classList.remove('selected'));
-  const cg = document.getElementById('collegeNameGroup');
-  if(cg) cg.style.display = 'none';
-  const cn = document.getElementById('profileCollegeName');
-  if(cn) cn.value = '';
-}
-function selectStudyField(value, btn){
-  profileSelections.study_field = value;
-  document.querySelectorAll('#studyFieldOptions .form-option').forEach(b => b.classList.remove('selected'));
-  if(btn) btn.classList.add('selected');
-  // Show college name input after a field is chosen
-  const cg = document.getElementById('collegeNameGroup');
-  if(cg) cg.style.display = 'block';
+
+function selectProfessionDetail(key, value, btn){
+  profileSelections[key] = value;
+  if(btn && btn.parentElement){
+    btn.parentElement.querySelectorAll('.form-option').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
 }
 
 function saveProfile(){
-  // Validate number inputs and selects directly from DOM
   const age = parseInt(document.getElementById('profileAge').value);
-  if(!age || age < 18 || age > 100){ showToast('Please enter a valid age (18 or older).'); return; }
-  if(!profileSelections.gender)           { showToast('Please select your gender.'); return; }
-  if(!document.getElementById('profileEducation').value) { showToast('Please select your education level.'); return; }
-  if(!profileSelections.occupation)       { showToast('Please select your occupation.'); return; }
-  if(profileSelections.occupation === 'Student' && !profileSelections.study_field){ showToast('Please select your field of study.'); return; }
-  if(!document.getElementById('profileIncome').value)    { showToast('Please select your income range.'); return; }
-  if(!profileSelections.residence)        { showToast('Please select your area of residence.'); return; }
-  if(!profileSelections.living_situation) { showToast('Please select your living situation.'); return; }
-  if(!profileSelections.device)           { showToast('Please select your primary device.'); return; }
+  if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
+  if(!profileSelections.gender)            { showToast('Please select your gender.'); return; }
+  if(!profileSelections.marital)           { showToast('Please select your marital status.'); return; }
+  if(!document.getElementById('profileEducation').value){ showToast('Please select your education level.'); return; }
+  if(!profileSelections.occupation)        { showToast('Please select your occupation.'); return; }
+  if(profileSelections.occupation === 'Student'){
+    if(!profileSelections.study_field)     { showToast('Please select your field of study.'); return; }
+    const college = document.getElementById('profileCollegeName')?.value?.trim();
+    if(!college)                           { showToast('Please enter your college / institution name.'); return; }
+  }
+  if(profileSelections.occupation === 'Healthcare' && !profileSelections.profession_role)        { showToast('Please select your healthcare role.'); return; }
+  if(profileSelections.occupation === 'IT Professional' && !profileSelections.profession_role)   { showToast('Please select your IT role.'); return; }
+  if(profileSelections.occupation === 'IT Professional' && !profileSelections.work_mode)         { showToast('Please select your work mode.'); return; }
+  if(profileSelections.occupation === 'Government / Public Sector' && !profileSelections.profession_role){ showToast('Please select your government role.'); return; }
+  if(profileSelections.occupation === 'Other Professional' && !profileSelections.profession_role){ showToast('Please select your professional field.'); return; }
+  if(!profileSelections.residence)         { showToast('Please select your area of residence.'); return; }
+  if(!profileSelections.living_situation)  { showToast('Please select your living situation.'); return; }
+  if(!profileSelections.device)            { showToast('Please select your primary device.'); return; }
   if(!document.getElementById('profileScreentime').value){ showToast('Please select your daily screen time.'); return; }
   if(!document.getElementById('profileSleep').value)     { showToast('Please select your average sleep.'); return; }
-  if(!profileSelections.self_rated_health){ showToast('Please rate your overall health.'); return; }
-  if(!profileSelections.chronic_illness)  { showToast('Please answer the chronic illness question.'); return; }
-  if(!profileSelections.physical_activity){ showToast('Please select your physical activity level.'); return; }
+  if(!profileSelections.self_rated_health) { showToast('Please rate your overall health.'); return; }
+  if(!profileSelections.chronic_illness)   { showToast('Please answer the chronic illness question.'); return; }
+  if(!profileSelections.physical_activity) { showToast('Please select your physical activity level.'); return; }
   if(!profileSelections.prev_detox_attempt){ showToast('Please answer the digital detox question.'); return; }
-  if(!profileSelections.followup_consent) { showToast('Please answer the follow-up consent question.'); return; }
+  if(!profileSelections.followup_consent)  { showToast('Please answer the follow-up consent question.'); return; }
 
   userProfile = {
     age,
     gender:             profileSelections.gender,
+    marital_status:     profileSelections.marital,
     education:          document.getElementById('profileEducation').value,
     occupation:         profileSelections.occupation,
-    study_field:        profileSelections.study_field || null,
+    study_field:        profileSelections.study_field    || null,
     college_name:       document.getElementById('profileCollegeName')?.value?.trim() || null,
-    income_bracket:     document.getElementById('profileIncome').value,
+    profession_role:    profileSelections.profession_role || null,
+    work_mode:          profileSelections.work_mode       || null,
+    workplace:          document.getElementById('profileWorkplace')?.value?.trim()   || null,
     country:            document.getElementById('profileCountry').value || null,
     residence_type:     profileSelections.residence,
     living_situation:   profileSelections.living_situation,
