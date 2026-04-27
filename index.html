@@ -279,11 +279,8 @@
       <div>
         <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">Department of Community Medicine</div>
         <div style="font-size:13px;color:var(--muted);line-height:1.7">Government Medical College, Maheshwaram<br>Rangareddy District, Telangana – 501510<br>India</div>
+        <div style="font-size:12px;color:var(--accent);margin-top:6px;line-height:1.5">Digital health interventions for non-communicable diseases (NCDs)</div>
       </div>
-    </div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Research Focus</div>
-      <p style="font-size:13px;color:var(--text);line-height:1.7;margin:0">Digital health interventions for non-communicable diseases (NCDs). This app is part of ongoing research on the prevalence and management of digital behavioural disorders in the Indian population.</p>
     </div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:10px">Research Team</div>
@@ -595,11 +592,120 @@
     <div class="form-group">
       <label class="form-label">Occupation</label>
       <div class="form-options" id="occupationOptions">
-        <button class="form-option" onclick="selectOption('occupation','Student',this)">Student</button>
-        <button class="form-option" onclick="selectOption('occupation','Healthcare',this)">Healthcare</button>
-        <button class="form-option" onclick="selectOption('occupation','IT Professional',this)">IT Professional</button>
-        <button class="form-option" onclick="selectOption('occupation','Other Professional',this)">Other Professional</button>
-        <button class="form-option" onclick="selectOption('occupation','Not Working',this)">Not Working</button>
+        <button class="form-option" onclick="selectOption('occupation','Student',this);showOccupationBranch('student')">Student</button>
+        <button class="form-option" onclick="selectOption('occupation','Healthcare',this);showOccupationBranch('healthcare')">Healthcare</button>
+        <button class="form-option" onclick="selectOption('occupation','IT Professional',this);showOccupationBranch('it')">IT Professional</button>
+        <button class="form-option" onclick="selectOption('occupation','Government / Public Sector',this);showOccupationBranch('govt')">Government</button>
+        <button class="form-option" onclick="selectOption('occupation','Other Professional',this);showOccupationBranch('other')">Other Professional</button>
+        <button class="form-option" onclick="selectOption('occupation','Not Working',this);showOccupationBranch('none')">Not Working</button>
+      </div>
+    </div>
+
+    <!-- STUDENT BRANCH -->
+    <div id="branch-student" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Field of Study</label>
+        <div class="form-options" id="studyFieldOptions">
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Medicine',this)">Medicine</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Dental',this)">Dental</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Nursing',this)">Nursing</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Physiotherapy',this)">Physiotherapy</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','AYUSH',this)">AYUSH</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Paramedical',this)">Paramedical</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Engineering',this)">Engineering</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Arts / Humanities',this)">Arts / Humanities</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Commerce / Business',this)">Commerce / Business</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Science',this)">Science</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Law',this)">Law</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Education / Teaching',this)">Education</button>
+          <button class="form-option" onclick="selectProfessionDetail('study_field','Other',this)">Other</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">College / Institution Name</label>
+        <input type="text" class="form-input" id="profileCollegeName" placeholder="Enter your college name">
+      </div>
+    </div>
+
+    <!-- HEALTHCARE BRANCH -->
+    <div id="branch-healthcare" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Healthcare Role</label>
+        <div class="form-options" id="healthcareRoleOptions">
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Doctor (MBBS)',this)">Doctor (MBBS)</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Specialist / PG',this)">Specialist / PG</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Nurse',this)">Nurse</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Pharmacist',this)">Pharmacist</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Allied Health',this)">Allied Health</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Public Health',this)">Public Health</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Hospital Admin',this)">Hospital Admin</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other Healthcare',this)">Other</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hospital / Organisation <span style="color:var(--muted)">(optional)</span></label>
+        <input type="text" class="form-input" id="profileWorkplace" placeholder="Enter your workplace">
+      </div>
+    </div>
+
+    <!-- IT BRANCH -->
+    <div id="branch-it" style="display:none">
+      <div class="form-group">
+        <label class="form-label">IT Role</label>
+        <div class="form-options" id="itRoleOptions">
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Software Developer',this)">Developer</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Data Analyst',this)">Data Analyst</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','UI/UX Designer',this)">UI/UX Designer</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Product Manager',this)">Product Manager</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','QA / Testing',this)">QA / Testing</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','DevOps / Cloud',this)">DevOps / Cloud</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','IT Support',this)">IT Support</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other IT',this)">Other</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Work Mode</label>
+        <div class="form-options" id="workModeOptions">
+          <button class="form-option" onclick="selectProfessionDetail('work_mode','Remote',this)">Remote</button>
+          <button class="form-option" onclick="selectProfessionDetail('work_mode','On-site',this)">On-site</button>
+          <button class="form-option" onclick="selectProfessionDetail('work_mode','Hybrid',this)">Hybrid</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOVERNMENT BRANCH -->
+    <div id="branch-govt" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Government Role</label>
+        <div class="form-options" id="govtRoleOptions">
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','IAS / IPS / IFS',this)">IAS / IPS / IFS</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','PSU Employee',this)">PSU Employee</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Defence / Armed Forces',this)">Defence</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Police',this)">Police</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Judiciary',this)">Judiciary</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','State Government',this)">State Govt</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Local Body / Municipality',this)">Local Body</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other Government',this)">Other</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department <span style="color:var(--muted)">(optional)</span></label>
+        <input type="text" class="form-input" id="profileDepartment" placeholder="Enter your department">
+      </div>
+    </div>
+
+    <!-- OTHER PROFESSIONAL BRANCH -->
+    <div id="branch-other" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Professional Field</label>
+        <div class="form-options" id="otherProfessionOptions">
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Business / Self-employed',this)">Business</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Teaching / Academia',this)">Teaching</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Legal / Finance',this)">Legal / Finance</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Media / Creative',this)">Media / Creative</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Skilled Trade',this)">Skilled Trade</button>
+          <button class="form-option" onclick="selectProfessionDetail('profession_role','Other',this)">Other</button>
+        </div>
       </div>
     </div>
     <div class="form-group">
