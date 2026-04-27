@@ -287,7 +287,7 @@ function saveProfile(){
     college_name:       document.getElementById('profileCollegeName')?.value?.trim() || null,
     profession_role:    profileSelections.profession_role || null,
     work_mode:          profileSelections.work_mode       || null,
-    workplace:          document.getElementById('profileWorkplace')?.value?.trim()   || null,
+    workplace:          document.getElementById('profileWorkplace')?.value?.trim() || document.getElementById('profileDepartment')?.value?.trim() || null,
     country:            document.getElementById('profileCountry').value || null,
     residence_type:     profileSelections.residence,
     living_situation:   profileSelections.living_situation,
@@ -332,7 +332,6 @@ function openEditProfile(){
   sv('editActivity',   userProfile.physical_activity);
   sv('editHealth',     userProfile.self_rated_health);
   sv('editChronic',    userProfile.chronic_illness);
-  sv('editPhysical',   userProfile.physical_activity);
   openModal('editProfileModal');
 }
 
@@ -349,7 +348,6 @@ function saveEditProfile(){
   userProfile.physical_activity  = document.getElementById('editActivity').value  || userProfile.physical_activity;
   userProfile.self_rated_health  = document.getElementById('editHealth').value    || userProfile.self_rated_health;
   userProfile.chronic_illness    = document.getElementById('editChronic').value   || userProfile.chronic_illness;
-  userProfile.physical_activity= document.getElementById('editPhysical').value   || userProfile.physical_activity;
   userProfile.updatedAt        = new Date().toISOString();
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
@@ -586,7 +584,9 @@ function acceptTermsAndLogin(){
 // MODALS
 // ============================================================
 function openModal(id){
-  document.getElementById(id).classList.add('open');
+  const el = document.getElementById(id);
+  if(!el){ console.warn('[PAUSE] openModal: element not found:', id); return; }
+  el.classList.add('open');
 
   // Reset T&C checkbox every time terms modal opens
   if(id === 'termsModal'){
@@ -608,7 +608,10 @@ function openModal(id){
     }
   }
 }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModal(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('open');
+}
 
 // ============================================================
 // FEATURE8: Informed consent re-confirmation (3 months)

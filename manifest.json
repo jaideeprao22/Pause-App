@@ -1,7 +1,7 @@
 {
   "name": "PAUSE App: Think Before You Search",
   "short_name": "PAUSE App",
-  "description": "A validated digital tool for screening and managing cyberchondria \u2014 compulsive online health searching.",
+  "description": "A validated digital wellness platform screening 6 disorders — cyberchondria, social media, short-form video, gaming, AI dependency, and digital work addiction — with a composite Digital Wellness Score.",
   "start_url": "/Pause-App/",
   "id": "/Pause-App/",
   "display": "standalone",
