@@ -10,7 +10,7 @@ let disorderScores = {}, impactScores = {}, dwsScore = null;
 let currentUser = null;
 let userProfile = {};
 let profileSelections = {
-  gender:'', marital:'', occupation:'', residence:'', living_situation:'',
+  gender:'', occupation:'', residence:'', living_situation:'',
   device:'', self_rated_health:'', chronic_illness:'',
   physical_activity:'', prev_detox_attempt:'', followup_consent:'',
   study_field:'', profession_role:'', work_mode:''
@@ -141,7 +141,7 @@ function handleLogout(){
   userProfile = {}; // BUG19 FIX: clear profile so next user doesn't see stale data
   // BUG7 FIX: reset profileSelections so previous user's radio buttons don't bleed through
   profileSelections = {
-    gender:'', marital:'', occupation:'', residence:'', living_situation:'',
+    gender:'', occupation:'', residence:'', living_situation:'',
     device:'', self_rated_health:'', chronic_illness:'',
     physical_activity:'', prev_detox_attempt:'', followup_consent:'',
     study_field:'', profession_role:'', work_mode:''
@@ -199,7 +199,6 @@ function renderAccountSection(){
 function selectOption(type, value, btn){
   const containerMap = {
     gender:             'genderOptions',
-    marital:            'maritalOptions',
     occupation:         'occupationOptions',
     residence:          'residenceOptions',
     living_situation:   'livingSituationOptions',
@@ -256,7 +255,6 @@ function saveProfile(){
   const age = parseInt(document.getElementById('profileAge').value);
   if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
   if(!profileSelections.gender)            { showToast('Please select your gender.'); return; }
-  if(!profileSelections.marital)           { showToast('Please select your marital status.'); return; }
   if(!document.getElementById('profileEducation').value){ showToast('Please select your education level.'); return; }
   if(!profileSelections.occupation)        { showToast('Please select your occupation.'); return; }
   if(profileSelections.occupation === 'Student'){
@@ -283,7 +281,6 @@ function saveProfile(){
   userProfile = {
     age,
     gender:             profileSelections.gender,
-    marital_status:     profileSelections.marital,
     education:          document.getElementById('profileEducation').value,
     occupation:         profileSelections.occupation,
     study_field:        profileSelections.study_field    || null,
@@ -327,7 +324,6 @@ function openEditProfile(){
   };
   sv('editAge',        userProfile.age);
   sv('editGender',     userProfile.gender);
-  sv('editMarital',    userProfile.marital_status);
   sv('editCountry',    userProfile.country);
   sv('editDevice',     userProfile.primary_device);
   sv('editScreentime', userProfile.daily_screentime);
@@ -341,7 +337,6 @@ function saveEditProfile(){
   if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
   userProfile.age              = age;
   userProfile.gender           = document.getElementById('editGender').value     || userProfile.gender;
-  userProfile.marital_status   = document.getElementById('editMarital').value    || userProfile.marital_status;
   userProfile.country          = document.getElementById('editCountry').value    || userProfile.country;
   userProfile.primary_device   = document.getElementById('editDevice').value     || userProfile.primary_device;
   userProfile.daily_screentime = document.getElementById('editScreentime').value || userProfile.daily_screentime;
@@ -413,7 +408,6 @@ async function saveToSupabase(){
       gender:             userProfile.gender || null,
       education:          userProfile.education || null,
       occupation:         userProfile.occupation || null,
-      marital_status:     userProfile.marital_status || null,
       country:            userProfile.country || null,
       residence_type:     userProfile.residence_type || null,
       living_situation:   userProfile.living_situation || null,

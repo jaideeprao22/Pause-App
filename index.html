@@ -581,15 +581,6 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">Marital Status</label>
-      <div class="form-options" id="maritalOptions">
-        <button class="form-option" onclick="selectOption('marital','Single',this)">Single</button>
-        <button class="form-option" onclick="selectOption('marital','Married',this)">Married</button>
-        <button class="form-option" onclick="selectOption('marital','Divorced/Separated',this)">Divorced</button>
-        <button class="form-option" onclick="selectOption('marital','Widowed',this)">Widowed</button>
-      </div>
-    </div>
-    <div class="form-group">
       <label class="form-label">Occupation</label>
       <div class="form-options" id="occupationOptions">
         <button class="form-option" onclick="selectOption('occupation','Student',this);showOccupationBranch('student')">Student</button>
@@ -814,6 +805,13 @@
       </div>
     </div>
     <div class="form-group">
+      <label class="form-label">Can we email you personalised wellness tips based on your results?</label>
+      <div class="form-options" id="followupConsentOptions">
+        <button class="form-option" onclick="selectOption('followup_consent','Yes',this)">Yes, please!</button>
+        <button class="form-option" onclick="selectOption('followup_consent','No',this)">No thanks</button>
+      </div>
+    </div>
+    <div class="form-group">
       <label class="form-label">How did you hear about PAUSE App? <span style="color:var(--muted);font-weight:400">(optional)</span></label>
       <select class="form-input" id="profileReferral">
         <option value="">Prefer not to say</option>
@@ -824,13 +822,6 @@
         <option value="Research/Academic">Research / Academic context</option>
         <option value="Other">Other</option>
       </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Can we email you personalised wellness tips based on your results?</label>
-      <div class="form-options" id="followupConsentOptions">
-        <button class="form-option" onclick="selectOption('followup_consent','Yes',this)">Yes, please!</button>
-        <button class="form-option" onclick="selectOption('followup_consent','No',this)">No thanks</button>
-      </div>
     </div>
 
     <button class="btn-primary" onclick="saveProfile()">Save &amp; Continue →</button>
