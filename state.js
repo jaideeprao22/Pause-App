@@ -417,18 +417,13 @@ async function saveToSupabase(){
       country:            userProfile.country || null,
       residence_type:     userProfile.residence_type || null,
       living_situation:   userProfile.living_situation || null,
-      income_bracket:     userProfile.income_bracket || null,
       // Digital habits
       primary_device:     userProfile.primary_device || null,
       daily_screentime:   userProfile.daily_screentime || null,
-      smartphone_years:   userProfile.smartphone_years || null,
-      morning_habit:      userProfile.morning_habit || null,
-      bedroom_charge:     userProfile.bedroom_charge || null,
       // Health
       avg_sleep:          userProfile.avg_sleep || null,
       self_rated_health:  userProfile.self_rated_health || null,
       chronic_illness:    userProfile.chronic_illness || null,
-      family_member_ill:  userProfile.family_member_ill || null,
       physical_activity:  userProfile.physical_activity || null,
       // Research meta
       prev_detox_attempt: userProfile.prev_detox_attempt || null,
