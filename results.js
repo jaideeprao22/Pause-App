@@ -296,6 +296,9 @@ function showDWSModal(){
 // 3 disorder-specific questions based on highest-scoring disorder
 // ============================================================
 function renderPostAssessmentPrompt(){
+  // Quick Scan = impact modules only — no disorder scores, so no post-disorder questions
+  if(assessMode === 'quick') return;
+
   if(Object.keys(disorderScores).length === 0) return;
 
   let topId;

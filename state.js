@@ -324,10 +324,14 @@ function openEditProfile(){
   };
   sv('editAge',        userProfile.age);
   sv('editGender',     userProfile.gender);
+  sv('editOccupation', userProfile.occupation);
   sv('editCountry',    userProfile.country);
   sv('editDevice',     userProfile.primary_device);
   sv('editScreentime', userProfile.daily_screentime);
   sv('editSleep',      userProfile.avg_sleep);
+  sv('editActivity',   userProfile.physical_activity);
+  sv('editHealth',     userProfile.self_rated_health);
+  sv('editChronic',    userProfile.chronic_illness);
   sv('editPhysical',   userProfile.physical_activity);
   openModal('editProfileModal');
 }
@@ -336,11 +340,15 @@ function saveEditProfile(){
   const age = parseInt(document.getElementById('editAge').value);
   if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
   userProfile.age              = age;
-  userProfile.gender           = document.getElementById('editGender').value     || userProfile.gender;
-  userProfile.country          = document.getElementById('editCountry').value    || userProfile.country;
-  userProfile.primary_device   = document.getElementById('editDevice').value     || userProfile.primary_device;
-  userProfile.daily_screentime = document.getElementById('editScreentime').value || userProfile.daily_screentime;
-  userProfile.avg_sleep        = document.getElementById('editSleep').value      || userProfile.avg_sleep;
+  userProfile.gender           = document.getElementById('editGender').value      || userProfile.gender;
+  userProfile.occupation       = document.getElementById('editOccupation').value  || userProfile.occupation;
+  userProfile.country          = document.getElementById('editCountry').value     || userProfile.country;
+  userProfile.primary_device   = document.getElementById('editDevice').value      || userProfile.primary_device;
+  userProfile.daily_screentime = document.getElementById('editScreentime').value  || userProfile.daily_screentime;
+  userProfile.avg_sleep        = document.getElementById('editSleep').value       || userProfile.avg_sleep;
+  userProfile.physical_activity  = document.getElementById('editActivity').value  || userProfile.physical_activity;
+  userProfile.self_rated_health  = document.getElementById('editHealth').value    || userProfile.self_rated_health;
+  userProfile.chronic_illness    = document.getElementById('editChronic').value   || userProfile.chronic_illness;
   userProfile.physical_activity= document.getElementById('editPhysical').value   || userProfile.physical_activity;
   userProfile.updatedAt        = new Date().toISOString();
   if(currentUser){
