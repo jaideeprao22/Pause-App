@@ -10,10 +10,10 @@ let disorderScores = {}, impactScores = {}, dwsScore = null;
 let currentUser = null;
 let userProfile = {};
 let profileSelections = {
-  gender:'', marital:'', occupation:'', residence:'', living_situation:'',
-  device:'', morning_habit:'', bedroom_charge:'',
-  self_rated_health:'', chronic_illness:'', family_member_ill:'',
-  physical_activity:'', prev_detox_attempt:'', followup_consent:''
+  gender:'', occupation:'', residence:'', living_situation:'',
+  device:'', self_rated_health:'', chronic_illness:'',
+  physical_activity:'', prev_detox_attempt:'', followup_consent:'',
+  study_field:''
 };
 let postAssessDisorderId = null; // set by renderPostAssessmentPrompt, read by savePostAssessmentData
 let notifPermission = false;
@@ -141,10 +141,10 @@ function handleLogout(){
   userProfile = {}; // BUG19 FIX: clear profile so next user doesn't see stale data
   // BUG7 FIX: reset profileSelections so previous user's radio buttons don't bleed through
   profileSelections = {
-    gender:'', marital:'', occupation:'', residence:'', living_situation:'',
-    device:'', morning_habit:'', bedroom_charge:'',
-    self_rated_health:'', chronic_illness:'', family_member_ill:'',
-    physical_activity:'', prev_detox_attempt:'', followup_consent:''
+    gender:'', occupation:'', residence:'', living_situation:'',
+    device:'', self_rated_health:'', chronic_illness:'',
+    physical_activity:'', prev_detox_attempt:'', followup_consent:'',
+    study_field:''
   };
   document.getElementById('userAvatar').style.display = 'none';
   renderLoginBanner();
@@ -199,24 +199,45 @@ function renderAccountSection(){
 function selectOption(type, value, btn){
   const containerMap = {
     gender:             'genderOptions',
-    marital:            'maritalOptions',
     occupation:         'occupationOptions',
     residence:          'residenceOptions',
     living_situation:   'livingSituationOptions',
     device:             'deviceOptions',
-    morning_habit:      'morningHabitOptions',
-    bedroom_charge:     'bedroomChargeOptions',
     self_rated_health:  'selfRatedHealthOptions',
     chronic_illness:    'chronicIllnessOptions',
-    family_member_ill:  'familyIllOptions',
     physical_activity:  'physicalActivityOptions',
     prev_detox_attempt: 'prevDetoxOptions',
-    followup_consent:   'followupConsentOptions'
+    followup_consent:   'followupConsentOptions',
+    study_field:        'studyFieldOptions'
   };
   const containerId = containerMap[type];
   if(containerId) document.querySelectorAll(`#${containerId} .form-option`).forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   profileSelections[type] = value;
+}
+
+// Student branch — show/hide field of study and college name
+function showStudentFields(){
+  const el = document.getElementById('studentFields');
+  if(el) el.style.display = 'block';
+}
+function hideStudentFields(){
+  const el = document.getElementById('studentFields');
+  if(el) el.style.display = 'none';
+  profileSelections.study_field = '';
+  document.querySelectorAll('#studyFieldOptions .form-option').forEach(b => b.classList.remove('selected'));
+  const cg = document.getElementById('collegeNameGroup');
+  if(cg) cg.style.display = 'none';
+  const cn = document.getElementById('profileCollegeName');
+  if(cn) cn.value = '';
+}
+function selectStudyField(value, btn){
+  profileSelections.study_field = value;
+  document.querySelectorAll('#studyFieldOptions .form-option').forEach(b => b.classList.remove('selected'));
+  if(btn) btn.classList.add('selected');
+  // Show college name input after a field is chosen
+  const cg = document.getElementById('collegeNameGroup');
+  if(cg) cg.style.display = 'block';
 }
 
 function saveProfile(){
@@ -225,20 +246,16 @@ function saveProfile(){
   if(!age || age < 18 || age > 100){ showToast('Please enter a valid age (18 or older).'); return; }
   if(!profileSelections.gender)           { showToast('Please select your gender.'); return; }
   if(!document.getElementById('profileEducation').value) { showToast('Please select your education level.'); return; }
-  if(!profileSelections.marital)          { showToast('Please select your marital status.'); return; }
   if(!profileSelections.occupation)       { showToast('Please select your occupation.'); return; }
+  if(profileSelections.occupation === 'Student' && !profileSelections.study_field){ showToast('Please select your field of study.'); return; }
   if(!document.getElementById('profileIncome').value)    { showToast('Please select your income range.'); return; }
   if(!profileSelections.residence)        { showToast('Please select your area of residence.'); return; }
   if(!profileSelections.living_situation) { showToast('Please select your living situation.'); return; }
   if(!profileSelections.device)           { showToast('Please select your primary device.'); return; }
   if(!document.getElementById('profileScreentime').value){ showToast('Please select your daily screen time.'); return; }
-  if(!document.getElementById('profileSmartphoneYears').value){ showToast('Please select years using a smartphone.'); return; }
-  if(!profileSelections.morning_habit)    { showToast('Please answer the morning habit question.'); return; }
-  if(!profileSelections.bedroom_charge)   { showToast('Please answer the bedroom charging question.'); return; }
   if(!document.getElementById('profileSleep').value)     { showToast('Please select your average sleep.'); return; }
   if(!profileSelections.self_rated_health){ showToast('Please rate your overall health.'); return; }
   if(!profileSelections.chronic_illness)  { showToast('Please answer the chronic illness question.'); return; }
-  if(!profileSelections.family_member_ill){ showToast('Please answer the family illness question.'); return; }
   if(!profileSelections.physical_activity){ showToast('Please select your physical activity level.'); return; }
   if(!profileSelections.prev_detox_attempt){ showToast('Please answer the digital detox question.'); return; }
   if(!profileSelections.followup_consent) { showToast('Please answer the follow-up consent question.'); return; }
@@ -247,21 +264,18 @@ function saveProfile(){
     age,
     gender:             profileSelections.gender,
     education:          document.getElementById('profileEducation').value,
-    marital_status:     profileSelections.marital,
     occupation:         profileSelections.occupation,
+    study_field:        profileSelections.study_field || null,
+    college_name:       document.getElementById('profileCollegeName')?.value?.trim() || null,
     income_bracket:     document.getElementById('profileIncome').value,
     country:            document.getElementById('profileCountry').value || null,
     residence_type:     profileSelections.residence,
     living_situation:   profileSelections.living_situation,
     primary_device:     profileSelections.device,
     daily_screentime:   document.getElementById('profileScreentime').value,
-    smartphone_years:   document.getElementById('profileSmartphoneYears').value,
-    morning_habit:      profileSelections.morning_habit,
-    bedroom_charge:     profileSelections.bedroom_charge,
     avg_sleep:          document.getElementById('profileSleep').value,
     self_rated_health:  profileSelections.self_rated_health,
     chronic_illness:    profileSelections.chronic_illness,
-    family_member_ill:  profileSelections.family_member_ill,
     physical_activity:  profileSelections.physical_activity,
     prev_detox_attempt: profileSelections.prev_detox_attempt,
     referral_source:    document.getElementById('profileReferral').value || null,
@@ -545,9 +559,7 @@ function acceptTermsAndLogin(){
 // MODALS
 // ============================================================
 function openModal(id){
-  const el = document.getElementById(id);
-  if(!el){ console.warn('[PAUSE] openModal: element not found —', id); return; }
-  el.classList.add('open');
+  document.getElementById(id).classList.add('open');
 
   // Reset T&C checkbox every time terms modal opens
   if(id === 'termsModal'){
@@ -569,11 +581,7 @@ function openModal(id){
     }
   }
 }
-function closeModal(id){
-  const el = document.getElementById(id);
-  if(!el){ console.warn('[PAUSE] closeModal: element not found —', id); return; }
-  el.classList.remove('open');
-}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 // ============================================================
 // FEATURE8: Informed consent re-confirmation (3 months)
@@ -608,6 +616,95 @@ function declineReConsent(){
   localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), version:'1.0'}));
   closeModal('reConsentModal'); // BUG16 FIX: close modal BEFORE showToast so toast isn't hidden under overlay
   showToast('Understood. Your data will no longer be shared for research.');
+}
+
+// ============================================================
+// FEATURE1: Urge Journal
+// ============================================================
+const URGE_LOG_KEY = 'pause_urge_log';
+
+function logUrge(disorderId, trigger, resisted){
+  const log = JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  log.unshift({
+    date: new Date().toISOString(),
+    disorder: disorderId,
+    trigger,
+    resisted,
+    id: Date.now()
+  });
+  if(log.length>200) log.splice(200);
+  localStorage.setItem(URGE_LOG_KEY, JSON.stringify(log));
+  // Save to Supabase if logged in
+  if(currentUser){
+    sb.from('UrgeLog').insert({
+      user_id:currentUser.id, disorder:disorderId,
+      trigger, resisted, logged_at:new Date().toISOString()
+    }).then(()=>{}).catch(()=>{});
+  }
+  renderUrgeJournal();
+  closeModal('urgeLogModal');
+  showToast(resisted?'✅ Well done resisting that urge! 💪':'📝 Urge logged — awareness is the first step.');
+}
+
+function renderUrgeJournal(){
+  const el=document.getElementById('urgeJournalList');
+  if(!el) return;
+  const log=JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  if(!log.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">No urges logged yet. Use the button above when you feel the urge to scroll, search, or game.</div>';
+    return;
+  }
+  const TRIGGER_ICONS={'Boredom':'😴','Stress':'😰','Habit':'🔁','Procrastinating':'📚','Low mood':'😔','Social pressure':'👥','Other':'💭'};
+  el.innerHTML=log.slice(0,30).map(entry=>{
+    const d=DISORDERS.find(x=>x.id===entry.disorder);
+    const tIcon=TRIGGER_ICONS[entry.trigger]||'💭';
+    const date=new Date(entry.date);
+    const timeStr=date.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+date.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:${d?d.bg:'var(--bg)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${d?d.icon:'⚡'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">${d?d.name:'Unknown'} — ${tIcon} ${entry.trigger}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeStr}</div>
+      </div>
+      <div style="font-size:18px">${entry.resisted?'✅':'📝'}</div>
+    </div>`;
+  }).join('');
+
+  // Stats
+  const total=log.length, resisted=log.filter(e=>e.resisted).length;
+  const statsEl=document.getElementById('urgeJournalStats');
+  if(statsEl){
+    statsEl.innerHTML=`<div style="display:flex;gap:16px;padding:12px 0;margin-bottom:4px">
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:var(--accent)">${total}</div><div style="font-size:10px;color:var(--muted)">Total Logged</div></div>
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:#2ecc71">${resisted}</div><div style="font-size:10px;color:var(--muted)">Resisted</div></div>
+      <div style="text-align:center;flex:1"><div style="font-size:22px;font-weight:800;color:var(--accent)">${total?Math.round((resisted/total)*100):0}%</div><div style="font-size:10px;color:var(--muted)">Resistance Rate</div></div>
+    </div>`;
+  }
+}
+
+function openUrgeLogModal(){
+  renderUrgeJournal(); // BUG15 FIX: refresh stats before modal opens so data is current
+  // Pre-fill disorder select with top disorder — BUG17 FIX: read AppGrades not in-memory disorderScores
+  const grades = window.AppGrades ? window.AppGrades.load() : {};
+  const topId = Object.keys(grades).length > 0
+    ? Object.entries(grades).sort((a,b) => {
+        const o = {severe:3,moderate:2,mild:1,'low risk':0,minimal:0};
+        return (o[b[1]]||0) - (o[a[1]]||0);
+      })[0][0]
+    : (typeof getTopDisorder==='function' ? getTopDisorder() : 'cyberchondria');
+  const sel=document.getElementById('urgeDisorderSelect');
+  if(sel && topId !== 'default') sel.value=topId;
+  openModal('urgeLogModal');
+}
+
+function submitUrgeLog(){
+  const disorder=document.getElementById('urgeDisorderSelect')?.value;
+  const trigger=document.querySelector('#urgeTriggerOptions .form-option.selected')?.dataset.value;
+  const resisted=document.querySelector('#urgeResistedOptions .form-option.selected')?.dataset.value;
+  if(!disorder||!trigger||resisted===undefined){
+    showToast('Please fill in all fields before logging.'); return;
+  }
+  logUrge(disorder, trigger, resisted==='yes');
 }
 
 // dark mode removed

@@ -553,7 +553,7 @@
     <div class="modal-handle"></div>
     <div class="modal-title">👋 Tell Us a Little About Yourself</div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps us personalise your experience and — with your permission — contributes to community health research. All fields are required unless marked optional.</p>
-    <div class="notice blue" style="margin-bottom:14px;font-size:12px">🤝 Your responses help us understand digital health across different communities in India, so we can build better tools for everyone. Your identity is never shared.</div>
+    <div class="notice blue" style="margin-bottom:14px;font-size:12px">🤝 Your responses help us understand digital health across different communities in India. Your identity is never shared.</div>
 
     <!-- SECTION: Demographics -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Demographics</div>
@@ -584,24 +584,40 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">Marital Status</label>
-      <div class="form-options" id="maritalOptions">
-        <button class="form-option" onclick="selectOption('marital','Single',this)">Single</button>
-        <button class="form-option" onclick="selectOption('marital','Married',this)">Married</button>
-        <button class="form-option" onclick="selectOption('marital','Divorced/Separated',this)">Divorced</button>
-        <button class="form-option" onclick="selectOption('marital','Widowed',this)">Widowed</button>
-      </div>
-    </div>
-    <div class="form-group">
       <label class="form-label">Occupation</label>
       <div class="form-options" id="occupationOptions">
-        <button class="form-option" onclick="selectOption('occupation','Student',this)">Student</button>
-        <button class="form-option" onclick="selectOption('occupation','Healthcare',this)">Healthcare</button>
-        <button class="form-option" onclick="selectOption('occupation','IT Professional',this)">IT Professional</button>
-        <button class="form-option" onclick="selectOption('occupation','Other Professional',this)">Other Professional</button>
-        <button class="form-option" onclick="selectOption('occupation','Not Working',this)">Not Working</button>
+        <button class="form-option" onclick="selectOption('occupation','Student',this);showStudentFields()">Student</button>
+        <button class="form-option" onclick="selectOption('occupation','Healthcare',this);hideStudentFields()">Healthcare</button>
+        <button class="form-option" onclick="selectOption('occupation','IT Professional',this);hideStudentFields()">IT Professional</button>
+        <button class="form-option" onclick="selectOption('occupation','Other Professional',this);hideStudentFields()">Other Professional</button>
+        <button class="form-option" onclick="selectOption('occupation','Not Working',this);hideStudentFields()">Not Working</button>
       </div>
     </div>
+
+    <!-- Student branch — hidden by default -->
+    <div id="studentFields" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Field of Study</label>
+        <div class="form-options" id="studyFieldOptions" style="flex-wrap:wrap">
+          <button class="form-option" onclick="selectStudyField('Medical / MBBS',this)">Medical / MBBS</button>
+          <button class="form-option" onclick="selectStudyField('Nursing',this)">Nursing</button>
+          <button class="form-option" onclick="selectStudyField('Pharmacy',this)">Pharmacy</button>
+          <button class="form-option" onclick="selectStudyField('Engineering',this)">Engineering</button>
+          <button class="form-option" onclick="selectStudyField('Polytechnic',this)">Polytechnic</button>
+          <button class="form-option" onclick="selectStudyField('Arts & Humanities',this)">Arts & Humanities</button>
+          <button class="form-option" onclick="selectStudyField('Science',this)">Science</button>
+          <button class="form-option" onclick="selectStudyField('Commerce',this)">Commerce</button>
+          <button class="form-option" onclick="selectStudyField('Law',this)">Law</button>
+          <button class="form-option" onclick="selectStudyField('Management / MBA',this)">Management / MBA</button>
+          <button class="form-option" onclick="selectStudyField('Other',this)">Other</button>
+        </div>
+      </div>
+      <div class="form-group" id="collegeNameGroup" style="display:none">
+        <label class="form-label">College / Institution Name <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+        <input type="text" class="form-input" id="profileCollegeName" placeholder="e.g. GMC Maheshwaram, IIT Bombay"/>
+      </div>
+    </div>
+
     <div class="form-group">
       <label class="form-label">Monthly Household Income</label>
       <select class="form-input" id="profileIncome">
@@ -665,34 +681,6 @@
         <option value="More than 8">More than 8 hours</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">Years Using a Smartphone</label>
-      <select class="form-input" id="profileSmartphoneYears">
-        <option value="" disabled selected>Select</option>
-        <option value="Less than 1">Less than 1 year</option>
-        <option value="1–3">1 – 3 years</option>
-        <option value="3–5">3 – 5 years</option>
-        <option value="5–8">5 – 8 years</option>
-        <option value="More than 8">More than 8 years</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">First thing you do after waking up?</label>
-      <div class="form-options" id="morningHabitOptions">
-        <button class="form-option" onclick="selectOption('morning_habit','Check phone',this)">Check phone</button>
-        <button class="form-option" onclick="selectOption('morning_habit','Freshen up first',this)">Freshen up first</button>
-        <button class="form-option" onclick="selectOption('morning_habit','Exercise',this)">Exercise</button>
-        <button class="form-option" onclick="selectOption('morning_habit','Other',this)">Other</button>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Do you charge your phone in the bedroom at night?</label>
-      <div class="form-options" id="bedroomChargeOptions">
-        <button class="form-option" onclick="selectOption('bedroom_charge','Yes',this)">Yes</button>
-        <button class="form-option" onclick="selectOption('bedroom_charge','No',this)">No</button>
-        <button class="form-option" onclick="selectOption('bedroom_charge','Sometimes',this)">Sometimes</button>
-      </div>
-    </div>
 
     <!-- SECTION: Health -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">Health &amp; Wellbeing</div>
@@ -726,14 +714,6 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Is any close family member chronically ill?</label>
-      <div class="form-options" id="familyIllOptions">
-        <button class="form-option" onclick="selectOption('family_member_ill','Yes',this)">Yes</button>
-        <button class="form-option" onclick="selectOption('family_member_ill','No',this)">No</button>
-        <button class="form-option" onclick="selectOption('family_member_ill','Prefer not to say',this)">Prefer not to say</button>
-      </div>
-    </div>
-    <div class="form-group">
       <label class="form-label">Physical Activity Level</label>
       <div class="form-options" id="physicalActivityOptions">
         <button class="form-option" onclick="selectOption('physical_activity','Sedentary',this)">Sedentary</button>
@@ -743,7 +723,7 @@
       </div>
     </div>
 
-    <!-- SECTION: App-specific -->
+    <!-- SECTION: About This Visit -->
     <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px">About This Visit</div>
 
     <div class="form-group">
