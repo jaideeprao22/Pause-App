@@ -336,27 +336,83 @@ function openEditProfile(){
 }
 
 function saveEditProfile(){
+  // --- Validation ---
   const age = parseInt(document.getElementById('editAge').value);
-  if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
+  if(!age || age < 13 || age > 100)                        { showToast('Please enter a valid age.'); return; }
+  if(!document.getElementById('editGender').value)         { showToast('Please select your gender.'); return; }
+  if(!document.getElementById('editOccupation').value)     { showToast('Please select your occupation.'); return; }
+  if(!document.getElementById('editDevice').value)         { showToast('Please select your primary device.'); return; }
+  if(!document.getElementById('editScreentime').value)     { showToast('Please select your daily screen time.'); return; }
+  if(!document.getElementById('editSleep').value)          { showToast('Please select your average sleep.'); return; }
+  if(!document.getElementById('editActivity').value)       { showToast('Please select your physical activity level.'); return; }
+  if(!document.getElementById('editHealth').value)         { showToast('Please rate your overall health.'); return; }
+  if(!document.getElementById('editChronic').value)        { showToast('Please answer the chronic illness question.'); return; }
+
+  // --- Apply updates ---
   userProfile.age              = age;
-  userProfile.gender           = document.getElementById('editGender').value      || userProfile.gender;
-  userProfile.occupation       = document.getElementById('editOccupation').value  || userProfile.occupation;
+  userProfile.gender           = document.getElementById('editGender').value;
+  userProfile.occupation       = document.getElementById('editOccupation').value;
   userProfile.country          = document.getElementById('editCountry').value     || userProfile.country;
-  userProfile.primary_device   = document.getElementById('editDevice').value      || userProfile.primary_device;
-  userProfile.daily_screentime = document.getElementById('editScreentime').value  || userProfile.daily_screentime;
-  userProfile.avg_sleep        = document.getElementById('editSleep').value       || userProfile.avg_sleep;
-  userProfile.physical_activity  = document.getElementById('editActivity').value  || userProfile.physical_activity;
-  userProfile.self_rated_health  = document.getElementById('editHealth').value    || userProfile.self_rated_health;
-  userProfile.chronic_illness    = document.getElementById('editChronic').value   || userProfile.chronic_illness;
+  userProfile.primary_device   = document.getElementById('editDevice').value;
+  userProfile.daily_screentime = document.getElementById('editScreentime').value;
+  userProfile.avg_sleep        = document.getElementById('editSleep').value;
+  userProfile.physical_activity  = document.getElementById('editActivity').value;
+  userProfile.self_rated_health  = document.getElementById('editHealth').value;
+  userProfile.chronic_illness    = document.getElementById('editChronic').value;
   userProfile.updatedAt        = new Date().toISOString();
+
+  // --- Persist locally ---
   if(currentUser){
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
   } else {
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile));
   }
+
+  // --- Sync to Supabase (logged-in users only) ---
+  syncProfileToSupabase();
+
   closeModal('editProfileModal');
   showToast('✅ Profile updated!');
   setTimeout(() => showUserModal(), 300);
+}
+
+// ============================================================
+// PROFILE SYNC TO SUPABASE
+// Syncs edited profile fields independently of assessment saves.
+// Requires a 'Profiles' table in Supabase — see migration note below.
+//
+// SQL to run once in Supabase SQL Editor:
+//   CREATE TABLE IF NOT EXISTS "Profiles" (
+//     user_id uuid PRIMARY KEY REFERENCES auth.users(id),
+//     age int, gender text, occupation text, country text,
+//     primary_device text, daily_screentime text,
+//     avg_sleep text, self_rated_health text,
+//     chronic_illness text, physical_activity text,
+//     updated_at timestamptz DEFAULT now()
+//   );
+//   ALTER TABLE "Profiles" ENABLE ROW LEVEL SECURITY;
+//   CREATE POLICY "Users manage own profile" ON "Profiles"
+//     USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+// ============================================================
+async function syncProfileToSupabase(){
+  if(!currentUser) return;
+  if(localStorage.getItem('pause_research_withdrawn')) return;
+  try {
+    await sb.from('Profiles').upsert({
+      user_id:          currentUser.id,
+      age:              userProfile.age              || null,
+      gender:           userProfile.gender           || null,
+      occupation:       userProfile.occupation       || null,
+      country:          userProfile.country          || null,
+      primary_device:   userProfile.primary_device   || null,
+      daily_screentime: userProfile.daily_screentime || null,
+      avg_sleep:        userProfile.avg_sleep        || null,
+      self_rated_health:userProfile.self_rated_health|| null,
+      chronic_illness:  userProfile.chronic_illness  || null,
+      physical_activity:userProfile.physical_activity|| null,
+      updated_at:       new Date().toISOString()
+    }, { onConflict: 'user_id' });
+  } catch(e){ console.log('Profile sync error:', e); }
 }
 
 function showUserModal(){
