@@ -104,7 +104,9 @@ function renderResults(){
       if(shareCard){
         let tag = document.getElementById('dwsPercentileTag');
         if(!tag){ tag=document.createElement('div'); tag.id='dwsPercentileTag'; tag.style.cssText='font-size:12px;color:rgba(255,255,255,0.7);margin-top:8px'; shareCard.appendChild(tag); }
-        tag.innerHTML = '📊 Better than ' + dp + '% of all PAUSE App users';
+        tag.innerHTML = dp != null
+          ? '📊 Better than ' + dp + '% of all PAUSE App users'
+          : '🌟 Among the first PAUSE App users!';
       }
     }
     // FEATURE3: Show before/after comparison if this is a recheck
