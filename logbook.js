@@ -23,9 +23,19 @@ const LOGBOOK_PROMPTS = [
 ];
 
 let currentPromptIdx = 0;
+let _logbookClearOnRender = false; // set true after save so textarea starts fresh
+
+// ──────────────────────────────────────────────────────────────
+// SPEECH RECOGNITION STATE
+// All speech state lives at module scope so we can reason about it cleanly
+// across session restarts. NEVER read the textarea to recover state — keep
+// our own source of truth.
+// ──────────────────────────────────────────────────────────────
 let recognition = null;
 let isRecording = false;
-let _logbookClearOnRender = false; // set true after save so textarea starts fresh
+let _preText = '';      // user's textarea content captured the moment mic was turned on
+let _committed = '';    // all finalised speech across the recording (survives session restarts)
+let _interim = '';      // currently-displayed interim (replaced on every event)
 
 function renderLogbookScreen(){
   const el = document.getElementById('screen-logbook');
@@ -74,6 +84,8 @@ function renderLogbookScreen(){
 }
 
 function selectPrompt(idx){
+  // If recording, stop first — switching prompts mid-recording is confusing
+  if(isRecording) stopRecording();
   currentPromptIdx = idx;
   renderLogbookScreen();
 }
@@ -92,8 +104,11 @@ function getLogbookEntries(){
 }
 
 function saveLogEntry(){
+  // If user hits Save while mic is on, stop it cleanly first so any interim
+  // text in flight gets discarded rather than half-committed.
+  if(isRecording) stopRecording();
+
   const text = document.getElementById('logbookText')?.value?.trim();
-  // Bug 5 FIX: alert() → showToast() (alert blocked in TWA/WebView)
   if(!text){ showToast('Please write something before saving.'); return; }
 
   const entries = getLogbookEntries();
@@ -114,8 +129,6 @@ function saveLogEntry(){
 
   saveLogToSupabase(entry);
 
-  // Bug 8 FIX: button text change was overwritten by renderLogbookScreen() before the
-  // browser could paint it — success feedback was invisible. Use showToast() instead.
   showToast('✅ Entry saved!');
   _logbookClearOnRender = true;
   renderLogbookScreen();
@@ -137,16 +150,18 @@ async function saveLogToSupabase(entry){
 }
 
 function deleteLogEntry(id){
-  // Bug 6 FIX: confirm() is blocked in TWA/WebView — delete directly with toast notification
   const entries = getLogbookEntries().filter(e => e.id !== id);
   localStorage.setItem('pauseLogbook', JSON.stringify(entries));
   showToast('Entry deleted.');
   renderLogbookScreen();
 }
 
+// ──────────────────────────────────────────────────────────────
+// SPEECH RECOGNITION
+// ──────────────────────────────────────────────────────────────
+
 function toggleSpeechRecognition(){
   if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
-    // Bug 7 FIX: alert() → showToast()
     showToast('Voice input works in Chrome on Android — not supported on this browser.');
     return;
   }
@@ -154,81 +169,132 @@ function toggleSpeechRecognition(){
   startRecording();
 }
 
+// Render textarea = preText + committed + interim. Single source of truth —
+// we never READ the textarea while recording (avoids interleaving with user typing).
+function _updateTextarea(){
+  const ta = document.getElementById('logbookText');
+  if(!ta) return;
+  const parts = [];
+  if(_preText)   parts.push(_preText);
+  if(_committed) parts.push(_committed);
+  if(_interim)   parts.push(_interim);
+  ta.value = parts.join(' ');
+}
+
 function startRecording(){
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.lang = 'en-IN';
-  recognition.continuous = true;
-  recognition.interimResults = true;
+  // Capture current textarea content as immutable baseline. Anything spoken
+  // gets appended to this — user-typed content can't be overwritten.
+  const ta = document.getElementById('logbookText');
+  _preText   = ta ? ta.value.trim() : '';
+  _committed = '';
+  _interim   = '';
+  isRecording = true;
 
   const btn = document.getElementById('speechBtn');
   const status = document.getElementById('speechStatus');
   if(btn) btn.textContent = '⏹️';
   if(status) status.textContent = '🔴 Recording... tap mic to stop';
-  isRecording = true;
 
-  // Snapshot of textarea before recording starts
-  const textarea = document.getElementById('logbookText');
-  const preText = (textarea ? textarea.value : '').trimEnd();
+  _startSession();
+}
 
-  // Accumulate finals across the whole recording session (survives restarts)
-  let newFinals = '';
+// ──────────────────────────────────────────────────────────────
+// _startSession() creates a NEW SpeechRecognition instance every time.
+// This is critical on Android Chrome: reusing an instance after onend
+// often throws InvalidStateError, and continuous mode is unreliable.
+//
+// We use continuous=false (single utterance), and onend chains another
+// session via setTimeout so the user perceives a continuous recording.
+// ──────────────────────────────────────────────────────────────
+function _startSession(){
+  if(!isRecording) return;
 
-  function attachHandlers(){
-    // lastFinalIndex is per-session (reset each time recognition restarts)
-    // because event.results resets to a fresh array on each new session.
-    // We do NOT trust event.resultIndex — Chrome on Android sets it to 0
-    // even for final events, causing all previous results to be reprocessed.
-    let lastFinalIndex = 0;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'en-IN';
+  recognition.continuous = false;        // ← critical: single-utterance, predictable result array
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event) => {
-      let sessionFinal = '';
-      let sessionInterim = '';
-
-      for(let i = lastFinalIndex; i < event.results.length; i++){
-        if(event.results[i].isFinal){
-          sessionFinal += event.results[i][0].transcript;
-          lastFinalIndex = i + 1; // mark committed so we never reprocess
-        } else {
-          sessionInterim += event.results[i][0].transcript;
-        }
+  recognition.onresult = (event) => {
+    // event.results contains exactly the current utterance (continuous=false guarantees this).
+    // Walk through and split into interim vs final. Each event REPLACES interim, not appends.
+    let interim = '';
+    let finalChunk = '';
+    for(let i = 0; i < event.results.length; i++){
+      const r = event.results[i];
+      if(r.isFinal){
+        finalChunk += r[0].transcript;
+      } else {
+        interim += r[0].transcript;
       }
+    }
 
-      if(sessionFinal) newFinals += (newFinals ? ' ' : '') + sessionFinal.trim();
+    _interim = interim.trim();
 
-      const spoken = newFinals + (sessionInterim ? ' ' + sessionInterim : '');
-      const ta = document.getElementById('logbookText');
-      if(ta) ta.value = (preText ? preText + ' ' + spoken : spoken).trim();
-    };
+    if(finalChunk.trim()){
+      _committed += (_committed ? ' ' : '') + finalChunk.trim();
+      _interim = ''; // utterance finalised — interim no longer relevant
+    }
 
-    recognition.onerror = (e) => {
-      if(e.error === 'no-speech' || e.error === 'aborted') return;
-      stopRecording();
-    };
+    _updateTextarea();
+  };
 
-    // Android Chrome ends the session after ~5s of silence even with
-    // continuous:true. Restart so the mic stays live between pauses.
-    // lastFinalIndex resets to 0 via attachHandlers() because each new
-    // session gets a fresh event.results array — no replay risk.
-    recognition.onend = () => {
+  recognition.onerror = (e) => {
+    // 'no-speech' and 'aborted' are normal — just let onend handle the restart.
+    // Other errors: log, but still let onend decide whether to restart or stop.
+    if(e.error !== 'no-speech' && e.error !== 'aborted'){
+      console.warn('[logbook] speech error:', e.error);
+    }
+  };
+
+  recognition.onend = () => {
+    // Whatever was interim was cut mid-word — drop it.
+    _interim = '';
+    _updateTextarea();
+    if(!isRecording) return;
+    // Restart in a fresh session after a short delay. The delay is critical:
+    // calling start() synchronously in onend throws InvalidStateError on
+    // Android Chrome because the engine hasn't fully released audio focus yet.
+    setTimeout(_startSession, 120);
+  };
+
+  try {
+    recognition.start();
+  } catch(e){
+    // Rare: start() can throw if a previous session is still in cleanup.
+    // Try once more after a longer delay before giving up.
+    console.warn('[logbook] start() failed, retrying:', e);
+    setTimeout(() => {
       if(!isRecording) return;
-      try { attachHandlers(); recognition.start(); }
-      catch(e){ stopRecording(); }
-    };
+      try { recognition.start(); }
+      catch(e2){
+        console.warn('[logbook] start() retry failed:', e2);
+        stopRecording();
+      }
+    }, 250);
   }
-
-  attachHandlers();
-  recognition.start();
 }
 
 function stopRecording(){
-  isRecording = false;           // ← MUST be set BEFORE .stop() to prevent onend restart loop
+  // Set flag FIRST so the in-flight onend doesn't re-trigger a session start.
+  isRecording = false;
+
   if(recognition){
-    recognition.onend = null;    // detach handler so no restart fires after this
-    recognition.onerror = null;
-    recognition.stop();
+    // Detach handlers BEFORE stop()/abort() so any final events that fire
+    // during teardown don't mutate state we're about to discard.
+    recognition.onresult = null;
+    recognition.onerror  = null;
+    recognition.onend    = null;
+    try { recognition.stop();  } catch(e){}
+    try { recognition.abort(); } catch(e){}
     recognition = null;
   }
+
+  // Drop any uncommitted interim — it was never finalised.
+  _interim = '';
+  _updateTextarea();
+
   const btn = document.getElementById('speechBtn');
   const status = document.getElementById('speechStatus');
   if(btn) btn.textContent = '🎤';
