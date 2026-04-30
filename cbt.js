@@ -239,7 +239,7 @@ function _renderCbtWalkthroughStep(){
       <div style="display:inline-flex;gap:7px">${dots}</div>
     </div>
     ${breathAnim}
-    <div style="background:${mod.bg};border-left:3px solid ${mod.color};border-radius:10px;padding:16px 18px;margin:14px 0;font-size:15px;line-height:1.65;color:var(--text)">${step}</div>
+    <div style="background:${mod.bg};border-left:3px solid ${mod.color};border-radius:10px;padding:16px 18px;margin:14px 0;font-size:15px;line-height:1.65;color:#1a3a6e">${step}</div>
     <div style="display:flex;gap:8px;margin-top:18px">
       <button onclick="cbtWalkthroughBack()" style="padding:12px 18px;background:none;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;visibility:${isFirst ? 'hidden' : 'visible'}">← Back</button>
       <button onclick="cbtWalkthroughNext()" style="flex:1;padding:13px;background:${mod.color};border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;color:#fff;cursor:pointer">${isLast ? 'Done ✓' : 'Next →'}</button>
@@ -305,7 +305,7 @@ function renderModuleCard(mod, idx){
   const steps = mod.steps.map((s, i) => `
     <li style="display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid ${mod.color}15;font-size:13px;line-height:1.5;align-items:flex-start">
       <span style="min-width:22px;height:22px;border-radius:50%;background:${mod.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">${i+1}</span>
-      <span style="color:var(--text)">${s}</span>
+      <span style="color:#1a3a6e">${s}</span>
     </li>`).join('');
 
   // Play button at the top — styled like the 4-7-8 timer button. Switches to a
