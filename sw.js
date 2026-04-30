@@ -1,7 +1,7 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v8-aurora';
+const CACHE_NAME = 'pause-app-v9-aurora';
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
@@ -29,6 +29,7 @@ const PRECACHE_ASSETS = [
   BASE + 'screentime.js',
   BASE + 'app.js',
   BASE + 'nav.js',
+  BASE + 'premium-motions.js',
   BASE + 'icons/icon-72.png',
   BASE + 'icons/icon-96.png',
   BASE + 'icons/icon-128.png',
