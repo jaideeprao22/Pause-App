@@ -177,6 +177,71 @@ function _cbtPruneOldCompletions(){
 let _cbtCurrentModule = null;
 let _cbtCurrentStep = 0;
 
+// ─── BREATH CHIME ENGINE ─────────────────────────────────────
+// Generates a bell-like chime via Web Audio API (zero file size).
+// Two oscillators — fundamental + octave — give a soft glassy timbre.
+// Sync: animation is 4s (expand 0→2s, contract 2→4s). Chime fires every 2s,
+// alternating C5 (inhale/expand) and G4 (exhale/contract).
+let _cbtChimeInterval = null;
+let _cbtChimeOnContract = false;
+
+function _playBreathChime(freq){
+  try {
+    const ctx = _getAudioCtx();
+    if(ctx.state === 'suspended') ctx.resume();
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const masterGain = ctx.createGain();
+    const octGain = ctx.createGain();
+
+    osc1.type = 'sine'; osc1.frequency.value = freq;
+    osc2.type = 'sine'; osc2.frequency.value = freq * 2; // octave up adds shimmer
+    octGain.gain.value = 0.18;                          // octave quieter than fundamental
+
+    osc1.connect(masterGain);
+    osc2.connect(octGain);
+    octGain.connect(masterGain);
+    masterGain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+    const peak = 0.16; // gentle volume — won't startle
+    masterGain.gain.setValueAtTime(0, t);
+    masterGain.gain.linearRampToValueAtTime(peak, t + 0.04);     // quick attack
+    masterGain.gain.exponentialRampToValueAtTime(0.001, t + 1.4); // 1.4s decay
+
+    osc1.start(t); osc1.stop(t + 1.4);
+    osc2.start(t); osc2.stop(t + 1.4);
+  } catch(e) { /* audio unavailable — silent fallback, exercise still works */ }
+}
+
+function _startBreathChime(){
+  if(_cbtChimeInterval) return; // already running
+  _cbtChimeOnContract = false;
+  _playBreathChime(523.25); // C5 — inhale starts now
+  _cbtChimeInterval = setInterval(() => {
+    _cbtChimeOnContract = !_cbtChimeOnContract;
+    _playBreathChime(_cbtChimeOnContract ? 392.00 : 523.25); // G4 contract / C5 expand
+  }, 2000);
+}
+
+function _stopBreathChime(){
+  if(_cbtChimeInterval){
+    clearInterval(_cbtChimeInterval);
+    _cbtChimeInterval = null;
+  }
+  _cbtChimeOnContract = false;
+}
+
+// Single tear-down path for closing the walkthrough — used by Done button,
+// outside-click handler, and any future close path. Always stops the chime.
+function _closeCbtWalkthrough(){
+  _stopBreathChime();
+  closeModal('cbtWalkthroughModal');
+  _cbtCurrentModule = null;
+  _cbtCurrentStep = 0;
+}
+
 function _ensureCbtWalkthroughModal(){
   if(document.getElementById('cbtWalkthroughModal')) return;
   const div = document.createElement('div');
@@ -186,8 +251,9 @@ function _ensureCbtWalkthroughModal(){
     <div class="modal-handle"></div>
     <div id="cbtWalkthroughContent"></div>
   </div>`;
-  // Click outside to close (matches behaviour of other modals via nav.js)
-  div.addEventListener('click', e => { if(e.target === div) closeModal('cbtWalkthroughModal'); });
+  // Click outside to close (matches behaviour of other modals via nav.js).
+  // Use _closeCbtWalkthrough so the chime stops cleanly.
+  div.addEventListener('click', e => { if(e.target === div) _closeCbtWalkthrough(); });
   document.body.appendChild(div);
 }
 
@@ -209,6 +275,10 @@ function startCbtWalkthrough(modIdx){
   _ensureCbtWalkthroughModal();
   _renderCbtWalkthroughStep();
   openModal('cbtWalkthroughModal');
+
+  // Start the bell chime synced to the 4s breathing animation.
+  // Chime stops automatically via _closeCbtWalkthrough on Done / outside-tap.
+  if(mod.anim === 'breath') _startBreathChime();
 }
 
 function _renderCbtWalkthroughStep(){
@@ -256,10 +326,8 @@ function cbtWalkthroughNext(){
   // Final step — mark complete and close.
   const modId = _cbtModuleId(_cbtCurrentModule);
   _cbtMarkCompletedToday(modId);
-  closeModal('cbtWalkthroughModal');
+  _closeCbtWalkthrough(); // stops chime + closes modal + clears state
   showToast('🌟 Well done — exercise complete.');
-  _cbtCurrentModule = null;
-  _cbtCurrentStep = 0;
   // Re-render so the card's button switches to "✓ Completed today".
   if(typeof renderCBTSection === 'function') renderCBTSection();
 }
