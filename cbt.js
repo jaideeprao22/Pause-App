@@ -118,6 +118,163 @@ const GENERAL_MODULES = [
     steps:['Notice any digital urge — don\'t act on it yet','Rate intensity: 1 (barely there) to 10 (overwhelming)','Breathe steadily and watch the urge like a passing wave','Urges ALWAYS peak and fall — they cannot stay at maximum','Rate again at 5 minutes — nearly always lower. You surfed it.'] }
 ];
 
+// ─── INTERACTIVE WALKTHROUGH ENGINE ──────────────────────────
+// Adds a "▶ Start this exercise" button to every CBT module card.
+// Tapping it opens a step-by-step walkthrough modal. Completing all steps
+// marks the exercise as "completed today" in localStorage.
+
+const CBT_COMPLETION_KEY_PREFIX = 'pause_cbt_completed_';
+
+// Slugify a module title to a stable per-exercise ID. Two modules sharing a
+// title (e.g. "Urge Surfing" appears in both cyberchondria and general) will
+// share completion state — that's intentional, since they're the same exercise.
+function _cbtModuleId(mod){
+  return (mod.title || '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 60) || 'untitled';
+}
+
+function _cbtTodayKey(){
+  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
+function _cbtIsCompletedToday(modId){
+  try {
+    const list = JSON.parse(localStorage.getItem(CBT_COMPLETION_KEY_PREFIX + _cbtTodayKey()) || '[]');
+    return list.includes(modId);
+  } catch(e){ return false; }
+}
+
+function _cbtMarkCompletedToday(modId){
+  try {
+    const today = _cbtTodayKey();
+    const key = CBT_COMPLETION_KEY_PREFIX + today;
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    if(!list.includes(modId)){
+      list.push(modId);
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+    _cbtPruneOldCompletions();
+  } catch(e){ /* localStorage unavailable — fail silently */ }
+}
+
+// Remove completion entries older than 14 days so localStorage doesn't grow forever.
+function _cbtPruneOldCompletions(){
+  try {
+    const cutoff = Date.now() - 14 * 86400000;
+    Object.keys(localStorage).forEach(k => {
+      if(k.startsWith(CBT_COMPLETION_KEY_PREFIX)){
+        const dateStr = k.substring(CBT_COMPLETION_KEY_PREFIX.length);
+        const t = new Date(dateStr).getTime();
+        if(!isNaN(t) && t < cutoff) localStorage.removeItem(k);
+      }
+    });
+  } catch(e){}
+}
+
+// Walkthrough state
+let _cbtCurrentModule = null;
+let _cbtCurrentStep = 0;
+
+function _ensureCbtWalkthroughModal(){
+  if(document.getElementById('cbtWalkthroughModal')) return;
+  const div = document.createElement('div');
+  div.className = 'modal-overlay';
+  div.id = 'cbtWalkthroughModal';
+  div.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div id="cbtWalkthroughContent"></div>
+  </div>`;
+  // Click outside to close (matches behaviour of other modals via nav.js)
+  div.addEventListener('click', e => { if(e.target === div) closeModal('cbtWalkthroughModal'); });
+  document.body.appendChild(div);
+}
+
+function startCbtWalkthrough(modIdx){
+  // window._cbtCurrentRender is set by renderCBTSection() before paint.
+  const mod = window._cbtCurrentRender && window._cbtCurrentRender[modIdx];
+  if(!mod) return;
+  _cbtCurrentModule = mod;
+  _cbtCurrentStep = 0;
+
+  // Lazy-inject keyframes for breath animation in case CBT section was never rendered.
+  if(mod.anim === 'breath' && !document.getElementById('cbtKeyframes')){
+    const ks = document.createElement('style');
+    ks.id = 'cbtKeyframes';
+    ks.textContent = '@keyframes cbtBreathe{0%,100%{transform:scale(0.82);opacity:0.6}50%{transform:scale(1.18);opacity:1}}';
+    document.head.appendChild(ks);
+  }
+
+  _ensureCbtWalkthroughModal();
+  _renderCbtWalkthroughStep();
+  openModal('cbtWalkthroughModal');
+}
+
+function _renderCbtWalkthroughStep(){
+  const mod = _cbtCurrentModule;
+  if(!mod) return;
+  const step  = mod.steps[_cbtCurrentStep];
+  const total = mod.steps.length;
+  const isLast  = _cbtCurrentStep === total - 1;
+  const isFirst = _cbtCurrentStep === 0;
+
+  // Pulsing circle for breath modules — calming visual aid alongside the step text.
+  const breathAnim = mod.anim === 'breath' ? `
+    <div style="display:flex;justify-content:center;margin:10px 0 18px">
+      <div style="width:84px;height:84px;border-radius:50%;background:${mod.color};opacity:0.85;animation:cbtBreathe 4s ease-in-out infinite"></div>
+    </div>` : '';
+
+  const dots = mod.steps.map((_, i) =>
+    `<div style="width:9px;height:9px;border-radius:50%;background:${i <= _cbtCurrentStep ? mod.color : 'var(--border)'};transition:background 0.25s"></div>`
+  ).join('');
+
+  document.getElementById('cbtWalkthroughContent').innerHTML = `
+    <div style="text-align:center;margin-bottom:6px">
+      <div style="width:54px;height:54px;border-radius:14px;background:${mod.color}20;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:8px">${mod.icon}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:${mod.color};line-height:1.3">${mod.title}</div>
+    </div>
+    <div style="text-align:center;margin:12px 0 6px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:9px">Step ${_cbtCurrentStep + 1} of ${total}</div>
+      <div style="display:inline-flex;gap:7px">${dots}</div>
+    </div>
+    ${breathAnim}
+    <div style="background:${mod.bg};border-left:3px solid ${mod.color};border-radius:10px;padding:16px 18px;margin:14px 0;font-size:15px;line-height:1.65;color:var(--text)">${step}</div>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button onclick="cbtWalkthroughBack()" style="padding:12px 18px;background:none;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;visibility:${isFirst ? 'hidden' : 'visible'}">← Back</button>
+      <button onclick="cbtWalkthroughNext()" style="flex:1;padding:13px;background:${mod.color};border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;color:#fff;cursor:pointer">${isLast ? 'Done ✓' : 'Next →'}</button>
+    </div>`;
+}
+
+function cbtWalkthroughNext(){
+  if(!_cbtCurrentModule) return;
+  if(_cbtCurrentStep < _cbtCurrentModule.steps.length - 1){
+    _cbtCurrentStep++;
+    _renderCbtWalkthroughStep();
+    return;
+  }
+  // Final step — mark complete and close.
+  const modId = _cbtModuleId(_cbtCurrentModule);
+  _cbtMarkCompletedToday(modId);
+  closeModal('cbtWalkthroughModal');
+  showToast('🌟 Well done — exercise complete.');
+  _cbtCurrentModule = null;
+  _cbtCurrentStep = 0;
+  // Re-render so the card's button switches to "✓ Completed today".
+  if(typeof renderCBTSection === 'function') renderCBTSection();
+}
+
+function cbtWalkthroughBack(){
+  if(_cbtCurrentStep > 0){
+    _cbtCurrentStep--;
+    _renderCbtWalkthroughStep();
+  }
+}
+
+window.startCbtWalkthrough = startCbtWalkthrough;
+window.cbtWalkthroughNext  = cbtWalkthroughNext;
+window.cbtWalkthroughBack  = cbtWalkthroughBack;
+
 // ─── ANIMATION TEMPLATES ─────────────────────────────────────
 function getAnimHTML(anim, color, idx){
   const d = idx * 0.3;
@@ -151,10 +308,25 @@ function renderModuleCard(mod, idx){
       <span style="color:var(--text)">${s}</span>
     </li>`).join('');
 
+  // Play button at the top — styled like the 4-7-8 timer button. Switches to a
+  // "completed today" state when the user has finished the walkthrough today.
+  const modId = _cbtModuleId(mod);
+  const done = _cbtIsCompletedToday(modId);
+  const startBtn = done
+    ? `<button onclick="startCbtWalkthrough(${idx})"
+        style="width:100%;padding:13px;background:${mod.color}18;color:${mod.color};border:1.5px solid ${mod.color}55;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">
+          ✓ Completed today — tap to redo
+        </button>`
+    : `<button onclick="startCbtWalkthrough(${idx})"
+        style="width:100%;padding:13px;background:${mod.color};color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">
+          ▶ Start this exercise
+        </button>`;
+
   return `
     <div id="cbtCard${idx}"
       style="background:${mod.bg};border:1.5px solid ${mod.color}30;border-radius:16px;overflow:hidden;margin-bottom:14px;opacity:0;transform:translateY(12px);transition:opacity 0.35s ${idx*0.1}s,transform 0.35s ${idx*0.1}s">
-      <div style="padding:16px 18px 12px;display:flex;align-items:center;gap:12px">
+      <div style="padding:14px 18px 0">${startBtn}</div>
+      <div style="padding:14px 18px 12px;display:flex;align-items:center;gap:12px">
         <div style="width:44px;height:44px;border-radius:12px;background:${mod.color}20;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${mod.icon}</div>
         <div>
           <div style="font-weight:700;font-size:15px;color:${mod.color};font-family:'Syne',sans-serif">${mod.title}</div>
@@ -221,6 +393,9 @@ function renderCBTSection(){
 
   html += modulesToRender.map((m, i) => renderModuleCard(m, i)).join('');
   container.innerHTML = html;
+
+  // Expose to onclick handlers so startCbtWalkthrough(idx) can find the module.
+  window._cbtCurrentRender = modulesToRender;
 
   requestAnimationFrame(() => {
     modulesToRender.forEach((_, i) => {
