@@ -158,7 +158,7 @@ function startRecording(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
   recognition.lang = 'en-IN';
-  recognition.continuous = true;   // Chrome keeps mic open; rarely stops on its own
+  recognition.continuous = true;
   recognition.interimResults = true;
 
   const btn = document.getElementById('speechBtn');
@@ -167,38 +167,57 @@ function startRecording(){
   if(status) status.textContent = '🔴 Recording... tap mic to stop';
   isRecording = true;
 
-  // Snapshot text already in textarea before recording starts
+  // Snapshot of textarea before recording starts
   const textarea = document.getElementById('logbookText');
   const preText = (textarea ? textarea.value : '').trimEnd();
-  // Accumulate only NEW finalised words spoken this session
+
+  // Accumulate finals across the whole recording session (survives restarts)
   let newFinals = '';
 
-  recognition.onresult = (event) => {
-    let latestFinal = '';
-    let latestInterim = '';
-    for(let i = event.resultIndex; i < event.results.length; i++){
-      if(event.results[i].isFinal){
-        latestFinal += event.results[i][0].transcript;
-      } else {
-        latestInterim += event.results[i][0].transcript;
+  function attachHandlers(){
+    // lastFinalIndex is per-session (reset each time recognition restarts)
+    // because event.results resets to a fresh array on each new session.
+    // We do NOT trust event.resultIndex — Chrome on Android sets it to 0
+    // even for final events, causing all previous results to be reprocessed.
+    let lastFinalIndex = 0;
+
+    recognition.onresult = (event) => {
+      let sessionFinal = '';
+      let sessionInterim = '';
+
+      for(let i = lastFinalIndex; i < event.results.length; i++){
+        if(event.results[i].isFinal){
+          sessionFinal += event.results[i][0].transcript;
+          lastFinalIndex = i + 1; // mark committed so we never reprocess
+        } else {
+          sessionInterim += event.results[i][0].transcript;
+        }
       }
-    }
-    if(latestFinal) newFinals += (newFinals ? ' ' : '') + latestFinal.trim();
-    const spoken = newFinals + (latestInterim ? ' ' + latestInterim : '');
-    const ta = document.getElementById('logbookText');
-    if(ta) ta.value = preText ? preText + ' ' + spoken : spoken;
-  };
 
-  recognition.onerror = (e) => {
-    if(e.error === 'no-speech' || e.error === 'aborted') return;
-    stopRecording();
-  };
+      if(sessionFinal) newFinals += (newFinals ? ' ' : '') + sessionFinal.trim();
 
-  // NO auto-restart here — that was causing Chrome to replay the last
-  // final result on every new session, duplicating every word.
-  // continuous:true keeps mic open; user taps mic again if session drops.
-  recognition.onend = () => { if(isRecording) stopRecording(); };
+      const spoken = newFinals + (sessionInterim ? ' ' + sessionInterim : '');
+      const ta = document.getElementById('logbookText');
+      if(ta) ta.value = (preText ? preText + ' ' + spoken : spoken).trim();
+    };
 
+    recognition.onerror = (e) => {
+      if(e.error === 'no-speech' || e.error === 'aborted') return;
+      stopRecording();
+    };
+
+    // Android Chrome ends the session after ~5s of silence even with
+    // continuous:true. Restart so the mic stays live between pauses.
+    // lastFinalIndex resets to 0 via attachHandlers() because each new
+    // session gets a fresh event.results array — no replay risk.
+    recognition.onend = () => {
+      if(!isRecording) return;
+      try { attachHandlers(); recognition.start(); }
+      catch(e){ stopRecording(); }
+    };
+  }
+
+  attachHandlers();
   recognition.start();
 }
 
