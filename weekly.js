@@ -29,14 +29,14 @@ function generateWeeklyReport(){
   const previous = history.find(h => _parseHistoryDate(h.date) < weekStart);
 
   let dwsChange = null;
-  if(latest?.dws && previous?.dws){
+  if(latest?.dws != null && previous?.dws != null){
     dwsChange = latest.dws - previous.dws;
   }
 
   return {
     assessmentsThisWeek: weekEntries.length,
     challengeDaysCompleted: challenge.length,
-    latestDWS: latest?.dws || null,
+    latestDWS: latest?.dws != null ? latest.dws : null,
     dwsChange,
     topConcern: typeof getTopDisorder === 'function' ? getTopDisorder() : null,
     weekLabel: weekStart.toLocaleDateString('en-IN',{day:'numeric',month:'short'})

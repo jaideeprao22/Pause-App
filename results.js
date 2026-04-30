@@ -84,8 +84,8 @@ function renderResults(){
   if(!localStorage.getItem('notifPromptShown')){
     localStorage.setItem('notifPromptShown', 'true');
     setTimeout(() => showNotifPrompt(), 1500);
+    setTimeout(() => renderPostAssessmentPrompt(), 5000);
   } else {
-    // Show post-assessment research modal if notif prompt already done
     renderPostAssessmentPrompt();
   }
 
@@ -295,7 +295,7 @@ function showDWSModal(){
 
 // ============================================================
 // POST-ASSESSMENT RESEARCH PROMPT — Stage 2
-// 3 disorder-specific questions based on highest-scoring disorder
+// Shows once per calendar day regardless of how many tests are taken
 // ============================================================
 function renderPostAssessmentPrompt(){
   // Quick Scan = impact modules only — no disorder scores, so no post-disorder questions
@@ -303,14 +303,16 @@ function renderPostAssessmentPrompt(){
 
   if(Object.keys(disorderScores).length === 0) return;
 
+  // ── DAILY GATE: show at most once per calendar day ──
+  const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const lastShown = localStorage.getItem('pause_post_assess_shown_date');
+  if(lastShown === todayKey) return; // already shown today — skip silently
+
   let topId;
 
-  // FIX: For single-disorder assessments, always show questions for the disorder
-  // just completed — not the highest-scoring one across all history.
   if(assessMode === 'single' && typeof singleDisorderIdx !== 'undefined' && singleDisorderIdx >= 0 && DISORDERS[singleDisorderIdx]){
     topId = DISORDERS[singleDisorderIdx].id;
   } else {
-    // Full assessment: show questions for the highest-scoring disorder
     const ranked = Object.entries(disorderScores).sort((a,b) => {
       const da = DISORDERS.find(d => d.id === a[0]);
       const db = DISORDERS.find(d => d.id === b[0]);
@@ -324,101 +326,44 @@ function renderPostAssessmentPrompt(){
   const topDisorder = DISORDERS.find(d => d.id === topId);
   if(!topDisorder) return;
 
-  // Store for savePostAssessmentData to reference
   postAssessDisorderId = topId;
 
-  // Disorder-specific question banks (3 per disorder)
   const questionBank = {
     cyberchondria: [
-      {
-        q: 'How long have you been noticing this pattern of frequently searching for health information online?',
-        opts: ['Less than 1 month','1–6 months','6–12 months','More than 1 year']
-      },
-      {
-        q: 'Does your health searching worsen after reading about a specific disease or symptom?',
-        opts: ['Almost always','Often','Sometimes','Rarely','Never']
-      },
-      {
-        q: 'Have you ever sought a doctor\'s reassurance after an online health search?',
-        opts: ['Yes, frequently','Yes, occasionally','Rarely','No, never']
-      }
+      { q: 'How long have you been noticing this pattern of frequently searching for health information online?', opts: ['Less than 1 month','1–6 months','6–12 months','More than 1 year'] },
+      { q: 'Does your health searching worsen after reading about a specific disease or symptom?', opts: ['Almost always','Often','Sometimes','Rarely','Never'] },
+      { q: 'Have you ever sought a doctor\'s reassurance after an online health search?', opts: ['Yes, frequently','Yes, occasionally','Rarely','No, never'] }
     ],
     socialmedia: [
-      {
-        q: 'When during the day do you most commonly check social media?',
-        opts: ['First thing in the morning (before getting up)','Throughout the day constantly','Mainly in the evenings','Late at night before sleep','Only at specific times I set']
-      },
-      {
-        q: 'When you see other people\'s posts, how do they tend to make you feel?',
-        opts: ['Usually inspired or happy for them','Mixed — sometimes good, sometimes not','Often make me feel like I\'m missing out','Rarely affect my mood','No effect on my mood']
-      },
-      {
-        q: 'Have you ever consciously tried to spend less time on social media?',
-        opts: ['Yes, and it worked well','Yes, but I kept going back','I\'ve thought about it but haven\'t tried','No, I don\'t feel the need to']
-      }
+      { q: 'When during the day do you most commonly check social media?', opts: ['First thing in the morning (before getting up)','Throughout the day constantly','Mainly in the evenings','Late at night before sleep','Only at specific times I set'] },
+      { q: 'When you see other people\'s posts, how do they tend to make you feel?', opts: ['Usually inspired or happy for them','Mixed — sometimes good, sometimes not','Often make me feel like I\'m missing out','Rarely affect my mood','No effect on my mood'] },
+      { q: 'Have you ever consciously tried to spend less time on social media?', opts: ['Yes, and it worked well','Yes, but I kept going back','I\'ve thought about it but haven\'t tried','No, I don\'t feel the need to'] }
     ],
     shortform: [
-      {
-        q: 'What usually triggers you to open a short video app?',
-        opts: ['Boredom','Stress or low mood','Habit — I open it automatically','To relax after work or study','Seeing others use it']
-      },
-      {
-        q: 'Do you find it difficult to stop watching short videos once you start?',
-        opts: ['Almost always','Often','Sometimes','Rarely','Never']
-      },
-      {
-        q: 'Have you noticed short-form video watching affecting your sleep or focus?',
-        opts: ['Yes, both significantly','Yes, mainly sleep','Yes, mainly focus','Only occasionally','Not really']
-      }
+      { q: 'What usually triggers you to open a short video app?', opts: ['Boredom','Stress or low mood','Habit — I open it automatically','To relax after work or study','Seeing others use it'] },
+      { q: 'Do you find it difficult to stop watching short videos once you start?', opts: ['Almost always','Often','Sometimes','Rarely','Never'] },
+      { q: 'Have you noticed short-form video watching affecting your sleep or focus?', opts: ['Yes, both significantly','Yes, mainly sleep','Yes, mainly focus','Only occasionally','Not really'] }
     ],
     gaming: [
-      {
-        q: 'What type of games do you primarily play?',
-        opts: ['Mobile casual','Mobile MOBA / Battle Royale','PC / Console','Online multiplayer (MMORPG)','Multiple types']
-      },
-      {
-        q: 'How do you tend to feel when you are unable to play games for a day or two?',
-        opts: ['Very unsettled or on edge','Somewhat restless','A little distracted','Completely fine']
-      },
-      {
-        q: 'Have you noticed gaming affecting your relationships, studies, or work in any way?',
-        opts: ['Yes, significantly','Yes, to some extent','Only occasionally','Not really']
-      }
+      { q: 'What type of games do you primarily play?', opts: ['Mobile casual','Mobile MOBA / Battle Royale','PC / Console','Online multiplayer (MMORPG)','Multiple types'] },
+      { q: 'How do you tend to feel when you are unable to play games for a day or two?', opts: ['Very unsettled or on edge','Somewhat restless','A little distracted','Completely fine'] },
+      { q: 'Have you noticed gaming affecting your relationships, studies, or work in any way?', opts: ['Yes, significantly','Yes, to some extent','Only occasionally','Not really'] }
     ],
     ai: [
-      {
-        q: 'For which tasks do you primarily use AI assistants?',
-        opts: ['Writing / communication','Learning / studying','Work / professional tasks','Creative tasks','Decision-making','Multiple equally']
-      },
-      {
-        q: 'How do you tend to feel when AI tools are unavailable and you need to complete a task?',
-        opts: ['Very uncomfortable — I struggle to proceed','Somewhat unsettled','Mildly inconvenienced','Completely fine — I manage easily']
-      },
-      {
-        q: 'Do you feel your confidence in independent thinking has changed since you started using AI tools regularly?',
-        opts: ['It has reduced significantly','It has reduced somewhat','No real change','It has actually improved']
-      }
+      { q: 'For which tasks do you primarily use AI assistants?', opts: ['Writing / communication','Learning / studying','Work / professional tasks','Creative tasks','Decision-making','Multiple equally'] },
+      { q: 'How do you tend to feel when AI tools are unavailable and you need to complete a task?', opts: ['Very uncomfortable — I struggle to proceed','Somewhat unsettled','Mildly inconvenienced','Completely fine — I manage easily'] },
+      { q: 'Do you feel your confidence in independent thinking has changed since you started using AI tools regularly?', opts: ['It has reduced significantly','It has reduced somewhat','No real change','It has actually improved'] }
     ],
     workaddiction: [
-      {
-        q: 'What best describes your primary work context?',
-        opts: ['Student / academic','Healthcare / clinical','Corporate / office','Self-employed','Remote / freelance','Other']
-      },
-      {
-        q: 'Do you check work messages or emails outside of official work hours most days?',
-        opts: ['Yes, constantly','Yes, frequently','Occasionally','Rarely / Never']
-      },
-      {
-        q: 'Have you noticed your work habits having any impact on your personal relationships or physical health?',
-        opts: ['Yes, a significant impact','Yes, some impact','Only occasionally','Not that I\'ve noticed']
-      }
+      { q: 'What best describes your primary work context?', opts: ['Student / academic','Healthcare / clinical','Corporate / office','Self-employed','Remote / freelance','Other'] },
+      { q: 'Do you check work messages or emails outside of official work hours most days?', opts: ['Yes, constantly','Yes, frequently','Occasionally','Rarely / Never'] },
+      { q: 'Have you noticed your work habits having any impact on your personal relationships or physical health?', opts: ['Yes, a significant impact','Yes, some impact','Only occasionally','Not that I\'ve noticed'] }
     ]
   };
 
   const qs = questionBank[topId];
   if(!qs) return;
 
-  // Build the modal content
   const title = document.getElementById('postAssessTitle');
   if(title) title.textContent = `${topDisorder.icon} ${topDisorder.name}: 3 Research Questions`;
 
@@ -437,10 +382,11 @@ function renderPostAssessmentPrompt(){
       </div>
     </div>`).join('');
 
-  // Show modal after a short delay (results should be visible first)
+  // Stamp today before opening so even a dismissal counts as "shown"
+  localStorage.setItem('pause_post_assess_shown_date', todayKey);
+
   setTimeout(() => openModal('postAssessmentModal'), 2000);
 }
-
 
 // C1 FIX: renderHomeDisorders() is defined ONLY in assessment.js (loads first).
 // The duplicate here was removed because results.js loads after assessment.js,

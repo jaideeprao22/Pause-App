@@ -51,9 +51,10 @@ function scheduleNotification(){
   const delay = next - now;
   setTimeout(() => {
     if(Notification.permission === 'granted' && localStorage.getItem('notifEnabled') === 'true'){
+      const swBase = (navigator.serviceWorker.controller?.scriptURL || '').replace(/sw\.js$/, '') || '/';
       new Notification('PAUSE App — Daily Detox Reminder 🌿', {
         body: "Don't forget today's digital detox challenge! Open PAUSE App to check in.",
-        icon: '/Pause-App/icons/icon-192.png'
+        icon: swBase + 'icons/icon-192.png'
       });
       scheduleNotification();
     }

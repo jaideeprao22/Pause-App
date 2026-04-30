@@ -241,8 +241,20 @@
   <div class="section-label" style="margin-top:4px">Your Check-up History</div>
   <div id="progressHistory"></div>
 
-  <!-- Weekly Check-In at bottom of Progress -->
+  <!-- Detox Planner button -->
   <div style="margin-top:16px;margin-bottom:8px">
+    <button onclick="openDetoxPlanner()" style="width:100%;padding:14px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
+      <div style="width:40px;height:40px;background:rgba(46,204,113,0.1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📵</div>
+      <div style="text-align:left">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Digital Detox Day Planner</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Guided plan for a mindful offline day</div>
+      </div>
+      <div style="margin-left:auto;color:var(--muted);font-size:20px">›</div>
+    </button>
+  </div>
+
+  <!-- Weekly Check-In at bottom of Progress -->
+  <div style="margin-top:4px;margin-bottom:8px">
     <button onclick="renderWeeklyCheckinModal()" style="width:100%;padding:14px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
       <div style="width:40px;height:40px;background:rgba(245,166,35,0.1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📋</div>
       <div style="text-align:left">
@@ -1012,8 +1024,10 @@
 </div>
 
 <!-- POST-ASSESSMENT RESEARCH MODAL — Stage 2: 3 disorder-specific questions -->
+
+<!-- FEATURE2: Weekly Check-In Modal — step-based (C2 FIX: moved before script tags) -->
 <div class="modal-overlay" id="postAssessmentModal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">3 Quick Questions</div>
     <div class="modal-title" id="postAssessTitle">Help Us Understand a Little More</div>
@@ -1024,7 +1038,6 @@
   </div>
 </div>
 
-<!-- FEATURE2: Weekly Check-In Modal — step-based (C2 FIX: moved before script tags) -->
 <div class="modal-overlay" id="weeklyCheckinModal">
   <div class="modal-card" style="padding:0;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;max-height:92vh">
 
@@ -1077,6 +1090,19 @@
   </div>
 </div>
 
+<!-- DETOX PLANNER MODAL — Feature 7 -->
+<div class="modal-overlay" id="detoxPlannerModal">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📵 Digital Detox Day Planner</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+      A guided plan to spend one day intentionally offline. Work through each step at your own pace.
+    </div>
+    <div id="detoxPlannerContent"></div>
+    <button class="btn-ghost" style="margin-top:12px" onclick="closeModal('detoxPlannerModal')">Close Planner</button>
+  </div>
+</div>
+
 </div><!-- /app -->
 <script>
 (function(){
@@ -1105,6 +1131,7 @@
 <script src="screentime.js"></script>
 <script src="app.js"></script>
 <script src="nav.js"></script>
+<script src="premium-motions.js"></script>
 <script>
 // ── App init hooks for new features ──
 document.addEventListener('DOMContentLoaded', function(){

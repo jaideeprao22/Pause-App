@@ -525,7 +525,7 @@ async function savePostAssessmentData(){
   }
 
   closeModal('postAssessmentModal');
-  showToast('🔬 Thank you for contributing to research!'); // BUG6 FIX: use showToast()
+  showToast('🔬 Thank you for contributing to research!');
 }
 
 // ============================================================

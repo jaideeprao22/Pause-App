@@ -12,7 +12,6 @@ const PRECACHE_ASSETS = [
   BASE,
   BASE + 'index.html',
   BASE + 'terms.html',
-  BASE + 'privacy-policy.html',
   BASE + 'style.css',
   BASE + 'manifest.json',
   BASE + 'data.js',

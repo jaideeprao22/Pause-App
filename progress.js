@@ -19,7 +19,7 @@ function renderPersonalSummary(){
 
   const latest  = history[0];
   const prev    = history.length > 1 ? history[1] : null;
-  const _dwsVals  = history.filter(h => h.dws).map(h => h.dws);
+  const _dwsVals  = history.filter(h => h.dws != null).map(h => h.dws);
   const best    = _dwsVals.length ? Math.max(..._dwsVals) : null; // BUG6 FIX: avoid -Infinity
   const s       = latest.dws ? getDWSStatus(latest.dws) : null;
   const total   = history.length;
@@ -191,7 +191,7 @@ function renderProgress(){
   // Trend graph
   const trendBars = document.getElementById('trendBars');
   if(trendBars){
-    const recent = history.filter(h=>h.dws).slice(0,7).reverse();
+    const recent = history.filter(h=>h.dws != null).slice(0,7).reverse();
     if(recent.length===0){
       trendBars.innerHTML='<div style="font-size:12px;color:var(--muted);width:100%;text-align:center">No data yet</div>';
     } else {
@@ -212,7 +212,7 @@ function renderProgress(){
     return;
   }
   el.innerHTML = history.map(h => {
-    const s=h.dws?getDWSStatus(h.dws):null;
+    const s=h.dws != null ?getDWSStatus(h.dws):null;
     return `<div class="history-item">
       <div class="history-dot" style="background:${s?s.color:'var(--muted)'}"></div>
       <div style="flex:1">
