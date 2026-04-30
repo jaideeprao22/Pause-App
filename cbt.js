@@ -275,18 +275,39 @@ window.renderTrendShareButton = renderTrendShareButton;
 window.shareTrendImage        = shareTrendImage;
 
 // ============================================================
-// FEATURE10: 4-7-8 Breathing Timer with sound (Tone.js)
+// FEATURE10: 4-7-8 Breathing Timer with sound (Web Audio API — no Tone.js needed)
 // ============================================================
 let breathingTimerActive = false;
 let breathingTimerHandle = null;
+let _breathAudioCtx = null;
 
-async function startBreathingTimer(containerId){ // BUG7 FIX: async for Tone.start()
+function _getAudioCtx(){
+  if(!_breathAudioCtx || _breathAudioCtx.state === 'closed'){
+    _breathAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _breathAudioCtx;
+}
+
+function playBreathTone(freq, durationSec){
+  try{
+    const ctx = _getAudioCtx();
+    if(ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSec);
+    osc.start(); osc.stop(ctx.currentTime + durationSec);
+  }catch(e){ /* audio unavailable — silent fallback */ }
+}
+
+async function startBreathingTimer(containerId){
   if(breathingTimerActive) return;
   breathingTimerActive = true;
   const el = document.getElementById(containerId);
   if(!el) return;
-  // BUG7 FIX: resume AudioContext on user gesture (required by browsers)
-  try{ if(typeof Tone!=='undefined') await Tone.start(); }catch(e){}
   // BUG10 FIX: ensure keyframes exist even if renderCBTSection hasn't been called
   if(!document.getElementById('cbtKeyframes')){
     const ks = document.createElement('style');
@@ -303,12 +324,7 @@ async function startBreathingTimer(containerId){ // BUG7 FIX: async for Tone.sta
   let cycle=0, phaseIdx=0, secondsLeft=phases[0].duration;
 
   function playTone(freq, dur){
-    try{
-      if(typeof Tone !== 'undefined' && Tone.context && Tone.context.state === 'running'){
-        const synth = new Tone.Synth({oscillator:{type:'sine'},envelope:{attack:0.3,decay:0.1,sustain:0.8,release:0.8}}).toDestination();
-        synth.triggerAttackRelease(freq, dur+'n');
-      }
-    }catch(e){ /* audio unavailable — silent fallback */ }
+    playBreathTone(freq, dur * 0.12); // dur was in Tone.js note values; convert to seconds
   }
 
   function tick(){

@@ -13,10 +13,10 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- FIX 2: Offline banner styles -->
@@ -485,7 +485,7 @@
 </div>
 
 <div class="modal-overlay" id="dwsModal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div class="modal-title">Digital Wellness Score</div>
     <div class="dws-container">
@@ -1001,7 +1001,7 @@
 
 <!-- FIX 4: DISORDER INFO MODAL -->
 <div class="modal-overlay" id="disorderInfoModal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div style="text-align:center;font-size:44px;margin-bottom:8px" id="disorderInfoIcon"></div>
     <div class="modal-title" id="disorderInfoTitle"></div>
@@ -1116,21 +1116,21 @@
 
 
 
-<script src="data.js"></script>
-<script src="state.js"></script>
-<script src="badges.js"></script>
-<script src="notifications.js"></script>
-<script src="assessment.js"></script>
-<script src="results.js"></script>
-<script src="progress.js"></script>
-<script src="share.js"></script>
-<script src="logbook.js"></script>
-<script src="motivation.js"></script>
-<script src="weekly.js"></script>
-<script src="cbt.js"></script>
-<script src="screentime.js"></script>
-<script src="app.js"></script>
-<script src="nav.js"></script>
+<script src="data.js" defer></script>
+<script src="state.js" defer></script>
+<script src="badges.js" defer></script>
+<script src="notifications.js" defer></script>
+<script src="assessment.js" defer></script>
+<script src="results.js" defer></script>
+<script src="progress.js" defer></script>
+<script src="share.js" defer></script>
+<script src="logbook.js" defer></script>
+<script src="motivation.js" defer></script>
+<script src="weekly.js" defer></script>
+<script src="cbt.js" defer></script>
+<script src="screentime.js" defer></script>
+<script src="app.js" defer></script>
+<script src="nav.js" defer></script>
 <script>
 // ── App init hooks for new features ──
 document.addEventListener('DOMContentLoaded', function(){

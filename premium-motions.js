@@ -5,7 +5,7 @@
   function addAmbientFX(){
     const app=document.getElementById('app'); if(!app || app.dataset.pausePremiumFx==='on') return; app.dataset.pausePremiumFx='on';
     ['one','two','three'].forEach(cls=>{const orb=document.createElement('span');orb.className='pause-fx-orb '+cls;app.appendChild(orb);});
-    if(!reduce){for(let i=0;i<18;i++){const s=document.createElement('span');s.className='pause-fx-spark';s.style.left=(8+Math.random()*84).toFixed(2)+'%';s.style.top=(8+Math.random()*84).toFixed(2)+'%';s.style.animationDelay=(-Math.random()*5).toFixed(2)+'s';s.style.animationDuration=(3.4+Math.random()*3.2).toFixed(2)+'s';app.appendChild(s);}}
+    if(!reduce){for(let i=0;i<5;i++){const s=document.createElement('span');s.className='pause-fx-spark';s.style.left=(8+Math.random()*84).toFixed(2)+'%';s.style.top=(8+Math.random()*84).toFixed(2)+'%';s.style.animationDelay=(-Math.random()*5).toFixed(2)+'s';s.style.animationDuration=(3.4+Math.random()*3.2).toFixed(2)+'s';app.appendChild(s);}}
   }
   function ripple(e){
     const t=e.target.closest('button,.disorder-card,.assess-disorder-card,.assess-impact-card,.card,.nav-btn,.tab'); if(!t || reduce) return;

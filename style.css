@@ -538,3 +538,74 @@ html,body{background:#020617!important;color:var(--text)!important}body::before{
 #cbtSection [style*="background:#ffe4e6"] *,
 #cbtSection [style*="background:#ede9fe"] *,
 #cbtSection [style*="background:#e8eef7"] * { color: #1a2a40 !important; }
+
+/* ============================================================
+   PERFORMANCE PATCH — Scroll Optimisation
+   Removes backdrop-filter from scrolling content, GPU-promotes
+   scroll containers, eliminates filter:blur from animations.
+   Visual appearance preserved; janky repaint removed.
+   ============================================================ */
+
+/* 1. GPU-promote scroll containers — own compositing layer */
+.screen{
+  transform: translateZ(0);
+  contain: layout style;
+}
+
+/* 2. Remove backdrop-filter from CARDS (scrolls with content — most expensive)
+   Replace with opaque-enough background so it still looks dark/glassy */
+.card,.disorder-card,.assess-disorder-card,.assess-impact-card,
+.result-disorder-row,.trend-graph,.history-item,.challenge-day,
+.badge-item,.share-card,.login-banner,.tool-stat,.notice,
+.modal-sheet,.modal-card{
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 3. Remove backdrop-filter from buttons and tabs (numerous, scroll with page) */
+.btn-secondary,.btn-google,.btn-ghost,.q-prev,
+.tabs,.q-text,.q-option,.q-nav{
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 4. Remove backdrop-filter from back-btn / dws-pill / user-avatar in header */
+.back-btn,.dws-pill,.user-avatar{
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 5. Keep backdrop-filter ONLY on fixed/sticky elements that don't scroll:
+   .header, .bottom-nav, .modal-overlay — these are fine */
+
+/* 6. Stop animating filter:blur in pauseReveal — blur animation is very expensive.
+   Simple fade+slide is enough and GPU-friendly */
+@keyframes pauseReveal{
+  from{opacity:0;transform:translateY(14px) scale(.988)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* 7. GPU-promote animated orbs and body background so they don't
+   invalidate the main scroll layer */
+body::before, body::after{
+  will-change: transform;
+}
+#app::before, #app::after,
+.pause-fx-orb,
+.hero-card::before, .hero-card::after{
+  will-change: transform;
+}
+
+/* 8. Limit bar glint animations — they trigger repaints on every frame.
+   Slow them down significantly */
+.result-bar-fill::after,.impact-bar-fill::after{
+  animation-duration: 5s !important;
+}
+
+/* 9. Fix transition:all → specific properties to avoid watching every prop */
+.card,.disorder-card,.assess-disorder-card,.challenge-day,.badge-item{
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+.btn-primary,.btn-secondary,.btn-ghost,.btn-google,.q-prev,.q-option,.tab{
+  transition: transform 0.15s ease, opacity 0.15s ease !important;
+}

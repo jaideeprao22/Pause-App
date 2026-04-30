@@ -644,6 +644,10 @@ function openModal(id){
   if(!el){ console.warn('[PAUSE] openModal: element not found:', id); return; }
   el.classList.add('open');
 
+  // Always reset scroll to top on open (fixes "can't scroll up" bug)
+  const sheet = el.querySelector('.modal-sheet, .modal-card');
+  if(sheet) sheet.scrollTop = 0;
+
   // Reset T&C checkbox every time terms modal opens
   if(id === 'termsModal'){
     const cb = document.getElementById('termsCheckbox');
