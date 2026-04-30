@@ -121,12 +121,9 @@ function scheduleMotivationNotification(){
   setTimeout(() => {
     if(Notification.permission === 'granted' && localStorage.getItem('motivNotifEnabled') === 'true'){
       const {message} = getTodayMotivation();
-      // Bug FIX: use dynamic icon path (matches notifications.js pattern) so it works on
-      // any host — TWA, custom domain, GitHub Pages — not just /Pause-App/.
-      const swBase = (navigator.serviceWorker?.controller?.scriptURL || '').replace(/sw\.js$/, '') || '/';
       new Notification('PAUSE App — Daily Motivation 🌟', {
         body: message,
-        icon: swBase + 'icons/icon-192.png'
+        icon: '/Pause-App/icons/icon-192.png'
       });
       scheduleMotivationNotification();
     }
