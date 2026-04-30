@@ -25,6 +25,7 @@ const LOGBOOK_PROMPTS = [
 let currentPromptIdx = 0;
 let recognition = null;
 let isRecording = false;
+let _logbookClearOnRender = false; // set true after save so textarea starts fresh
 
 function renderLogbookScreen(){
   const el = document.getElementById('screen-logbook');
@@ -48,7 +49,7 @@ function renderLogbookScreen(){
       <div style="display:flex;gap:8px;margin-bottom:12px">
         ${LOGBOOK_PROMPTS.map((_,i) => `<div onclick="selectPrompt(${i})" style="width:8px;height:8px;border-radius:50%;background:${i===currentPromptIdx%LOGBOOK_PROMPTS.length?'var(--accent)':'var(--border)'};cursor:pointer;flex-shrink:0"></div>`).join('')}
       </div>
-      <textarea id="logbookText" placeholder="Write your thoughts here..." style="width:100%;min-height:120px;border:2px solid var(--border);border-radius:12px;padding:12px;font-size:14px;font-family:inherit;color:var(--text);resize:vertical;line-height:1.6">${todayEntry?.text||''}</textarea>
+      <textarea id="logbookText" placeholder="Write your thoughts here..." style="width:100%;min-height:120px;border:2px solid var(--border);border-radius:12px;padding:12px;font-size:14px;font-family:inherit;color:var(--text);resize:vertical;line-height:1.6">${_logbookClearOnRender ? '' : (todayEntry?.text||'')}</textarea>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button onclick="toggleSpeechRecognition()" id="speechBtn" style="flex:0 0 48px;height:48px;border-radius:12px;border:2px solid var(--border);background:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Voice input">🎤</button>
         <button class="btn-primary" style="flex:1;padding:12px" onclick="saveLogEntry()">Save Entry →</button>
@@ -116,7 +117,9 @@ function saveLogEntry(){
   // Bug 8 FIX: button text change was overwritten by renderLogbookScreen() before the
   // browser could paint it — success feedback was invisible. Use showToast() instead.
   showToast('✅ Entry saved!');
+  _logbookClearOnRender = true;
   renderLogbookScreen();
+  _logbookClearOnRender = false;
 }
 
 async function saveLogToSupabase(entry){
@@ -155,7 +158,7 @@ function startRecording(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
   recognition.lang = 'en-IN';
-  recognition.continuous = true;
+  recognition.continuous = true;   // Chrome keeps mic open; rarely stops on its own
   recognition.interimResults = true;
 
   const btn = document.getElementById('speechBtn');
@@ -164,43 +167,37 @@ function startRecording(){
   if(status) status.textContent = '🔴 Recording... tap mic to stop';
   isRecording = true;
 
-  // Track the textarea value at the point recording started,
-  // so we can append only newly finalised words without duplication.
+  // Snapshot text already in textarea before recording starts
   const textarea = document.getElementById('logbookText');
-  let baseText = textarea ? textarea.value : '';
-  let pendingInterim = '';
+  const preText = (textarea ? textarea.value : '').trimEnd();
+  // Accumulate only NEW finalised words spoken this session
+  let newFinals = '';
 
   recognition.onresult = (event) => {
-    let finalChunk = '';
-    let interimChunk = '';
+    let latestFinal = '';
+    let latestInterim = '';
     for(let i = event.resultIndex; i < event.results.length; i++){
       if(event.results[i].isFinal){
-        finalChunk += event.results[i][0].transcript;
+        latestFinal += event.results[i][0].transcript;
       } else {
-        interimChunk += event.results[i][0].transcript;
+        latestInterim += event.results[i][0].transcript;
       }
     }
-    // Commit final words to baseText; show interim as preview
-    if(finalChunk){
-      baseText = baseText ? baseText + ' ' + finalChunk.trim() : finalChunk.trim();
-      pendingInterim = '';
-    }
-    pendingInterim = interimChunk;
+    if(latestFinal) newFinals += (newFinals ? ' ' : '') + latestFinal.trim();
+    const spoken = newFinals + (latestInterim ? ' ' + latestInterim : '');
     const ta = document.getElementById('logbookText');
-    if(ta) ta.value = pendingInterim ? baseText + ' ' + pendingInterim : baseText;
+    if(ta) ta.value = preText ? preText + ' ' + spoken : spoken;
   };
 
   recognition.onerror = (e) => {
-    // 'no-speech' and 'aborted' are normal — don't fully stop on them
-    if(e.error === 'no-speech') return;
+    if(e.error === 'no-speech' || e.error === 'aborted') return;
     stopRecording();
   };
 
-  // BUG FIX: onend can fire synchronously on Android Chrome before stopRecording()
-  // sets isRecording=false. Guard with the flag set BEFORE calling .stop().
-  recognition.onend = () => {
-    if(isRecording) recognition.start(); // auto-restart only if still meant to record
-  };
+  // NO auto-restart here — that was causing Chrome to replay the last
+  // final result on every new session, duplicating every word.
+  // continuous:true keeps mic open; user taps mic again if session drops.
+  recognition.onend = () => { if(isRecording) stopRecording(); };
 
   recognition.start();
 }
