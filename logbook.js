@@ -164,26 +164,55 @@ function startRecording(){
   if(status) status.textContent = '🔴 Recording... tap mic to stop';
   isRecording = true;
 
+  // Track the textarea value at the point recording started,
+  // so we can append only newly finalised words without duplication.
+  const textarea = document.getElementById('logbookText');
+  let baseText = textarea ? textarea.value : '';
+  let pendingInterim = '';
+
   recognition.onresult = (event) => {
-    let transcript = '';
+    let finalChunk = '';
+    let interimChunk = '';
     for(let i = event.resultIndex; i < event.results.length; i++){
-      transcript += event.results[i][0].transcript;
+      if(event.results[i].isFinal){
+        finalChunk += event.results[i][0].transcript;
+      } else {
+        interimChunk += event.results[i][0].transcript;
+      }
     }
-    const textarea = document.getElementById('logbookText');
-    if(textarea){
-      const existing = textarea.value;
-      textarea.value = existing ? existing + ' ' + transcript : transcript;
+    // Commit final words to baseText; show interim as preview
+    if(finalChunk){
+      baseText = baseText ? baseText + ' ' + finalChunk.trim() : finalChunk.trim();
+      pendingInterim = '';
     }
+    pendingInterim = interimChunk;
+    const ta = document.getElementById('logbookText');
+    if(ta) ta.value = pendingInterim ? baseText + ' ' + pendingInterim : baseText;
   };
 
-  recognition.onerror = () => stopRecording();
-  recognition.onend = () => { if(isRecording) recognition.start(); };
+  recognition.onerror = (e) => {
+    // 'no-speech' and 'aborted' are normal — don't fully stop on them
+    if(e.error === 'no-speech') return;
+    stopRecording();
+  };
+
+  // BUG FIX: onend can fire synchronously on Android Chrome before stopRecording()
+  // sets isRecording=false. Guard with the flag set BEFORE calling .stop().
+  recognition.onend = () => {
+    if(isRecording) recognition.start(); // auto-restart only if still meant to record
+  };
+
   recognition.start();
 }
 
 function stopRecording(){
-  if(recognition) recognition.stop();
-  isRecording = false;
+  isRecording = false;           // ← MUST be set BEFORE .stop() to prevent onend restart loop
+  if(recognition){
+    recognition.onend = null;    // detach handler so no restart fires after this
+    recognition.onerror = null;
+    recognition.stop();
+    recognition = null;
+  }
   const btn = document.getElementById('speechBtn');
   const status = document.getElementById('speechStatus');
   if(btn) btn.textContent = '🎤';
