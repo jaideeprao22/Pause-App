@@ -12,7 +12,6 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
 .header::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(61,111,255,0.08);border-radius:50%}
 .header-inner{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
 .logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.5px}
-.pause-logo-img{height:20px;vertical-align:middle;margin-right:4px;display:inline-block}
 .logo span{color:var(--accent2)}
 .logo-sub{font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:2px;font-weight:400}
 .back-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:10px;padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer;font-weight:600;display:none;transition:all 0.2s}
