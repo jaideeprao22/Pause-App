@@ -609,3 +609,44 @@ body::before, body::after{
 .btn-primary,.btn-secondary,.btn-ghost,.btn-google,.q-prev,.q-option,.tab{
   transition: transform 0.15s ease, opacity 0.15s ease !important;
 }
+
+/* ============================================================
+   LOGO TUNING — bigger PAUSE, cleanly-styled " App"
+   Added at end of file so it overrides earlier .logo rules
+   (lines 14 and 259/519) without editing them.
+   ============================================================ */
+.logo{
+  font-size:30px!important;
+  letter-spacing:3px!important;
+  display:flex;
+  align-items:baseline;
+  gap:0;
+  line-height:1.05;
+}
+.logo span:first-child{
+  /* "PAUSE" — keep the existing gradient/animation styling, just larger */
+  font-size:30px!important;
+}
+.logo-app{
+  /* " App" — smaller, lighter, tighter spacing so it sits as a subtitle */
+  font-size:16px!important;
+  letter-spacing:0.5px!important;
+  font-weight:500!important;
+  opacity:0.85;
+  margin-left:6px;
+  /* Reset gradient inheritance from .logo span — keep "App" as plain white */
+  background:none!important;
+  -webkit-background-clip:initial!important;
+  background-clip:initial!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  animation:none!important;
+  text-shadow:none!important;
+}
+
+/* On very narrow screens (≤360px), shrink slightly so DWS pill never clips "App" */
+@media (max-width: 360px){
+  .logo{font-size:26px!important}
+  .logo span:first-child{font-size:26px!important}
+  .logo-app{font-size:14px!important}
+}
