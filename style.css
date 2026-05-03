@@ -652,3 +652,14 @@ body::before, body::after{
   .logo-img{height:28px}
   .logo-app{font-size:12px!important}
 }
+
+/* ============================================================
+   FIX — hero-card decorative blobs were intercepting clicks on
+   the Quick Check button (the bottom-left ::after pseudo-element
+   sits over it). Pseudo-elements without pointer-events:none
+   absorb clicks even though they're purely visual.
+   ============================================================ */
+.hero-card::before,
+.hero-card::after{
+  pointer-events:none!important;
+}
