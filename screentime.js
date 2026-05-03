@@ -3,7 +3,7 @@
 // ============================================================
 
 function saveScreenTime(hours){
-  const log = JSON.parse(localStorage.getItem('screenTimeLog') || '[]');
+  const log = safeJsonParse('screenTimeLog', []);
   const today = new Date().toISOString().split('T')[0];
   const existing = log.findIndex(e => e.date === today);
   if(existing >= 0) log[existing].hours = hours;
@@ -16,7 +16,7 @@ function saveScreenTime(hours){
 function renderScreenTimeSection(){
   const el = document.getElementById('screenTimeSection');
   if(!el) return;
-  const log = JSON.parse(localStorage.getItem('screenTimeLog') || '[]');
+  const log = safeJsonParse('screenTimeLog', []);
   const today = new Date().toISOString().split('T')[0];
   const todayEntry = log.find(e => e.date === today);
   const avg = log.length > 0 ? (log.reduce((s,e) => s + e.hours, 0) / log.length).toFixed(1) : null;
@@ -82,7 +82,7 @@ async function saveResearchConsentToSupabase(){
 // ============================================================
 
 function generateDoctorReport(){
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
   const latest = history[0];
   // Bug 1 FIX: alert() → showToast() (alert blocked in TWA/WebView)
   if(!latest){ showToast('Please complete an assessment first.'); return; }
@@ -180,7 +180,7 @@ let _caregiverShareText = '';
 function renderCaregiverSection(){
   const el = document.getElementById('caregiverSection');
   if(!el) return;
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
   if(history.length < 2){ el.innerHTML = '<div style="font-size:12px;color:var(--muted)">Need at least 2 assessments to generate a caregiver summary.</div>'; return; }
 
   const latest = history[0];

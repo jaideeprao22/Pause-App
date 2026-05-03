@@ -36,7 +36,7 @@ function buildSingleAssessment(dIdx){
 const TIMESTAMPS_KEY = 'pause_disorder_timestamps';
 
 function stampDisorderTime(id){
-  const ts = JSON.parse(localStorage.getItem(TIMESTAMPS_KEY)||'{}');
+  const ts = safeJsonParse(TIMESTAMPS_KEY, {});
   ts[id] = Date.now();
   localStorage.setItem(TIMESTAMPS_KEY, JSON.stringify(ts));
 }

@@ -40,7 +40,7 @@ function showScreen(id){
     renderProgress();
     renderChallenge();
     // FIX 5: Render share button based on how many assessments exist
-    const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+    const history = safeJsonParse('pauseV2History', []);
     if(typeof renderTrendShareButton === 'function') renderTrendShareButton(history.length);
   }
 

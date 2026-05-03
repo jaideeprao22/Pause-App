@@ -150,7 +150,7 @@ function renderMoodCheck(){
   const el = document.getElementById('moodCheckCard');
   if(!el) return;
   const today = new Date().toISOString().split('T')[0];
-  const moodLog = JSON.parse(localStorage.getItem('moodLog') || '[]');
+  const moodLog = safeJsonParse('moodLog', []);
   const todayMood = moodLog.find(m => m.date === today);
 
   if(todayMood){
@@ -180,7 +180,7 @@ function renderMoodCheck(){
 
 function logMood(value){
   const today = new Date().toISOString().split('T')[0];
-  const moodLog = JSON.parse(localStorage.getItem('moodLog') || '[]');
+  const moodLog = safeJsonParse('moodLog', []);
   moodLog.unshift({date: today, value});
   if(moodLog.length > 60) moodLog.splice(60);
   localStorage.setItem('moodLog', JSON.stringify(moodLog));
@@ -189,7 +189,7 @@ function logMood(value){
 
 function resetTodayMood(){
   const today = new Date().toISOString().split('T')[0];
-  const moodLog = JSON.parse(localStorage.getItem('moodLog') || '[]').filter(m => m.date !== today);
+  const moodLog = safeJsonParse('moodLog', []).filter(m => m.date !== today);
   localStorage.setItem('moodLog', JSON.stringify(moodLog));
   renderMoodCheck();
 }

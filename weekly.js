@@ -20,8 +20,8 @@ function _parseHistoryDate(dateStr){
 }
 
 function generateWeeklyReport(){
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
-  const challenge = JSON.parse(localStorage.getItem('pauseChallenge') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
+  const challenge = safeJsonParse('pauseChallenge', []);
   const weekStart = getWeekStart();
   // Bug 9 FIX: use _parseHistoryDate instead of new Date(h.date)
   const weekEntries = history.filter(h => _parseHistoryDate(h.date) >= weekStart);
@@ -99,7 +99,7 @@ function renderWeeklyReport(){
 }
 
 function checkReassessmentReminder(){
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
   if(!history.length) return;
   // Bug 10 FIX: use _parseHistoryDate — new Date(locale string) fails on Safari
   const lastDate = _parseHistoryDate(history[0].date);

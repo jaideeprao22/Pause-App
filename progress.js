@@ -6,7 +6,7 @@
 function renderPersonalSummary(){
   const el = document.getElementById('progressSummaryCard');
   if(!el) return;
-  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  const history = safeJsonParse('pauseV2History', []);
 
   if(!history.length){
     el.innerHTML = `<div class="card" style="text-align:center;padding:20px;margin-bottom:12px">
@@ -95,7 +95,7 @@ function renderPersonalSummary(){
 function renderDisorderProgress(){
   const el = document.getElementById('disorderProgressCards');
   if(!el) return;
-  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  const history = safeJsonParse('pauseV2History', []);
 
   if(!history.length){ el.innerHTML=''; return; }
 
@@ -165,7 +165,7 @@ function renderDisorderProgress(){
 function renderMoodTrend(){
   const el = document.getElementById('moodTrendSection');
   if(!el) return;
-  const moodLog = JSON.parse(localStorage.getItem('moodLog') || '[]').slice(0,14).reverse();
+  const moodLog = safeJsonParse('moodLog', []).slice(0,14).reverse();
   if(!moodLog.length){ el.innerHTML='<div style="font-size:12px;color:var(--muted)">Log your mood daily to see trends here.</div>'; return; }
   // BUG16 FIX: use global MOODS from motivation.js instead of redeclaring
   const _moodRef = (typeof MOODS !== 'undefined') ? MOODS : [{value:5,emoji:'😊',color:'#2ecc71'},{value:4,emoji:'🙂',color:'#00c9a7'},{value:3,emoji:'😐',color:'#f5a623'},{value:2,emoji:'😔',color:'#ff6b35'},{value:1,emoji:'😰',color:'#ff4757'}];
@@ -186,7 +186,7 @@ function renderProgress(){
   renderDisorderProgress();
   renderMoodTrend();
   if(typeof renderTrajectoryBadges==='function') renderTrajectoryBadges(); // BUG4 FIX
-  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  const history = safeJsonParse('pauseV2History', []);
 
   // Trend graph
   const trendBars = document.getElementById('trendBars');
@@ -237,7 +237,7 @@ function renderChallenge(){
     localStorage.setItem('currentWeekNum', '1');
     localStorage.setItem('challengeWeeksCompleted', '0');
   } else if(sevenDaysPassed){
-    const completed = JSON.parse(localStorage.getItem('pauseChallenge')||'[]');
+    const completed = safeJsonParse('pauseChallenge', []);
     const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum')||'1');
 
     // BUG FIX 1: Count as completed only if all 7 challenges done
@@ -255,7 +255,7 @@ function renderChallenge(){
     localStorage.setItem('weekJustReset', completed.length === 7 ? 'completed' : 'expired');
   }
 
-  const completed = JSON.parse(localStorage.getItem('pauseChallenge')||'[]');
+  const completed = safeJsonParse('pauseChallenge', []);
   const weekNum = localStorage.getItem('currentWeekNum') || '1';
   const weekJustReset = localStorage.getItem('weekJustReset');
 
@@ -319,7 +319,7 @@ function renderChallenge(){
 }
 
 function toggleChallenge(idx){
-  const completed = JSON.parse(localStorage.getItem('pauseChallenge')||'[]');
+  const completed = safeJsonParse('pauseChallenge', []);
   const pos = completed.indexOf(idx);
   if(pos===-1) completed.push(idx); else completed.splice(pos,1);
   localStorage.setItem('pauseChallenge', JSON.stringify(completed));
@@ -338,7 +338,7 @@ function renderTrajectoryBadges(){
     document.getElementById('trajectoryBadgesRowProgress')
   ].filter(Boolean);
   if(!els.length) return;
-  const badges=JSON.parse(localStorage.getItem('pause_trajectory_badges')||'[]');
+  const badges=safeJsonParse('pause_trajectory_badges', []);
   if(!badges.length){ els.forEach(el=>el.innerHTML=''); return; }
   const _html=`<div class="section-label" style="margin-top:4px">🌟 Improvement Milestones</div>
     <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;padding:14px">
@@ -378,7 +378,7 @@ function renderDetoxPlanner(){
   // BUG17 FIX: use stored date so midnight crossing doesn't reset progress
   const storedDate=localStorage.getItem('pause_detox_active_date')||getLocalDateStr(); // BUG19 FIX
   const today=new Date(storedDate).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-  const completed=JSON.parse(localStorage.getItem('pause_detox_completed_'+storedDate)||'[]');
+  const completed=safeJsonParse('pause_detox_completed_'+storedDate, []);
 
   el.innerHTML=`
     <div style="text-align:center;margin-bottom:16px">
@@ -411,7 +411,7 @@ function renderDetoxPlanner(){
 function toggleDetoxStep(idx){
   // BUG17 FIX: use stored active date
   const key='pause_detox_completed_'+(localStorage.getItem('pause_detox_active_date')||getLocalDateStr()); // BUG19 FIX
-  const completed=JSON.parse(localStorage.getItem(key)||'[]');
+  const completed=safeJsonParse(key, []);
   const pos=completed.indexOf(idx);
   if(pos===-1) completed.push(idx); else completed.splice(pos,1);
   localStorage.setItem(key,JSON.stringify(completed));

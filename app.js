@@ -24,7 +24,7 @@ function init(){
 }
 
 function loadSavedScores(){
-  const saved = JSON.parse(localStorage.getItem('pauseV2Scores') || 'null');
+  const saved = safeJsonParse('pauseV2Scores', null);
   if(saved){
     disorderScores = saved.disorder || {};
     impactScores   = saved.impact  || {};
@@ -55,7 +55,7 @@ function saveScoresLocal(){
 function saveScores(){
   saveScoresLocal();
   // History entry + Supabase sync — only runs when a full assessment is finished
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
   history.unshift({dws:dwsScore, disorder:{...disorderScores}, impact:{...impactScores}, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
   if(history.length > 20) history.splice(20);
   localStorage.setItem('pauseV2History', JSON.stringify(history));

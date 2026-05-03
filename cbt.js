@@ -488,7 +488,7 @@ function renderTrendShareButton(assessmentCount){
 }
 
 async function shareTrendImage(){
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
   const latestDWS = history.length     ? history[0].dws : null;
   const prevDWS   = history.length > 1 ? history[1].dws : null;
   const trend = latestDWS && prevDWS

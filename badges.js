@@ -2,7 +2,7 @@
 // BADGES
 // ============================================================
 function getBadgeStats(){
-  const history = JSON.parse(localStorage.getItem('pauseV2History') || '[]');
+  const history = safeJsonParse('pauseV2History', []);
   // FIX: Removed unused 'earned' variable that was being computed and discarded here
   return {
     totalAssessments: history.length,
@@ -18,7 +18,7 @@ function getBadgeStats(){
 
 function checkAndAwardBadges(){
   const stats = getBadgeStats();
-  const earned = JSON.parse(localStorage.getItem('pauseBadges') || '[]');
+  const earned = safeJsonParse('pauseBadges', []);
   let newBadges = [];
   BADGES.forEach(b => {
     if(!earned.includes(b.id) && b.condition(stats)){
@@ -41,7 +41,7 @@ function showBadgeModal(badge){
 }
 
 function renderBadges(){
-  const earned = JSON.parse(localStorage.getItem('pauseBadges') || '[]');
+  const earned = safeJsonParse('pauseBadges', []);
   const grid = document.getElementById('homeBadgeGrid');
   if(!grid) return;
   grid.innerHTML = BADGES.map(b => `

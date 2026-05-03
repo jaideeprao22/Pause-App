@@ -19,6 +19,21 @@ let postAssessDisorderId = null; // set by renderPostAssessmentPrompt, read by s
 let notifPermission = false;
 
 // ============================================================
+// SAFE LOCALSTORAGE PARSE
+// Wraps JSON.parse(localStorage.getItem(key)) with try/catch so a corrupt
+// or missing entry returns `fallback` instead of throwing. Defined here
+// (state.js loads right after data.js) so every later file can use it.
+// ============================================================
+function safeJsonParse(key, fallback){
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : JSON.parse(raw);
+  } catch(e){
+    return fallback;
+  }
+}
+
+// ============================================================
 // FIX 3: GRADE PERSISTENCE — single authoritative store
 // ============================================================
 const GRADES_KEY = 'pause_grades';
@@ -130,7 +145,7 @@ async function handleUser(user){
   if(!profile){
     setTimeout(() => openModal('profileModal'), 800);
   } else {
-    userProfile = JSON.parse(profile);
+    try { userProfile = JSON.parse(profile); } catch(e){ userProfile = {}; }
     // Migrate old key to new if needed
     localStorage.setItem('pause_profile_' + user.id, JSON.stringify(userProfile));
   }
@@ -714,7 +729,7 @@ function declineReConsent(){
 const URGE_LOG_KEY = 'pause_urge_log';
 
 function logUrge(disorderId, trigger, resisted){
-  const log = JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  const log = safeJsonParse(URGE_LOG_KEY, []);
   log.unshift({
     date: new Date().toISOString(),
     disorder: disorderId,
@@ -739,7 +754,7 @@ function logUrge(disorderId, trigger, resisted){
 function renderUrgeJournal(){
   const el=document.getElementById('urgeJournalList');
   if(!el) return;
-  const log=JSON.parse(localStorage.getItem(URGE_LOG_KEY)||'[]');
+  const log=safeJsonParse(URGE_LOG_KEY, []);
   if(!log.length){
     el.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px">No urges logged yet. Use the button above when you feel the urge to scroll, search, or game.</div>';
     return;

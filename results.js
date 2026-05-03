@@ -399,7 +399,7 @@ function renderPostAssessmentPrompt(){
 function renderComparisonCard(){
   const el = document.getElementById('comparisonCard');
   if(!el) return;
-  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  const history = safeJsonParse('pauseV2History', []);
   if(history.length < 2){ el.innerHTML=''; el.style.display='none'; return; }
   const latest = history[0], prev = history[1];
   if(!prev.disorder || !latest.disorder){ el.innerHTML=''; el.style.display='none'; return; }
@@ -449,7 +449,7 @@ async function shareDisorderCard(disorderId){
 // FEATURE6: Severity trajectory badge — check after each result
 // ============================================================
 function checkTrajectoryBadge(){
-  const history = JSON.parse(localStorage.getItem('pauseV2History')||'[]');
+  const history = safeJsonParse('pauseV2History', []);
   if(history.length<2) return;
   const latest=history[0], prev=history[1];
   if(!latest.disorder||!prev.disorder) return;
@@ -463,7 +463,7 @@ function checkTrajectoryBadge(){
     }
   });
   if(improved){
-    const badges=JSON.parse(localStorage.getItem('pause_trajectory_badges')||'[]');
+    const badges=safeJsonParse('pause_trajectory_badges', []);
     badges.push({date:new Date().toISOString(),dws:latest.dws});
     localStorage.setItem('pause_trajectory_badges',JSON.stringify(badges));
     // Show celebration toast

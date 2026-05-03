@@ -100,7 +100,7 @@ function formatLogDate(dateKey){
 }
 
 function getLogbookEntries(){
-  return JSON.parse(localStorage.getItem('pauseLogbook') || '[]');
+  return safeJsonParse('pauseLogbook', []);
 }
 
 function saveLogEntry(){
