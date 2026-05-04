@@ -139,10 +139,18 @@ function renderActionPlan(){
     if(concernLabels.includes(level.label)){
       // Tips moved to TIPS_BY_DISORDER in data.js so the personalized
       // 7-day challenge pack (progress.js) can share the same content.
+      // Each tip is now {text, cbtModuleId?} — cbtModuleId links to a
+      // CBT_MODULES_V2 entry shown when the action card is tapped.
       const tipPool = TIPS_BY_DISORDER[d.id];
       if(tipPool){
         const count = level.label==='Severe'?5:level.label==='Moderate'?4:2; // Mild or unknown → 2
-        tipPool.slice(0,count).forEach(tip => actions.push({icon:d.icon,text:tip,color:d.color}));
+        tipPool.slice(0,count).forEach(tip => actions.push({
+          icon: d.icon,
+          text: tip.text,
+          color: d.color,
+          disorder: d.id,
+          cbtModuleId: tip.cbtModuleId || null
+        }));
       }
     }
   });
@@ -181,13 +189,41 @@ function renderActionPlan(){
     actions.push({icon:'📅',text:'A quick check-up in 4 weeks will help you stay on track and see your progress.',color:'#3d6fff'});
   }
 
-  el.innerHTML = actions.slice(0,12).map((a,i) => `
-    <div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
+  // Stash the rendered actions globally so showActionPlanModule(idx)
+  // (defined in cbt.js) can resolve the click target back to {disorder,
+  // cbtModuleId, ...} without us having to encode all of it in onclick.
+  const rendered = actions.slice(0, 12);
+  window._actionPlanActions = rendered;
+
+  // Inject the action-card hover/focus styles once. Inline styles can't do
+  // :hover/:focus, so we add a tiny stylesheet on first render. The class
+  // name is namespaced to avoid colliding with the existing .card rules.
+  if(!document.getElementById('actionCardStyles')){
+    const s = document.createElement('style');
+    s.id = 'actionCardStyles';
+    s.textContent = `
+      .action-card-clickable{cursor:pointer;transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;border:1px solid transparent}
+      .action-card-clickable:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(15,45,94,0.08)}
+      .action-card-clickable:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,111,255,0.18)}
+      .action-card-chevron{margin-left:auto;color:var(--muted);font-size:18px;flex-shrink:0;align-self:center}
+    `;
+    document.head.appendChild(s);
+  }
+
+  el.innerHTML = rendered.map((a,i) => `
+    <div class="card action-card-clickable"
+         role="button"
+         tabindex="0"
+         aria-label="${(a.text || '').replace(/"/g, '&quot;')}"
+         onclick="showActionPlanModule(${i})"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showActionPlanModule(${i});}"
+         style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
       <div style="width:36px;height:36px;border-radius:10px;background:${a.color}20;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${a.icon}</div>
-      <div>
+      <div style="flex:1;min-width:0">
         <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px">ACTION ${i+1}</div>
         <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.5">${a.text}</div>
       </div>
+      <span class="action-card-chevron" aria-hidden="true">›</span>
     </div>`).join('');
 }
 

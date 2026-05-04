@@ -118,6 +118,198 @@ const GENERAL_MODULES = [
     steps:['Notice any digital urge — don\'t act on it yet','Rate intensity: 1 (barely there) to 10 (overwhelming)','Breathe steadily and watch the urge like a passing wave','Urges ALWAYS peak and fall — they cannot stay at maximum','Rate again at 5 minutes — nearly always lower. You surfed it.'] }
 ];
 
+// ─── CBT_MODULES_V2 — keyed by module ID, expanded shape ─────
+// Used by the Action Plan tip → modal flow in results.js. Tips in
+// TIPS_BY_DISORDER (data.js) carry an optional `cbtModuleId` that resolves
+// to an entry here. Multiple tips can share the same module ID; ~12-15
+// modules cover the full library. CBT_MODULES (above) stays untouched —
+// it's still the source for the Tools-screen walkthrough cards. Migration
+// to a single source happens later.
+//
+// Required fields per spec: id, title, disorders[], summary, whyItWorks,
+// howToDoIt[], whenToUse, timeToComplete.
+const CBT_MODULES_V2 = {
+  'search-budget': {
+    id: 'search-budget',
+    title: 'Search Budget',
+    disorders: ['cyberchondria'],
+    summary: 'Cap the number of health-related searches you allow yourself in a day, then taper that cap down each week.',
+    whyItWorks: 'Compulsive symptom-searching is kept alive by short-term anxiety relief — finding an "answer" online briefly feels reassuring, which trains the brain to search again the next time anxiety appears. Putting a hard ceiling on the behaviour interrupts that loop and gives the anxiety room to settle on its own. This is the same principle behind response prevention, the most evidence-supported component of CBT for health anxiety.',
+    howToDoIt: [
+      'Decide your daily search ceiling. Three is a sensible starting point if you currently search several times a day.',
+      'Keep a simple tally — a note on your phone, a sticky note, anything you will actually see. Each search counts as one, even short ones.',
+      'When you reach the ceiling, close the browser completely. Don\'t leave tabs open "just in case".',
+      'Each week, lower the ceiling by one — two searches the second week, one the third, and so on.',
+      'When the urge appears after the ceiling is reached, sit with it for ten minutes before deciding what to do. Most urges fade on their own.'
+    ],
+    whenToUse: 'Use this whenever you notice yourself reaching for the search bar to look up a symptom — especially the second or third time about the same concern in a single day.',
+    timeToComplete: '2 minutes to set up'
+  }
+  // Additional modules will be authored separately. See FIX_16 plan.
+};
+
+// Resolve a tip's cbtModuleId to its module object. Returns null when the
+// id is missing or doesn't exist — callers should render the
+// "More guidance coming soon" placeholder in that case.
+function findCbtModuleV2(moduleId){
+  if(!moduleId || typeof CBT_MODULES_V2 === 'undefined') return null;
+  return CBT_MODULES_V2[moduleId] || null;
+}
+
+// ─── ACTION PLAN MODULE MODAL ────────────────────────────────
+// Tapped from Action Plan cards in results.js. One global injected modal
+// reused across taps. Esc closes; focus is trapped inside the sheet while
+// open and returned to the originating element on close.
+const PRACTICED_CBT_KEY = 'practicedCBTModules';
+let _apmReturnFocusEl = null;
+let _apmKeydownHandler = null;
+let _apmCurrentModuleId = null;
+
+function _ensureActionPlanModuleModal(){
+  if(document.getElementById('actionPlanModuleModal')) return;
+  const div = document.createElement('div');
+  div.className = 'modal-overlay';
+  div.id = 'actionPlanModuleModal';
+  div.setAttribute('role', 'dialog');
+  div.setAttribute('aria-modal', 'true');
+  div.setAttribute('aria-labelledby', 'apmTitle');
+  div.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto;position:relative">
+    <div class="modal-handle"></div>
+    <button id="apmCloseBtn" aria-label="Close" onclick="closeActionPlanModule()" style="position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:var(--bg);border:none;font-size:18px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit">×</button>
+    <div id="apmContent"></div>
+  </div>`;
+  // Click outside the sheet (i.e. on the overlay itself) closes the modal.
+  div.addEventListener('click', e => { if(e.target === div) closeActionPlanModule(); });
+  document.body.appendChild(div);
+}
+
+// Build modal innerHTML for a resolved CBT_MODULES_V2 entry.
+function _apmModuleHtml(mod, action){
+  const stepsHtml = (mod.howToDoIt || []).map((step, i) => `
+    <li style="display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid ${action.color}15;font-size:13px;line-height:1.55;align-items:flex-start">
+      <span style="min-width:22px;height:22px;border-radius:50%;background:${action.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">${i+1}</span>
+      <span style="color:var(--text)">${_apmEsc(step)}</span>
+    </li>`).join('');
+
+  return `
+    <div style="display:flex;align-items:center;gap:12px;margin:4px 24px 14px 0">
+      <div style="width:44px;height:44px;border-radius:12px;background:${action.color}20;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${action.icon}</div>
+      <div id="apmTitle" style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:${action.color};line-height:1.3">${_apmEsc(mod.title)}</div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin:14px 0 6px">What it is</div>
+    <div style="font-size:14px;line-height:1.55;color:var(--text)">${_apmEsc(mod.summary || action.text || '')}</div>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin:18px 0 6px">Why it works</div>
+    <div style="font-size:13px;line-height:1.65;color:var(--text)">${_apmEsc(mod.whyItWorks || '')}</div>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin:18px 0 6px">How to do it</div>
+    <ul style="list-style:none;padding:0;margin:0;background:${action.color}08;border-radius:12px;padding:6px 14px">${stepsHtml}</ul>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin:18px 0 6px">When to use it</div>
+    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:8px">${_apmEsc(mod.whenToUse || '')}</div>
+    ${mod.timeToComplete ? `<div style="display:inline-block;font-size:11px;font-weight:700;color:${action.color};background:${action.color}15;border:1px solid ${action.color}40;border-radius:20px;padding:3px 10px">⏱ ${_apmEsc(mod.timeToComplete)}</div>` : ''}
+
+    <button id="apmPracticedBtn" onclick="markCbtPracticedAndClose('${mod.id}')" style="width:100%;margin-top:22px;padding:13px;background:${action.color};color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">
+      ✓ Mark as practiced
+    </button>`;
+}
+
+// Build modal innerHTML for the "no module yet" fallback.
+function _apmPlaceholderHtml(action){
+  return `
+    <div style="display:flex;align-items:center;gap:12px;margin:4px 24px 14px 0">
+      <div style="width:44px;height:44px;border-radius:12px;background:${action.color}20;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${action.icon}</div>
+      <div id="apmTitle" style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:${action.color};line-height:1.3">${_apmEsc(action.text || 'Action')}</div>
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin:14px 0 6px">What it is</div>
+    <div style="font-size:14px;line-height:1.55;color:var(--text);margin-bottom:18px">${_apmEsc(action.text || '')}</div>
+    <div style="background:${action.color}10;border:1px dashed ${action.color}40;border-radius:12px;padding:18px;text-align:center;font-size:13px;color:var(--muted);line-height:1.6">
+      📚 More guidance coming soon.<br>
+      <span style="font-size:11px">Detailed steps, evidence, and timing for this technique are being authored.</span>
+    </div>`;
+}
+
+// Light HTML escape — defensive for any user-facing string we drop into innerHTML.
+function _apmEsc(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Public entry: results.js calls this with an index into window._actionPlanActions.
+function showActionPlanModule(idx){
+  const actions = window._actionPlanActions;
+  if(!actions || !actions[idx]) return;
+  const action = actions[idx];
+  const mod = findCbtModuleV2(action.cbtModuleId);
+  _apmCurrentModuleId = mod ? mod.id : null;
+
+  _ensureActionPlanModuleModal();
+  document.getElementById('apmContent').innerHTML = mod ? _apmModuleHtml(mod, action) : _apmPlaceholderHtml(action);
+
+  // Stash the originating element so we can return focus on close
+  _apmReturnFocusEl = document.activeElement;
+
+  openModal('actionPlanModuleModal');
+
+  // Move focus into the sheet (close button is always present)
+  const closeBtn = document.getElementById('apmCloseBtn');
+  if(closeBtn) closeBtn.focus();
+
+  // Esc + focus trap — single global listener while modal is open
+  _apmKeydownHandler = function(e){
+    if(e.key === 'Escape'){ closeActionPlanModule(); return; }
+    if(e.key !== 'Tab') return;
+    const modalEl = document.getElementById('actionPlanModuleModal');
+    if(!modalEl) return;
+    const focusable = modalEl.querySelectorAll('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])');
+    if(!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+    if(e.shiftKey && document.activeElement === first){ last.focus(); e.preventDefault(); }
+    else if(!e.shiftKey && document.activeElement === last){ first.focus(); e.preventDefault(); }
+  };
+  document.addEventListener('keydown', _apmKeydownHandler);
+}
+
+function closeActionPlanModule(){
+  closeModal('actionPlanModuleModal');
+  if(_apmKeydownHandler){
+    document.removeEventListener('keydown', _apmKeydownHandler);
+    _apmKeydownHandler = null;
+  }
+  // Return focus to the originating card if it's still in the DOM
+  try {
+    if(_apmReturnFocusEl && document.body.contains(_apmReturnFocusEl) && typeof _apmReturnFocusEl.focus === 'function'){
+      _apmReturnFocusEl.focus();
+    }
+  } catch(e) { /* element gone or unfocusable — ignore */ }
+  _apmReturnFocusEl = null;
+  _apmCurrentModuleId = null;
+}
+
+function markCbtPracticedAndClose(moduleId){
+  if(moduleId){
+    const log = (typeof safeJsonParse === 'function') ? safeJsonParse(PRACTICED_CBT_KEY, []) : [];
+    const existingIdx = log.findIndex(e => e && e.id === moduleId);
+    const entry = { id: moduleId, ts: Date.now() };
+    if(existingIdx >= 0) log[existingIdx] = entry;
+    else log.unshift(entry);
+    if(log.length > 100) log.splice(100);
+    try { localStorage.setItem(PRACTICED_CBT_KEY, JSON.stringify(log)); } catch(e){}
+  }
+  closeActionPlanModule();
+  if(typeof showToast === 'function') showToast('🌱 Marked as practiced — well done.');
+}
+
+window.showActionPlanModule       = showActionPlanModule;
+window.closeActionPlanModule      = closeActionPlanModule;
+window.markCbtPracticedAndClose   = markCbtPracticedAndClose;
+
 // ─── INTERACTIVE WALKTHROUGH ENGINE ──────────────────────────
 // Adds a "▶ Start this exercise" button to every CBT module card.
 // Tapping it opens a step-by-step walkthrough modal. Completing all steps

@@ -248,7 +248,12 @@ function _disorderTipObj(disorderId, idx){
   const d = DISORDERS.find(x => x.id === disorderId);
   const tip = (TIPS_BY_DISORDER[disorderId] || [])[idx];
   if(!d || !tip) return null;
-  return { kind:'disorder', disorder:disorderId, disorderName:d.name, color:d.color, icon:d.icon, tipId:disorderId+':'+idx, text:tip };
+  // Tip is {text, cbtModuleId?} — older string-typed entries fall through
+  // to .text===undefined and the pack day renders blank, so this also
+  // protects against any future plain-string entries slipping in.
+  const text = (typeof tip === 'string') ? tip : tip.text;
+  if(!text) return null;
+  return { kind:'disorder', disorder:disorderId, disorderName:d.name, color:d.color, icon:d.icon, tipId:disorderId+':'+idx, text };
 }
 function _wildcardTipObj(idx){
   const c = CHALLENGES[idx];
