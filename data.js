@@ -235,6 +235,10 @@ const IMPACT_MODULES = [
 const IMPACT_OPTIONS = ["Never","Rarely","Sometimes","Often","Always"];
 const IMPACT_OPTION_VALUES = [0,1,2,3,4];
 
+// CHALLENGES — generic lifestyle/behavioral nudges. Used as the dedicated
+// "wildcard" pool for the +1 slot in each personalized 7-day challenge pack
+// (see progress.js). Also previously the static source for the whole 7-day
+// challenge before pack personalization landed.
 const CHALLENGES = [
   {text:"No social media before 9am", icon:"🌅"},
   {text:"Phone-free meals — every meal today", icon:"🍽️"},
@@ -244,6 +248,20 @@ const CHALLENGES = [
   {text:"Take a 30-minute walk without your phone", icon:"🚶"},
   {text:"Share your PAUSE score and challenge a friend", icon:"🤝"}
 ];
+
+// TIPS_BY_DISORDER — 8 actionable tips per disorder. Consumed by
+// renderActionPlan (results.js) and the personalized challenge pack
+// generator (progress.js). Order matters for the action plan, which slices
+// from the front based on severity. Tip "IDs" are synthesized on demand as
+// "<disorderId>:<index>" — see _pickTips in progress.js.
+const TIPS_BY_DISORDER = {
+  cyberchondria:["Set a strict 20-minute daily limit for health-related searches using screen time controls.","When you feel the urge to search symptoms, write them down and wait 30 minutes before searching.","Replace health search habits with a trusted medical helpline or your doctor's contact.","Unsubscribe from health newsletters and symptom-checker websites that trigger anxiety.","Schedule a monthly check-in with your doctor instead of daily online symptom searches.","Practice the 5-4-3-2-1 grounding technique when health anxiety urges arise.","Tell a trusted person about your health search habits — accountability reduces compulsion.","Use the PAUSE App to track how often you feel the urge to search health information."],
+  socialmedia:["Enable built-in screen time limits on all social media apps — start with 45 minutes per day.","Turn off all social media push notifications. Check manually at fixed times only.","Install a grayscale filter on your phone to reduce the visual reward of scrolling.","Delete the social media apps from your phone and access them only via browser.","Designate two fixed 20-minute windows per day for checking social media — stick to them.","Audit who you follow — unfollow anyone whose content makes you feel worse about yourself.","Replace your morning social media check with a 5-minute journaling or stretching routine.","Try a 48-hour social media fast this weekend and note how you feel."],
+  shortform:["Delete TikTok, Reels, and Shorts apps for 7 days and notice the difference in your attention span.","Replace your first 15 minutes of short video watching with a 10-minute walk.","Set your phone to auto-lock after 5 minutes of inactivity to interrupt passive scrolling.","Move short video apps to a folder on the last page of your home screen — friction reduces use.","Set a maximum of 3 short video sessions per day with a 10-minute limit each.","Replace one short video session daily with a podcast or audiobook on a topic you care about.","Notice your emotional state before opening a short video app — boredom, stress, or loneliness?","Track your daily short video screen time for one week and review the total honestly."],
+  gaming:["Set a hard 2-hour daily gaming limit using parental controls or an app timer.","Establish gaming-free zones: no gaming after 9pm and not before completing daily priorities.","Replace one gaming session per week with a physical outdoor activity.","Tell someone you trust about your gaming limits and ask them to check in with you.","Remove gaming apps from your phone — play only on dedicated devices with time limits.","Identify your gaming triggers (stress, boredom, loneliness) and address the root cause.","Join a sports team, gym class, or hobby group to replace gaming time with social activity.","Take a full gaming detox for 7 days and journal how you spend the reclaimed time."],
+  ai:["Challenge yourself to solve at least one problem per day entirely without AI assistance.","Before asking an AI, spend 5 minutes attempting to find the answer independently.","Use AI as a reviewer, not a creator — write your own drafts first, then ask for feedback.","Set a daily AI usage limit of 30 minutes for non-essential tasks.","Practice writing emails, reports, and messages entirely on your own at least 3 times per week.","When learning something new, read a book or article first before consulting AI.","Reflect weekly: which decisions did you make independently vs. outsourced to AI?","Have one meaningful conversation per day with a real person instead of an AI chatbot."],
+  workaddiction:["Set a firm daily work cut-off time and enforce it with a phone alarm labeled 'Stop Working'.","Disable work email notifications after 7pm on all devices.","Schedule at least one full screen-free hour per day for non-work activities.","Take your full lunch break away from your desk and without checking work messages.","Plan one full work-free day per week — protect it as non-negotiable.","List 3 non-work activities that bring you joy and schedule them this week.","Communicate your work hours clearly to colleagues to reduce after-hours expectations.","Reflect on whether your work volume is self-imposed or externally driven — the answer matters."]
+};
 
 const BADGES = [
   {id:'first_assessment',emoji:'🎯',name:'First Steps',desc:'Completed your first assessment',condition: s => s.totalAssessments >= 1},

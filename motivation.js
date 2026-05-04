@@ -90,6 +90,21 @@ function getTopDisorder(){
   return worst || 'default';
 }
 
+// Returns up to `n` disorder IDs, sorted by baseline-subtracted percentage,
+// highest first. Excludes any with no score. Returns [] if no scores.
+// Used by the personalized 7-day challenge pack generator (progress.js).
+function getTopDisordersByPct(n){
+  const scored = [];
+  DISORDERS.forEach(d => {
+    if(disorderScores[d.id] !== undefined){
+      const pct = (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
+      scored.push({id: d.id, pct});
+    }
+  });
+  scored.sort((a, b) => b.pct - a.pct);
+  return scored.slice(0, n).map(s => s.id);
+}
+
 function renderMotivationCard(){
   const el = document.getElementById('motivationCard');
   if(!el) return;

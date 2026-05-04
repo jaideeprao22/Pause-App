@@ -224,11 +224,148 @@ function renderProgress(){
   }).join('');
 }
 
+// ============================================================
+// PERSONALIZED 7-DAY CHALLENGE PACK
+// ============================================================
+// A pack is generated once per 7-day cycle from the user's top assessment
+// disorders (4 tips from #1 + 2 from #2 + 1 wildcard from CHALLENGES).
+// The pack is frozen for the cycle so completion indices stay stable.
+// At cycle reset, a new pack is generated using current top disorders and
+// (where pool size allows) excluding tip IDs from the previous pack.
+// ============================================================
+const CHALLENGE_PACK_KEY = 'currentChallengePack';
+const _CONCERN_PCT_THRESHOLD = 0.20; // baseline-subtracted % above which a disorder is "concerning"
+
+function _loadActivePack(){
+  return safeJsonParse(CHALLENGE_PACK_KEY, null);
+}
+function _saveActivePack(pack){
+  try { localStorage.setItem(CHALLENGE_PACK_KEY, JSON.stringify(pack)); }
+  catch(e){ /* quota/unavailable — fail silently, pack will regenerate next render */ }
+}
+
+function _disorderTipObj(disorderId, idx){
+  const d = DISORDERS.find(x => x.id === disorderId);
+  const tip = (TIPS_BY_DISORDER[disorderId] || [])[idx];
+  if(!d || !tip) return null;
+  return { kind:'disorder', disorder:disorderId, disorderName:d.name, color:d.color, icon:d.icon, tipId:disorderId+':'+idx, text:tip };
+}
+function _wildcardTipObj(idx){
+  const c = CHALLENGES[idx];
+  if(!c) return null;
+  return { kind:'wildcard', icon:c.icon, tipId:'wildcard:'+idx, text:c.text };
+}
+
+function _shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// Pick `count` tips from a disorder's pool, preferring indices not in `excludeSet`.
+// Falls back to allowing reuse if exclusion would leave fewer fresh than `count`.
+function _pickTips(disorderId, count, excludeSet){
+  const pool = TIPS_BY_DISORDER[disorderId];
+  if(!pool || !pool.length) return [];
+  const allIdx = pool.map((_,i) => i);
+  const fresh = allIdx.filter(i => !excludeSet.has(disorderId+':'+i));
+  let chosen;
+  if(fresh.length >= count){
+    chosen = _shuffle(fresh).slice(0, count);
+  } else {
+    const reused = _shuffle(allIdx.filter(i => excludeSet.has(disorderId+':'+i)));
+    chosen = fresh.concat(reused).slice(0, count);
+  }
+  return chosen.map(i => _disorderTipObj(disorderId, i)).filter(Boolean);
+}
+
+function _pickWildcards(count, excludeSet){
+  const allIdx = CHALLENGES.map((_,i) => i);
+  const fresh = allIdx.filter(i => !excludeSet.has('wildcard:'+i));
+  let chosen;
+  if(fresh.length >= count){
+    chosen = _shuffle(fresh).slice(0, count);
+  } else {
+    const reused = _shuffle(allIdx.filter(i => excludeSet.has('wildcard:'+i)));
+    chosen = fresh.concat(reused).slice(0, count);
+  }
+  return chosen.map(_wildcardTipObj).filter(Boolean);
+}
+
+// Pack ordering is intentional, not shuffled: top-disorder tips first,
+// second-disorder tips next, wildcard(s) last — Day 7 reads as a "bonus".
+function _personalizedPack(topIds, excludeSet){
+  const days = [];
+  if(topIds.length >= 2){
+    days.push(..._pickTips(topIds[0], 4, excludeSet));
+    days.push(..._pickTips(topIds[1], 2, excludeSet));
+    days.push(..._pickWildcards(1, excludeSet));
+  } else {
+    // Only one concerning disorder — 5 from it + 2 wildcards
+    days.push(..._pickTips(topIds[0], 5, excludeSet));
+    days.push(..._pickWildcards(2, excludeSet));
+  }
+  return { sourceDisorders: topIds.slice(0, 2), fallback: false, days };
+}
+
+// Generic mixed pack — used when no assessment exists or all scores are
+// below the concern threshold. Rotates by week number so consecutive
+// "default" weeks differ instead of repeating the same disorder pair.
+function _genericMixedPack(weekNum){
+  const ids = DISORDERS.map(d => d.id);
+  const safeWeek = Math.max(1, weekNum || 1);
+  const startIdx = (safeWeek - 1) % ids.length;
+  const rotated = ids.slice(startIdx).concat(ids.slice(0, startIdx));
+  const days = [];
+  const empty = new Set();
+  days.push(..._pickTips(rotated[0], 4, empty));
+  days.push(..._pickTips(rotated[1], 2, empty));
+  days.push(..._pickWildcards(1, empty));
+  return { sourceDisorders: rotated.slice(0, 2), fallback: true, days };
+}
+
+function _generateChallengePack(prevPack){
+  const weekNum = parseInt(localStorage.getItem('currentWeekNum') || '1');
+  const allTops = (typeof getTopDisordersByPct === 'function') ? getTopDisordersByPct(6) : [];
+  const concerning = allTops.filter(id => {
+    const d = DISORDERS.find(x => x.id === id);
+    if(!d || disorderScores[d.id] === undefined) return false;
+    const pct = (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
+    return pct > _CONCERN_PCT_THRESHOLD;
+  });
+  const excludeSet = new Set((prevPack && Array.isArray(prevPack.usedTipIds)) ? prevPack.usedTipIds : []);
+
+  let pack = (concerning.length === 0)
+    ? _genericMixedPack(weekNum)
+    : _personalizedPack(concerning.slice(0, 2), excludeSet);
+
+  // Top up to exactly 7 days using wildcards (defensive: only fires if a tip
+  // pool was unexpectedly empty). CHALLENGES has 7 entries, so this terminates.
+  while(pack.days.length < 7){
+    const used = new Set(pack.days.map(d => d.tipId));
+    const wIdxAvail = CHALLENGES.map((_,i)=>i).filter(i => !used.has('wildcard:'+i));
+    if(!wIdxAvail.length) break;
+    const wc = _wildcardTipObj(wIdxAvail[0]);
+    if(!wc) break;
+    pack.days.push(wc);
+  }
+  pack.days = pack.days.slice(0, 7);
+
+  pack.generatedAt = Date.now();
+  pack.weekNum = weekNum;
+  pack.usedTipIds = pack.days.map(d => d.tipId);
+  return pack;
+}
+
 function renderChallenge(){
   const weekStart = localStorage.getItem('challengeWeekStart');
   const now = Date.now();
   const sevenDaysPassed = weekStart && (now - parseInt(weekStart) > 7*24*60*60*1000);
   const isFirstLoad = !weekStart;
+  let prevPackForRegen = null;
 
   if(isFirstLoad){
     // First ever load — start Week 1
@@ -253,6 +390,18 @@ function renderChallenge(){
     localStorage.setItem('pauseChallenge','[]');
     localStorage.setItem('challengeWeekStart', now.toString());
     localStorage.setItem('weekJustReset', completed.length === 7 ? 'completed' : 'expired');
+
+    // Stash previous pack so the new one can exclude its tip IDs where pool size allows
+    prevPackForRegen = _loadActivePack();
+  }
+
+  // Ensure an active pack exists for the current cycle. Backfills mid-cycle
+  // for users upgrading from the pre-pack version (their pauseChallenge
+  // indices stay; content just changes — clean by next reset).
+  let pack = _loadActivePack();
+  if(!pack || isFirstLoad || sevenDaysPassed){
+    pack = _generateChallengePack(prevPackForRegen);
+    _saveActivePack(pack);
   }
 
   const completed = safeJsonParse('pauseChallenge', []);
@@ -290,6 +439,27 @@ function renderChallenge(){
     localStorage.removeItem('weekJustReset');
   }
 
+  const days = (pack && Array.isArray(pack.days)) ? pack.days : [];
+
+  // Renders a single day card. Wildcard days show a "✨ Bonus" label in
+  // the accent color; disorder days show the disorder name in the
+  // disorder's color. Layout/structure is otherwise identical.
+  function _dayCardHtml(c, i, isCompleted, clickable){
+    const labelHtml = c.kind === 'wildcard'
+      ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px">✨ Bonus</div>`
+      : `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${c.color || 'var(--muted)'};margin-bottom:3px">${c.disorderName || ''}</div>`;
+    const onClick = clickable ? `onclick="toggleChallenge(${i})"` : '';
+    return `<div class="challenge-day ${isCompleted?'completed':''}" ${onClick}>
+      <div class="challenge-check ${isCompleted?'done':''}">${isCompleted?'✓':c.icon}</div>
+      <div style="flex:1">
+        ${labelHtml}
+        <div class="challenge-text">${c.text}</div>
+        ${isCompleted?'<div style="font-size:10px;color:var(--teal);margin-top:2px;font-weight:700">Completed ✓</div>':''}
+      </div>
+      <div class="challenge-day-label">Day ${i+1}</div>
+    </div>`;
+  }
+
   // Show completion state
   if(completed.length === 7){
     el.innerHTML = resetBanner + `<div class="notice green" style="text-align:center;padding:20px">
@@ -297,25 +467,12 @@ function renderChallenge(){
       <div class="notice-title">Week ${weekNum} Complete!</div>
       You've finished all 7 challenges. A new challenge week will start automatically in 7 days.
     </div>` +
-    CHALLENGES.map((c,i) => `
-      <div class="challenge-day completed">
-        <div class="challenge-check done">✓</div>
-        <div><div style="font-size:16px">${c.icon}</div><div class="challenge-text">${c.text}</div></div>
-        <div class="challenge-day-label">Day ${i+1}</div>
-      </div>`).join('');
+    days.map((c,i) => _dayCardHtml(c, i, true, false)).join('');
     return;
   }
 
   // Show active challenge list
-  el.innerHTML = resetBanner + CHALLENGES.map((c,i) => `
-    <div class="challenge-day ${completed.includes(i)?'completed':''}" onclick="toggleChallenge(${i})">
-      <div class="challenge-check ${completed.includes(i)?'done':''}">${completed.includes(i)?'✓':c.icon}</div>
-      <div style="flex:1">
-        <div class="challenge-text">${c.text}</div>
-        ${completed.includes(i)?'<div style="font-size:10px;color:var(--teal);margin-top:2px;font-weight:700">Completed ✓</div>':''}
-      </div>
-      <div class="challenge-day-label">Day ${i+1}</div>
-    </div>`).join('');
+  el.innerHTML = resetBanner + days.map((c,i) => _dayCardHtml(c, i, completed.includes(i), true)).join('');
 }
 
 function toggleChallenge(idx){
