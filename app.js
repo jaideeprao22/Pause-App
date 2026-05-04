@@ -4,6 +4,7 @@
 function init(){
   // NM1 FIX: load saved scores FIRST so disorder cards render with correct data immediately
   loadSavedScores();
+  renderStreakPill(); // FIX 14: app-open streak — bumps once per calendar day, idempotent within a session
   renderHomeDisorders();
   renderAssessMenu();
   renderQuickScan();
@@ -21,6 +22,23 @@ function init(){
   renderMotivationCard();
   renderWeeklyReport();
   checkReassessmentReminder();
+}
+
+// Bumps the app-open streak (state.js) and renders the header pill.
+// count >= 2 → "🔥 N day streak"; count === 1 → "🔥 Day 1"; count === 0 → hidden.
+function renderStreakPill(){
+  const el = document.getElementById('streakPill');
+  if(!el) return;
+  let count = 0;
+  try {
+    count = (typeof bumpAppOpenStreak === 'function') ? bumpAppOpenStreak() : 0;
+  } catch(e){ count = 0; }
+  if(count <= 0){
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = '';
+  el.textContent = count >= 2 ? ('🔥 ' + count + ' day streak') : '🔥 Day 1';
 }
 
 function loadSavedScores(){

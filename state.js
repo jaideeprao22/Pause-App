@@ -34,6 +34,52 @@ function safeJsonParse(key, fallback){
 }
 
 // ============================================================
+// APP-OPEN STREAK
+// Counts consecutive days the user has opened the app, using LOCAL device
+// time (not UTC). Idempotent within a single calendar day, so it's safe
+// to call multiple times per session — only the first call per day writes.
+// Wrapped in an outer try/catch so a corrupted entry, storage failure, or
+// any Date API quirk falls through to "Day 1" rather than blocking init.
+// ============================================================
+function bumpAppOpenStreak(){
+  try {
+    // Local YYYY-MM-DD via getFullYear/getMonth/getDate — DST-safe because
+    // we never compare timestamps across midnight, only calendar strings.
+    const ymd = d => {
+      const y  = d.getFullYear();
+      const m  = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + dd;
+    };
+    const todayYMD     = ymd(new Date());
+    const yesterdayYMD = ymd(new Date(Date.now() - 86400000));
+
+    // safeJsonParse may return null or a non-object if the entry was tampered
+    // with — normalise to the default shape before reading fields.
+    const raw = safeJsonParse('appOpenStreak', null);
+    const stored = (raw && typeof raw === 'object') ? raw : { count: 0, lastOpenDate: null };
+
+    if(stored.lastOpenDate === todayYMD){
+      // Already counted today — no write, return existing count
+      return stored.count || 0;
+    }
+
+    const isConsecutive = stored.lastOpenDate === yesterdayYMD;
+    const next = {
+      count:        isConsecutive ? ((stored.count || 0) + 1) : 1,
+      lastOpenDate: todayYMD
+    };
+
+    try { localStorage.setItem('appOpenStreak', JSON.stringify(next)); }
+    catch(e){ /* quota / disabled — keep in-memory streak for this session */ }
+    return next.count;
+  } catch(e){
+    // Catastrophic failure (Date API broken, etc.) — show Day 1, never block load
+    return 1;
+  }
+}
+
+// ============================================================
 // FIX 3: GRADE PERSISTENCE — single authoritative store
 // ============================================================
 const GRADES_KEY = 'pause_grades';
