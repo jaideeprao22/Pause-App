@@ -171,24 +171,25 @@
   <div class="tabs">
     <button class="tab active" data-tab="disorders" onclick="switchResultTab('disorders')">Your Results</button>
     <button class="tab" data-tab="impact" onclick="switchResultTab('impact')">Health Impact</button>
-    <button class="tab" data-tab="actions" onclick="switchResultTab('actions');showActionPlanPopups()">Action Plan</button>
+    <button class="tab" data-tab="actions" onclick="switchResultTab('actions');renderActionPlanPills()">Action Plan</button>
   </div>
   <div id="result-tab-disorders">
     <div id="comparisonCard" style="display:none"></div>
     <div id="correlationInsightsCard"></div>
     <div class="section-label">Your Wellness Results</div>
     <div id="resultDisorderList"></div>
+    <button class="btn-primary" style="margin-top:12px;margin-bottom:6px" onclick="switchResultTab('actions');renderActionPlanPills()">See Your Action Plan →</button>
     <div id="disorderShareButtons"></div>
-    <button class="btn-primary" style="margin-top:8px" onclick="switchResultTab('actions');showActionPlanPopups()">See Your Action Plan →</button>
   </div>
   <div id="result-tab-impact" style="display:none">
     <div class="section-label">How Your Health Has Been Affected</div>
     <div class="card" id="resultImpactCard"></div>
-    <button class="btn-primary" style="margin-top:12px" onclick="switchResultTab('actions');showActionPlanPopups()">See Your Action Plan →</button>
+    <button class="btn-primary" style="margin-top:12px" onclick="switchResultTab('actions');renderActionPlanPills()">See Your Action Plan →</button>
   </div>
   <div id="result-tab-actions" style="display:none">
     <div class="section-label">Your Personal Action Plan</div>
     <div id="resultActionPlan"></div>
+    <div id="actionPlanRecommendations"></div>
   </div>
   <div id="trajectoryBadgesRow"></div>
   <button class="btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px">← Back to Home</button>
@@ -583,104 +584,95 @@
   </div>
 </div>
 
-<!-- ACTION PLAN: CBT MODULES PROMPT -->
-<div class="modal-overlay" id="cbtPromptModal">
-  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
-    <div class="modal-handle"></div>
-    <div style="text-align:center;padding:6px 0 14px">
-      <div style="font-size:48px;line-height:1;margin-bottom:8px">🧠</div>
-      <div class="modal-title" style="text-align:center;margin-bottom:6px">Try Your CBT Wellness Tools</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;padding:0 4px">
-        Your action plan works best when paired with hands-on practice. Explore guided breathing, urge surfing, and reframing exercises tailored to what showed up in your results.
-      </div>
-    </div>
-    <div style="background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">What's inside</div>
-      <div style="font-size:12px;line-height:1.7;color:var(--text)">Personalised CBT exercises · 4-7-8 breathing timer · grounding techniques · weekly summary · screen time logging</div>
-    </div>
-    <button class="btn-primary" onclick="goToCBTModules()" style="margin-bottom:8px">🛠️ Open My Wellness Toolkit</button>
-    <button class="btn-ghost" onclick="dismissCBTPrompt()">Maybe later</button>
-    <div style="text-align:center;margin-top:10px">
-      <label style="font-size:11px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-        <input type="checkbox" id="suppressActionPopups" style="cursor:pointer"> Don't show these reminders again
-      </label>
-    </div>
-  </div>
-</div>
-
-<!-- ACTION PLAN: 7-DAY CHALLENGE PROMPT -->
-<div class="modal-overlay" id="challengePromptModal">
-  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
-    <div class="modal-handle"></div>
-    <div style="text-align:center;padding:6px 0 14px">
-      <div style="font-size:48px;line-height:1;margin-bottom:8px">🎯</div>
-      <div class="modal-title" style="text-align:center;margin-bottom:6px">Take the 7-Day Detox Challenge</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;padding:0 4px">
-        Small daily actions, big shifts over a week. Complete one digital wellness step each day for 7 days — track your streak and see real change in your habits.
-      </div>
-    </div>
-    <div style="background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px">How it works</div>
-      <div style="font-size:12px;line-height:1.7;color:var(--text)">7 daily challenges · build a streak · resets weekly · tracks alongside your assessments</div>
-    </div>
-    <button class="btn-primary" onclick="goTo7DayChallenge()" style="margin-bottom:8px">🔥 Start the Challenge</button>
-    <button class="btn-ghost" onclick="dismissChallengePrompt()">Maybe later</button>
-  </div>
-</div>
-
 <script>
-  // === ACTION PLAN POPUPS ===
-  // Triggers two sequential popups (CBT then 7-Day Challenge) whenever
-  // the user lands on the Action Plan tab — either right after finishing
-  // an assessment, or by navigating to the tab later.
-  // Per-session flag prevents re-showing on every tab toggle in same visit.
+  // === ACTION PLAN RECOMMENDATION PILLS ===
+  // Renders two recommendation cards at the bottom of the Action Plan tab,
+  // tailored to the user's top disorder + overall severity.
+  // Reads severity directly from the rendered #resultDisorderList DOM,
+  // so it works without depending on internal app data structures.
 
-  var __actionPopupsShownThisSession = false;
-
-  function showActionPlanPopups(){
-    // Honour user's "don't show again" preference
-    try {
-      if (localStorage.getItem('hideActionPlanPopups') === '1') return;
-    } catch(e){}
-    // Don't re-trigger if already shown this session
-    if (__actionPopupsShownThisSession) return;
-    __actionPopupsShownThisSession = true;
-    // Slight delay so user sees the Action Plan content first
-    setTimeout(function(){
-      _openPromptModal('cbtPromptModal');
-    }, 500);
-  }
-
-  function _openPromptModal(id){
-    if (typeof openModal === 'function') { openModal(id); return; }
-    var m = document.getElementById(id);
-    if (m) m.classList.add('open');
-  }
-  function _closePromptModal(id){
-    if (typeof closeModal === 'function') { closeModal(id); return; }
-    var m = document.getElementById(id);
-    if (m) m.classList.remove('open');
-  }
-
-  function dismissCBTPrompt(){
-    // Capture "don't show again" choice if checked
-    var cb = document.getElementById('suppressActionPopups');
-    if (cb && cb.checked) {
-      try { localStorage.setItem('hideActionPlanPopups', '1'); } catch(e){}
-      _closePromptModal('cbtPromptModal');
-      return; // skip second popup if they opted out
+  function getTopDisorderInfo(){
+    var list = document.getElementById('resultDisorderList');
+    if (!list) return null;
+    var rows = list.children;
+    var topName = null, topSeverity = 0;
+    var sevMap = {severe:3, moderate:2, mild:1};
+    var nameMap = [
+      {key:'cyberchondria', match:['cyberchondria']},
+      {key:'social_media', match:['social media']},
+      {key:'short_form_video', match:['short-form','short form','svas']},
+      {key:'gaming', match:['gaming']},
+      {key:'ai_dependency', match:['ai dependency','ai dependence','pcgus']},
+      {key:'work_addiction', match:['digital work','work addiction','bwas']}
+    ];
+    for (var i = 0; i < rows.length; i++){
+      var t = (rows[i].textContent || '').toLowerCase();
+      var sev = 0;
+      if (t.indexOf('severe') >= 0) sev = 3;
+      else if (t.indexOf('moderate') >= 0) sev = 2;
+      else if (t.indexOf('mild') >= 0) sev = 1;
+      if (sev <= topSeverity) continue;
+      // Extract disorder name
+      for (var j = 0; j < nameMap.length; j++){
+        for (var k = 0; k < nameMap[j].match.length; k++){
+          if (t.indexOf(nameMap[j].match[k]) >= 0){
+            topName = nameMap[j].key;
+            break;
+          }
+        }
+        if (topName === nameMap[j].key) break;
+      }
+      topSeverity = sev;
     }
-    _closePromptModal('cbtPromptModal');
-    setTimeout(function(){ _openPromptModal('challengePromptModal'); }, 280);
+    return {disorder: topName, severity: topSeverity};
+  }
+
+  function renderActionPlanPills(){
+    var container = document.getElementById('actionPlanRecommendations');
+    if (!container) return;
+    var info = getTopDisorderInfo() || {disorder:null, severity:0};
+
+    var cbtMap = {
+      cyberchondria:    {icon:'🧠', title:'CBT for Health Anxiety',           desc:'Reduce compulsive symptom-searching with proven cognitive techniques and grounding exercises.'},
+      social_media:     {icon:'📱', title:'CBT for Social Media Compulsion',  desc:'Break the scroll-and-check loop with urge-surfing and reframing tools.'},
+      short_form_video: {icon:'🎬', title:'CBT for Short-Video Habits',        desc:'Reset your dopamine baseline with grounding techniques and breathing exercises.'},
+      gaming:           {icon:'🎮', title:'CBT for Gaming Urges',              desc:'Manage gaming cravings with cognitive reframing and impulse-control techniques.'},
+      ai_dependency:    {icon:'🤖', title:'CBT for AI Over-reliance',          desc:'Rebuild confidence in your own thinking with structured cognitive exercises.'},
+      work_addiction:   {icon:'💼', title:'CBT for Work Boundaries',           desc:'Detach from constant work mode using guided exercises and boundary-setting tools.'}
+    };
+    var defaultCBT = {icon:'🧠', title:'Practice CBT Wellness Exercises', desc:'Guided breathing, urge surfing, and cognitive reframing techniques.'};
+
+    var challengeMap = {
+      3: {icon:'🎯', title:'7-Day Intensive Reset',  desc:'A focused week to reset patterns that are significantly affecting your wellbeing.'},
+      2: {icon:'🎯', title:'7-Day Reset Challenge',  desc:'Build healthier digital habits with one mindful action each day for a week.'},
+      1: {icon:'🎯', title:'7-Day Mindful Habits',   desc:'Light daily nudges to maintain and strengthen your already healthy patterns.'},
+      0: {icon:'🎯', title:'7-Day Detox Challenge',  desc:'Build healthier digital habits with one daily action for a week.'}
+    };
+
+    var cbt = (info.disorder && cbtMap[info.disorder]) ? cbtMap[info.disorder] : defaultCBT;
+    var challenge = challengeMap[info.severity] || challengeMap[0];
+
+    container.innerHTML =
+      '<div class="section-label" style="margin-top:22px">Recommended Next Steps</div>' +
+      '<div class="action-pill" onclick="goToCBTModules()" role="button" tabindex="0" aria-label="Go to CBT wellness tools">' +
+        '<div class="action-pill-icon">' + cbt.icon + '</div>' +
+        '<div class="action-pill-text">' +
+          '<div class="action-pill-title">' + cbt.title + '</div>' +
+          '<div class="action-pill-desc">' + cbt.desc + '</div>' +
+        '</div>' +
+        '<div class="action-pill-arrow">›</div>' +
+      '</div>' +
+      '<div class="action-pill" onclick="goTo7DayChallenge()" role="button" tabindex="0" aria-label="Go to 7-day detox challenge">' +
+        '<div class="action-pill-icon">' + challenge.icon + '</div>' +
+        '<div class="action-pill-text">' +
+          '<div class="action-pill-title">' + challenge.title + '</div>' +
+          '<div class="action-pill-desc">' + challenge.desc + '</div>' +
+        '</div>' +
+        '<div class="action-pill-arrow">›</div>' +
+      '</div>';
   }
 
   function goToCBTModules(){
-    // Honour suppress checkbox if checked here too
-    var cb = document.getElementById('suppressActionPopups');
-    if (cb && cb.checked) {
-      try { localStorage.setItem('hideActionPlanPopups', '1'); } catch(e){}
-    }
-    _closePromptModal('cbtPromptModal');
     if (typeof showScreen === 'function') showScreen('screen-tools');
     setTimeout(function(){
       var el = document.getElementById('cbtSection');
@@ -688,40 +680,13 @@
     }, 350);
   }
 
-  function dismissChallengePrompt(){
-    _closePromptModal('challengePromptModal');
-  }
-
   function goTo7DayChallenge(){
-    _closePromptModal('challengePromptModal');
     if (typeof showScreen === 'function') showScreen('screen-progress');
     setTimeout(function(){
       var el = document.querySelector('.challenge-header-card');
       if (el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'start'});
     }, 350);
   }
-
-  // Reset the per-session flag when user leaves and re-enters the results
-  // screen (so popups appear again after a NEW assessment, but not on
-  // every tab-click within the same results view).
-  document.addEventListener('DOMContentLoaded', function(){
-    try {
-      var resultScreen = document.getElementById('screen-results');
-      if (resultScreen) {
-        var observer = new MutationObserver(function(mutations){
-          mutations.forEach(function(m){
-            if (m.attributeName === 'class') {
-              // Reset flag whenever results screen becomes inactive
-              if (!resultScreen.classList.contains('active')) {
-                __actionPopupsShownThisSession = false;
-              }
-            }
-          });
-        });
-        observer.observe(resultScreen, {attributes:true});
-      }
-    } catch(e){}
-  });
 </script>
 
 <script>
