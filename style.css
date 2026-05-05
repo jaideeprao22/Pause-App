@@ -20,16 +20,39 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
 .streak-pill:active{transform:scale(0.94);background:rgba(255,255,255,0.12)}
 .streak-pill:focus-visible{outline:2px solid rgba(255,255,255,0.4);outline-offset:2px}
 
-/* Hide streak pill on sub-screens (where Back button is visible) so it doesn't
-   crowd the header. Back button only appears with inline style="display:..."
-   set by JS — on home screen there's no inline style, so streak stays visible. */
-.header:has(#backBtn[style*="display"]:not([style*="none"])) #streakPill{display:none!important}
+/* === HEADER OVERFLOW FIX (unconditional, no JS-state detection) === */
 
-/* Compact Back button so it doesn't crash into the logo on narrow phones */
-.back-btn{padding:6px 10px!important;font-size:11px!important;letter-spacing:0.3px}
+/* Back button becomes icon-only on phones — universal ← arrow, compact */
+@media (max-width: 600px){
+  .back-btn{
+    font-size:0!important;
+    padding:6px 11px!important;
+    min-width:36px;
+    border-radius:12px!important;
+  }
+  .back-btn::before{
+    content:"\2190";  /* ← arrow */
+    font-size:18px;
+    font-weight:600;
+    color:#fff;
+    line-height:1;
+    display:inline-block;
+  }
+}
+
+/* Hide decorative subtitle on phones — frees space for streak pill.
+   The PAUSE logo + on-screen content already tell users what the app is. */
+@media (max-width: 460px){
+  .logo-sub{display:none!important}
+  .logo-sub-row{margin-top:4px!important;gap:0!important}
+}
+
+/* Logo image scales down on narrower phones */
+@media (max-width: 420px){.logo-img{height:30px!important}}
+@media (max-width: 360px){.logo-img{height:26px!important}}
 
 /* Safety: let logo shrink instead of overflowing into the right cluster */
-.logo{min-width:0}
+.logo{min-width:0!important;flex-shrink:1}
 .logo-img{flex-shrink:1;min-width:0}
 .header-left{display:flex;flex-direction:column;align-items:flex-start;min-width:0;flex:1 1 auto}
 .logo-sub-row{display:flex;align-items:center;gap:7px;margin-top:2px;flex-wrap:nowrap;min-width:0;max-width:100%}
