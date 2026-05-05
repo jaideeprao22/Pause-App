@@ -40,32 +40,20 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
   }
 }
 
-/* Subtitle stays visible on phones but shrinks to fit alongside streak pill.
-   If it still doesn't fit on a particular phone, it gracefully truncates with
-   ellipsis instead of pushing the streak pill to the next line. */
+/* Right-side header cluster: DWS pill stacks vertically with streak pill below it,
+   avatar sits beside the stack, back button on the far left of the cluster */
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.dws-stack{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0}
+.dws-stack .streak-pill{align-self:flex-end}
+
+/* Subtitle has its row to itself now (streak pill moved to right side) */
 @media (max-width: 460px){
   .logo-sub{
-    letter-spacing:0.6px!important;
-    font-size:7.5px!important;
-    opacity:0.55!important;
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    flex-shrink:1;
-  }
-  .logo-sub-row{
-    margin-top:3px!important;
-    gap:7px!important;
-    flex-wrap:nowrap;
-    min-width:0;
-    max-width:100%;
-  }
-  .streak-pill{
+    letter-spacing:1.4px!important;
     font-size:8.5px!important;
-    padding:1px 6px!important;
-    flex-shrink:0;
+    opacity:0.6!important;
   }
+  .logo-sub-row{margin-top:3px!important}
 }
 
 /* Logo image scales down on narrower phones */

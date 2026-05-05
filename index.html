@@ -83,12 +83,14 @@
       </div>
       <div class="logo-sub-row">
         <div class="logo-sub">Digital Wellness Platform</div>
-        <div class="streak-pill" id="streakPill" style="display:none" onclick="showStreakModal()" role="button" tabindex="0" aria-label="View your wellness streak details" aria-live="polite"></div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+    <div class="header-right">
       <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
-      <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
+      <div class="dws-stack">
+        <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
+        <div class="streak-pill" id="streakPill" style="display:none" onclick="showStreakModal()" role="button" tabindex="0" aria-label="View your wellness streak details" aria-live="polite"></div>
+      </div>
       <div class="user-avatar" id="userAvatar" onclick="showUserModal()" style="display:none">?</div>
     </div>
   </div>
@@ -601,6 +603,35 @@
       }
     } catch(e){}
   }
+
+  // Watch back-button visibility — toggle compact header during assessments
+  (function(){
+    function applyCompact(){
+      try {
+        var btn = document.getElementById('backBtn');
+        if (!btn) return;
+        var disp = btn.style.display || '';
+        var isShown = disp && disp.toLowerCase() !== 'none';
+        document.body.classList.toggle('is-assessment', !!isShown);
+      } catch(e){}
+    }
+    function start(){
+      var btn = document.getElementById('backBtn');
+      if (!btn) { setTimeout(start, 300); return; }
+      applyCompact();
+      try {
+        var mo = new MutationObserver(applyCompact);
+        mo.observe(btn, { attributes:true, attributeFilter:['style','class'] });
+      } catch(e){}
+      // Safety net — re-check periodically in case other code mutates without triggering observer
+      setInterval(applyCompact, 600);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
+  })();
 </script>
 
 <!-- TERMS & CONDITIONS MODAL — Step 1 of sign-in flow -->
