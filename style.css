@@ -40,11 +40,32 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
   }
 }
 
-/* Hide decorative subtitle on phones — frees space for streak pill.
-   The PAUSE logo + on-screen content already tell users what the app is. */
+/* Subtitle stays visible on phones but shrinks to fit alongside streak pill.
+   If it still doesn't fit on a particular phone, it gracefully truncates with
+   ellipsis instead of pushing the streak pill to the next line. */
 @media (max-width: 460px){
-  .logo-sub{display:none!important}
-  .logo-sub-row{margin-top:4px!important;gap:0!important}
+  .logo-sub{
+    letter-spacing:0.6px!important;
+    font-size:7.5px!important;
+    opacity:0.55!important;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    flex-shrink:1;
+  }
+  .logo-sub-row{
+    margin-top:3px!important;
+    gap:7px!important;
+    flex-wrap:nowrap;
+    min-width:0;
+    max-width:100%;
+  }
+  .streak-pill{
+    font-size:8.5px!important;
+    padding:1px 6px!important;
+    flex-shrink:0;
+  }
 }
 
 /* Logo image scales down on narrower phones */
