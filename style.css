@@ -19,6 +19,18 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
 .streak-pill{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:1px 7px;font-size:9px;font-weight:600;color:rgba(255,255,255,0.65);white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:3px;line-height:1.4;letter-spacing:0.3px;flex-shrink:0;transition:transform 0.15s ease, background 0.15s ease;-webkit-tap-highlight-color:transparent}
 .streak-pill:active{transform:scale(0.94);background:rgba(255,255,255,0.12)}
 .streak-pill:focus-visible{outline:2px solid rgba(255,255,255,0.4);outline-offset:2px}
+
+/* Hide streak pill on sub-screens (where Back button is visible) so it doesn't
+   crowd the header. Back button only appears with inline style="display:..."
+   set by JS — on home screen there's no inline style, so streak stays visible. */
+.header:has(#backBtn[style*="display"]:not([style*="none"])) #streakPill{display:none!important}
+
+/* Compact Back button so it doesn't crash into the logo on narrow phones */
+.back-btn{padding:6px 10px!important;font-size:11px!important;letter-spacing:0.3px}
+
+/* Safety: let logo shrink instead of overflowing into the right cluster */
+.logo{min-width:0}
+.logo-img{flex-shrink:1;min-width:0}
 .header-left{display:flex;flex-direction:column;align-items:flex-start;min-width:0;flex:1 1 auto}
 .logo-sub-row{display:flex;align-items:center;gap:7px;margin-top:2px;flex-wrap:nowrap;min-width:0;max-width:100%}
 .logo-sub-row .logo-sub{margin-top:0!important;letter-spacing:1.1px!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
