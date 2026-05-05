@@ -10,13 +10,16 @@ html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM San
 #app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
 .header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:calc(14px + var(--safe-top)) 20px 14px;flex-shrink:0;z-index:50;position:relative;overflow:hidden}
 .header::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(61,111,255,0.08);border-radius:50%}
-.header-inner{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.header-inner{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;gap:10px}
 .logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.5px}
 .logo span{color:var(--accent2)}
 .logo-sub{font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-top:2px;font-weight:400}
 .back-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:10px;padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer;font-weight:600;display:none;transition:all 0.2s}
 .dws-pill{background:rgba(61,111,255,0.2);border:1px solid rgba(61,111,255,0.3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--accent2);cursor:pointer}
-.streak-pill{background:rgba(61,111,255,0.2);border:1px solid rgba(61,111,255,0.3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--accent2);white-space:nowrap}
+.streak-pill{background:rgba(245,166,35,0.18);border:1px solid rgba(245,166,35,0.45);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--gold);white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:8px;align-self:flex-start;transition:transform 0.15s ease, filter 0.15s ease;-webkit-tap-highlight-color:transparent}
+.streak-pill:active{transform:scale(0.96);filter:brightness(1.1)}
+.streak-pill:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.header-left{display:flex;flex-direction:column;align-items:flex-start;min-width:0;flex:1 1 auto}
 .user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0}
 .bottom-nav{display:flex;background:#fff;border-top:1px solid var(--border);padding:6px 0 calc(6px + var(--safe-bottom));flex-shrink:0;z-index:50}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;background:none;border:none;cursor:pointer;border-top:2px solid transparent;transition:all 0.2s;font-family:inherit}

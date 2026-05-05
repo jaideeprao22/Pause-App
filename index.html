@@ -76,16 +76,16 @@
 <!-- HEADER -->
 <div class="header">
   <div class="header-inner">
-    <div>
+    <div class="header-left">
       <div class="logo">
         <img src="icons/pause_logo.png" alt="PAUSE" class="logo-img">
         <span class="logo-app">App</span>
       </div>
       <div class="logo-sub">Digital Wellness Platform</div>
+      <div class="streak-pill" id="streakPill" style="display:none" onclick="showStreakModal()" role="button" tabindex="0" aria-label="View your wellness streak details" aria-live="polite"></div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
       <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
-      <div class="streak-pill" id="streakPill" style="display:none" aria-live="polite"></div>
       <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
       <div class="user-avatar" id="userAvatar" onclick="showUserModal()" style="display:none">?</div>
     </div>
@@ -531,6 +531,75 @@
     <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Got it</button>
   </div>
 </div>
+
+<!-- STREAK MODAL -->
+<div class="modal-overlay" id="streakModal">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:6px 0 18px">
+      <div style="font-size:54px;line-height:1;margin-bottom:10px">🔥</div>
+      <div class="modal-title" style="text-align:center;margin-bottom:4px">Your Wellness Streak</div>
+      <div style="font-size:46px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent2);line-height:1.1" id="streakModalCount">0</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px" id="streakModalLabel">days in a row</div>
+    </div>
+    <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">What counts as a streak day</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text)">
+        Any day you open PAUSE App and engage with at least one feature — checking in on your mood, ticking off a detox challenge step, writing a logbook note, or running an assessment — counts as an active day. Skip a day and the streak resets.
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Why streaks matter</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text)">
+        Behavioural change happens through small, repeated actions — not heroic one-off efforts. Showing up daily, even for two minutes, is what gradually rewires the digital habits affecting your sleep, attention and mood. The streak is a gentle nudge, not a test.
+      </div>
+    </div>
+    <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Streak milestones</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:24px;text-align:center">🌱</div>
+          <div style="font-size:12px;color:var(--text)"><strong>3 days</strong> &nbsp;Building momentum</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:24px;text-align:center">🔥</div>
+          <div style="font-size:12px;color:var(--text)"><strong>7 days</strong> &nbsp;A full week of consistency</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:24px;text-align:center">⭐</div>
+          <div style="font-size:12px;color:var(--text)"><strong>14 days</strong> &nbsp;Habits starting to embed</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:24px;text-align:center">🏆</div>
+          <div style="font-size:12px;color:var(--text)"><strong>30 days</strong> &nbsp;Genuine behaviour change</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="closeModal('streakModal')">Got it</button>
+  </div>
+</div>
+
+<script>
+  // Streak modal opener — reads current count from the header pill
+  function showStreakModal(){
+    try {
+      var pill = document.getElementById('streakPill');
+      var countEl = document.getElementById('streakModalCount');
+      var labelEl = document.getElementById('streakModalLabel');
+      var pillText = (pill && pill.textContent) ? pill.textContent : '';
+      var match = pillText.match(/\d+/);
+      var n = match ? parseInt(match[0], 10) : 0;
+      if (countEl) countEl.textContent = String(n);
+      if (labelEl) labelEl.textContent = (n === 1) ? 'day in a row' : 'days in a row';
+      if (typeof openModal === 'function') {
+        openModal('streakModal');
+      } else {
+        var m = document.getElementById('streakModal');
+        if (m) m.classList.add('open');
+      }
+    } catch(e){}
+  }
+</script>
 
 <!-- TERMS & CONDITIONS MODAL — Step 1 of sign-in flow -->
 <div class="modal-overlay" id="termsModal">
