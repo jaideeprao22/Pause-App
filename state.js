@@ -51,8 +51,13 @@ function bumpAppOpenStreak(){
       const dd = String(d.getDate()).padStart(2, '0');
       return y + '-' + m + '-' + dd;
     };
-    const todayYMD     = ymd(new Date());
-    const yesterdayYMD = ymd(new Date(Date.now() - 86400000));
+    // BUG-033 FIX: compute "yesterday" via calendar-day arithmetic instead of
+    // subtracting 86_400_000 ms. On DST forward days the millisecond version
+    // can land on the day before yesterday at hour 23, occasionally formatting
+    // to the wrong YMD and breaking streak continuity.
+    const _today       = new Date();
+    const todayYMD     = ymd(_today);
+    const yesterdayYMD = ymd(new Date(_today.getFullYear(), _today.getMonth(), _today.getDate() - 1));
 
     // safeJsonParse may return null or a non-object if the entry was tampered
     // with — normalise to the default shape before reading fields.
