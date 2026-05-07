@@ -29,7 +29,7 @@ Severity legend
 **Proposed fix:** Per-table merge by `created_at`/`recorded_at` — keep the union, prefer newer rows. Minimum viable: skip overwrite when remote array is empty AND local is non-empty.
 **Files touched:** state.js
 
-### BUG-003 — 7-day Challenge silently nukes user's progress when the week ticks over incomplete
+### BUG-003 ✅ FIXED (lenient policy applied; no auto-reset on incomplete weeks) — 7-day Challenge silently nukes user's progress when the week ticks over incomplete
 **File:** [progress.js:383-404](progress.js#L383)
 **Severity:** CRITICAL (data loss — user's tick-marks discarded)
 **Description:** After 7 days pass, `pauseChallenge` is reset to `'[]'` and `currentChallengePack` is regenerated regardless of whether the user finished. A user at 5/7 loses those 5 ticks the moment day 8 starts. Confirms Known Bug #3 — and it's worse than "resetting": the previous days are unrecoverable.
