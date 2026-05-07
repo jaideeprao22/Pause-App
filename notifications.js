@@ -50,7 +50,7 @@ function scheduleNotification(){
   if(next <= now) next.setDate(next.getDate() + 1);
   const delay = next - now;
   setTimeout(() => {
-    if(Notification.permission === 'granted' && localStorage.getItem('notifEnabled') === 'true'){
+    if('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('notifEnabled') === 'true'){
       const swBase = (navigator.serviceWorker.controller?.scriptURL || '').replace(/sw\.js$/, '') || '/';
       new Notification('PAUSE App — Daily Detox Reminder 🌿', {
         body: "Don't forget today's digital detox challenge! Open PAUSE App to check in.",
