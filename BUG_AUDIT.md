@@ -89,7 +89,7 @@ Severity legend
 **Proposed fix:** Guard `if(!userProfile.age) return;` at the top of `syncProfileToSupabase`. (Age is the cheapest required field.)
 **Files touched:** state.js
 
-### BUG-011 — `progressHistory` element accessed without null guard
+### BUG-011 ✅ FIXED — `progressHistory` element accessed without null guard
 **File:** [progress.js:209-213](progress.js#L209)
 **Severity:** HIGH (TypeError if DOM hasn't rendered the screen yet — happens during the supabase post-login re-render burst)
 **Description:** `const el = document.getElementById('progressHistory'); if(!history.length){ el.innerHTML=...}` — `el` may be null. The `if(!history.length)` block accesses `el.innerHTML` unguarded.
