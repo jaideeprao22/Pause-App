@@ -321,6 +321,9 @@ function showDWSModal(){
   } else {
     document.getElementById('modalDWSNum').textContent = '--';
     document.getElementById('modalDWSStatus').textContent = 'Not checked yet';
+    // BUG-022 FIX: reset modalDWSStatus colour too — without this, a coloured
+    // status from a previous render (red/orange) leaks into the empty state.
+    document.getElementById('modalDWSStatus').style.color = '';
     document.getElementById('modalDWSSub').textContent = 'Complete a check-up to see your Digital Wellness Score.';
     document.getElementById('modalDWSSub').style.color = '';
     document.getElementById('modalDWSBreakdown').innerHTML = '';
