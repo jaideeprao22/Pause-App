@@ -213,7 +213,8 @@ function handleLogout(){
     physical_activity:'', prev_detox_attempt:'', followup_consent:'',
     study_field:'', profession_role:'', work_mode:''
   };
-  document.getElementById('userAvatar').style.display = 'none';
+  const _avatar = document.getElementById('userAvatar');
+  if(_avatar) _avatar.style.display = 'none';
   renderLoginBanner();
   renderAccountSection();
 }
