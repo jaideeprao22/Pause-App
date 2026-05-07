@@ -179,8 +179,10 @@ async function handleUser(user){
   localStorage.removeItem('guestAssessWarningShown'); // BUG8 FIX: reset so warning shows for new users on shared devices
   currentUser = user;
   const avatar = document.getElementById('userAvatar');
-  avatar.style.display = 'flex';
-  avatar.textContent = user.email.charAt(0).toUpperCase();
+  if(avatar){
+    avatar.style.display = 'flex';
+    avatar.textContent = user.email.charAt(0).toUpperCase();
+  }
   renderLoginBanner();
   renderAccountSection();
 
