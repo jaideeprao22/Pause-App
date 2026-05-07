@@ -36,7 +36,7 @@ Severity legend
 **Proposed fix:** Don't auto-reset on incomplete weeks. If `completed.length < 7`, keep the current pack and `weekStart`, do not increment `currentWeekNum`, and show a banner inviting the user to either complete the remaining days or tap "Start fresh week". Auto-reset only when 7/7 done.
 **Files touched:** progress.js
 
-### BUG-004 — `Notification.permission` accessed without guarding `'Notification' in window`
+### BUG-004 ✅ FIXED — `Notification.permission` accessed without guarding `'Notification' in window`
 **File:** [notifications.js:53](notifications.js#L53), [motivation.js:137](motivation.js#L137)
 **Severity:** CRITICAL (uncaught ReferenceError on platforms missing the Notification API — affects older Android WebView, some embedded browsers, and TWA edge cases)
 **Description:** Both `scheduleNotification()` callbacks read `Notification.permission` directly inside a `setTimeout`. If the platform doesn't expose `Notification`, this throws and the unhandled rejection breaks subsequent timers. The toggle path correctly uses `'Notification' in window`, but the scheduler path does not.
