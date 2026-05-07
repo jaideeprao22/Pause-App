@@ -207,6 +207,7 @@ function renderProgress(){
   }
 
   const el = document.getElementById('progressHistory');
+  if(!el) return;
   if(!history.length){
     el.innerHTML='<div class="notice blue"><div class="notice-title">No history yet</div>Complete your first assessment to start tracking progress.</div>';
     return;
