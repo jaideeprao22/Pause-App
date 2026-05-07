@@ -10,6 +10,7 @@ function saveScreenTime(hours){
   else log.unshift({date: today, hours});
   if(log.length > 30) log.splice(30);
   localStorage.setItem('screenTimeLog', JSON.stringify(log));
+  if(typeof saveScreenTimeToSupabase === 'function') saveScreenTimeToSupabase(today, hours);
   renderScreenTimeSection();
 }
 

@@ -242,6 +242,7 @@ function _loadActivePack(){
 function _saveActivePack(pack){
   try { localStorage.setItem(CHALLENGE_PACK_KEY, JSON.stringify(pack)); }
   catch(e){ /* quota/unavailable — fail silently, pack will regenerate next render */ }
+  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
 }
 
 function _disorderTipObj(disorderId, idx){
@@ -378,6 +379,7 @@ function renderChallenge(){
     localStorage.setItem('challengeWeekStart', now.toString());
     localStorage.setItem('currentWeekNum', '1');
     localStorage.setItem('challengeWeeksCompleted', '0');
+    if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   } else if(sevenDaysPassed){
     const completed = safeJsonParse('pauseChallenge', []);
     const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum')||'1');
@@ -398,6 +400,7 @@ function renderChallenge(){
 
     // Stash previous pack so the new one can exclude its tip IDs where pool size allows
     prevPackForRegen = _loadActivePack();
+    if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   }
 
   // Ensure an active pack exists for the current cycle. Backfills mid-cycle
@@ -423,7 +426,10 @@ function renderChallenge(){
 
   // Track max streak for badges
   const maxStreak = parseInt(localStorage.getItem('maxChallengeStreak')||'0');
-  if(completed.length > maxStreak) localStorage.setItem('maxChallengeStreak', completed.length);
+  if(completed.length > maxStreak){
+    localStorage.setItem('maxChallengeStreak', completed.length);
+    if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+  }
 
   const el = document.getElementById('challengeList');
   if(!el) return;
@@ -485,6 +491,7 @@ function toggleChallenge(idx){
   const pos = completed.indexOf(idx);
   if(pos===-1) completed.push(idx); else completed.splice(pos,1);
   localStorage.setItem('pauseChallenge', JSON.stringify(completed));
+  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   renderChallenge();
   checkAndAwardBadges();
 }
