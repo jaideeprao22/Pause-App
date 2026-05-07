@@ -82,7 +82,7 @@ Severity legend
 **Proposed fix:** Add `document.addEventListener('visibilitychange', () => { if(document.hidden && isRecording) stopRecording(); })` in logbook.js, and call `stopRecording()` from `nav.js showScreen` when leaving `screen-logbook`.
 **Files touched:** logbook.js, nav.js
 
-### BUG-010 — Supabase `Profiles` upsert sends 23 always-null fields when called pre-profile
+### BUG-010 ✅ FIXED — Supabase `Profiles` upsert sends 23 always-null fields when called pre-profile
 **File:** [state.js:605-643](state.js#L605)
 **Severity:** HIGH (creates a Profiles row full of NULLs on first login if user dismisses the profile modal — pollutes research data)
 **Description:** `syncProfileToSupabase()` is called from `saveProfile` (real data) AND from `saveEditProfile`. But it's also called via `handleUser → loadAllUserDataFromSupabase → finally` paths in some edge cases. If `userProfile` is `{}`, every field sent is null, but `terms_version: '1.0'` and `updated_at` are always set, so the upsert succeeds and creates a useless row.
