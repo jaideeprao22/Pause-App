@@ -139,7 +139,7 @@ Severity legend
 **Proposed fix:** `${latest.dws != null ? latest.dws : '--'}`
 **Files touched:** progress.js
 
-### BUG-018 — `_parseHistoryDate` fallback `new Date(dateStr)` can produce Invalid Date silently
+### BUG-018 ✅ FIXED — `_parseHistoryDate` fallback `new Date(dateStr)` can produce Invalid Date silently
 **File:** [weekly.js:19](weekly.js#L19)
 **Severity:** MEDIUM (filter `weekEntries` includes an Invalid Date row, which makes the comparison return false silently — entry effectively excluded but not for a clear reason)
 **Description:** If a history entry's date string is unrecognised, the fallback returns Invalid Date. `Invalid Date >= weekStart` returns false. The weekly summary silently drops the entry.
