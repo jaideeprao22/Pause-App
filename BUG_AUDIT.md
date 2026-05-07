@@ -75,7 +75,7 @@ Severity legend
 **Proposed fix:** `history.length >= 2 && history[0].dws != null && history[1].dws != null && history[0].dws > history[1].dws`.
 **Files touched:** badges.js
 
-### BUG-009 — Speech recognition session never stops on screen change, page hide, or save fail mid-session
+### BUG-009 ✅ FIXED — Speech recognition session never stops on screen change, page hide, or save fail mid-session
 **File:** [logbook.js:184-277](logbook.js#L184)
 **Severity:** HIGH (battery + privacy — mic stays hot if user navigates away)
 **Description:** `_startSession()` chains itself via `recognition.onend` → `setTimeout(_startSession, 120)` while `isRecording` is true. Nothing in `nav.js showScreen` or a `visibilitychange` handler stops it. If the user taps Home tab mid-recording, the mic keeps re-opening forever (until a hard nav).
