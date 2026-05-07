@@ -158,7 +158,7 @@ Severity legend
 **Description:** `_autoAdvanceTimer` is cleared in `nextQuestion()` (line 275) but `nextQuestion` calls `finishAssessment()` immediately when on last question (line 278). Then when the timer fires (already cleared), the callback is gone, so it shouldn't fire. Wait — clearTimeout DOES cancel. Re-reading: `nextQuestion` clears the timer FIRST (line 275), then runs. So if user clicks Next after selectAnswer, the timer is cleared. OK, not a bug. **Downgrade to LOW** — but I'll mark it as "verify" because the same path with a delayed render could double-fire.
 **Update after re-check:** the H3 FIX is correct. NOT A BUG. Removing.
 
-### BUG-021 — `share.js` percentile arrays use raw count, but score `<=` ref[i] returns wrong rank
+### BUG-021 ✅ FIXED (gated on PERCENTILE_DATA_READY; formula direction TBD when real data arrives) — `share.js` percentile arrays use raw count, but score `<=` ref[i] returns wrong rank
 **File:** [share.js:17-30](share.js#L17)
 **Severity:** MEDIUM (off-by-one in shared canvas card percentile)
 **Description:** `_shareGetPercentile`: `for(...){ if(score > ref[i]) rank = i+1; }`. For `cyberchondria` ref `[15,18,21,...,75]` (21 entries), a score of 30 would give rank=5 (because 30 > 27=ref[4], 30 > 30=false at ref[5]). But cyberchondria items=15 so min-floor=15. A min-floor score of 15 gives rank=0 → `Math.round(0/21*100) = 0` percentile. Higher than 0% of users — implies you scored worse than everyone, but you actually scored best (lowest disorder).
