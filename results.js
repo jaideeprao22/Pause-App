@@ -4,8 +4,10 @@
 function renderResults(){
   if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
+    // BUG-001 FIX: label impact-only DWS so users know Quick Scan didn't include disorder data.
+    const _suffix = localStorage.getItem('pause_dws_is_impact_only') === 'true' ? ' (Impact)' : '';
     document.getElementById('resultDWSNum').textContent = dwsScore;
-    document.getElementById('resultDWSStatus').textContent = s.status;
+    document.getElementById('resultDWSStatus').textContent = s.status + _suffix;
   }
   const tags = document.getElementById('shareTags');
   const topDisorder = Object.entries(disorderScores).sort((a,b) => {
@@ -265,8 +267,10 @@ function showExplain(disorderId){
 function showDWSModal(){
   if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
+    // BUG-001 FIX: label impact-only DWS in the modal status as well.
+    const _suffix = localStorage.getItem('pause_dws_is_impact_only') === 'true' ? ' (Impact)' : '';
     document.getElementById('modalDWSNum').textContent = dwsScore;
-    document.getElementById('modalDWSStatus').textContent = s.status;
+    document.getElementById('modalDWSStatus').textContent = s.status + _suffix;
     document.getElementById('modalDWSStatus').style.color = s.color;
 
     const screened = Object.keys(disorderScores).length;

@@ -295,19 +295,23 @@ function finishAssessment(){
       stampDisorderTime(m.id);
     });
     dwsScore=calculateDWS();
+    localStorage.removeItem('pause_dws_is_impact_only');
   } else if(assessMode==='quick'){
     IMPACT_MODULES.forEach((m,mi)=>{
       const qs=questionMeta.filter(meta=>meta.type==='impact'&&meta.mIdx===mi);
       impactScores[m.id]=qs.reduce((sum,meta)=>sum+(allAnswers[questionMeta.indexOf(meta)]||0),0);
       stampDisorderTime(m.id);
     });
-    // M1 FIX: impact-only DWS for Quick Scan — don't blend stale disorder scores
+    // M1 FIX: impact-only DWS for Quick Scan — don't blend stale disorder scores.
+    // BUG-001 FIX: flag this DWS so display surfaces can label it "(Impact)".
     dwsScore=calculateDWS(true);
+    localStorage.setItem('pause_dws_is_impact_only', 'true');
   } else if(assessMode==='single'){
     const d=DISORDERS[singleDisorderIdx];
     disorderScores[d.id]=allAnswers.reduce((a,b)=>a+(b||0),0);
     stampDisorderTime(d.id);
     dwsScore=calculateDWS();
+    localStorage.removeItem('pause_dws_is_impact_only');
   }
   saveScores();
   clearPartialProgress();
@@ -350,12 +354,14 @@ function getDWSStatus(score){ if(score>=80)return{status:'Excellent',color:'#2ec
 function updateDWSDisplay(){
   if(dwsScore!==null){
     const s=getDWSStatus(dwsScore);
+    // BUG-001 FIX: append "(Impact)" suffix when latest assessment was impact-only Quick Scan.
+    const _suffix = localStorage.getItem('pause_dws_is_impact_only') === 'true' ? ' (Impact)' : '';
     const pill=document.getElementById('dwsPill');
     const num=document.getElementById('home-dws-num');
     const stat=document.getElementById('home-dws-status');
-    if(pill){pill.textContent=`DWS: ${dwsScore}`;pill.style.color=s.color;}
+    if(pill){pill.textContent=`DWS: ${dwsScore}${_suffix}`;pill.style.color=s.color;}
     if(num){num.textContent=dwsScore;num.style.color=s.color;}
-    if(stat) stat.textContent=s.status;
+    if(stat) stat.textContent=s.status + _suffix;
   }
 }
 
