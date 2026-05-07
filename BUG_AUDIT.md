@@ -108,7 +108,7 @@ Severity legend
 **Proposed fix:** Same null-guard pattern.
 **Files touched:** state.js
 
-### BUG-014 — `feedbackSuccess` element accessed without null guard
+### BUG-014 ✅ FIXED — `feedbackSuccess` element accessed without null guard
 **File:** [state.js:1063](state.js#L1063)
 **Severity:** HIGH (TypeError after Feedback submit on About screen if element removed)
 **Proposed fix:** Null-guard before `.style.display`.
