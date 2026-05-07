@@ -14,7 +14,13 @@ const PERCENTILE_REFS = {
 // (with PERCENTILE_DATA_READY guard). Renaming to private names here so share.js
 // doesn't overwrite the authoritative assessment.js versions for the rest of the app.
 // These private versions use reference data arrays for the canvas share card only.
+// BUG-021 FIX: gate the share-card percentile on PERCENTILE_DATA_READY
+// (defined in assessment.js). The reference arrays here are simulated, not
+// real pilot data, and the rank formula has direction-of-comparison issues
+// for disorder scales. Hide until n>=50 just like the in-app percentile —
+// once real data lands, flip PERCENTILE_DATA_READY and rework the formula.
 function _shareGetPercentile(disorderId, score){
+  if(typeof PERCENTILE_DATA_READY !== 'undefined' && !PERCENTILE_DATA_READY) return null;
   const ref = PERCENTILE_REFS[disorderId];
   if(!ref) return null;
   let rank = 0;
@@ -23,6 +29,7 @@ function _shareGetPercentile(disorderId, score){
 }
 
 function _shareDWSPercentile(dws){
+  if(typeof PERCENTILE_DATA_READY !== 'undefined' && !PERCENTILE_DATA_READY) return null;
   const ref = [20,25,30,35,40,45,50,55,60,62,65,67,69,71,73,75,78,81,85,90,100];
   let rank = 0;
   for(let i=0; i<ref.length; i++){ if(dws > ref[i]) rank = i+1; }
@@ -85,8 +92,9 @@ async function shareResults(){
     ctx.font = 'bold 36px sans-serif';
     ctx.fillStyle = s.color;
     ctx.fillText(s.status, cx, cy + 120);
-    // DWS percentile
-    if(Object.keys(disorderScores).length === 6){
+    // DWS percentile — BUG-021 FIX: also gate on pct !== null so the line is
+    // hidden when PERCENTILE_DATA_READY is false.
+    if(Object.keys(disorderScores).length === 6 && pct !== null){
       ctx.font = '26px sans-serif';
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
       ctx.fillText(`Better than ${pct}% of all users`, cx, cy + 165);
