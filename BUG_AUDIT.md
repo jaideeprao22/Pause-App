@@ -132,7 +132,7 @@ Severity legend
 
 ## MEDIUM
 
-### BUG-017 — `0` DWS displayed as `--` in personal summary
+### BUG-017 ✅ FIXED — `0` DWS displayed as `--` in personal summary
 **File:** [progress.js:79](progress.js#L79)
 **Severity:** MEDIUM (cosmetic — extreme score case)
 **Description:** `${latest.dws || '--'}` — falsy 0 renders as `--`. A user with a true DWS of 0 (theoretically possible) sees no number.
