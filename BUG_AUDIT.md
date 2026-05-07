@@ -96,7 +96,7 @@ Severity legend
 **Proposed fix:** `if(!el) return;` immediately after the getElementById. Same defensive pattern used elsewhere in the file.
 **Files touched:** progress.js
 
-### BUG-012 — `handleLogout` accesses `userAvatar.style` without null guard
+### BUG-012 ✅ FIXED — `handleLogout` accesses `userAvatar.style` without null guard
 **File:** [state.js:216](state.js#L216)
 **Severity:** HIGH (TypeError on logout if avatar element was removed/never rendered — would silently break the auth state-change listener for the rest of the session)
 **Proposed fix:** `const a = document.getElementById('userAvatar'); if(a) a.style.display = 'none';`
