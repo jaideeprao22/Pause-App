@@ -31,6 +31,12 @@ function showScreen(id){
     if(typeof resetBreathingTimerState === 'function') resetBreathingTimerState();
   }
 
+  // BUG-009 FIX: stop speech recognition when leaving the logbook screen so
+  // the mic doesn't keep cycling sessions in the background.
+  if(currentScreen === 'screen-logbook' && id !== 'screen-logbook'){
+    if(typeof stopRecording === 'function') stopRecording();
+  }
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.getElementById(id).scrollTop = 0;
