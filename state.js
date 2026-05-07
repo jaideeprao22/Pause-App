@@ -303,10 +303,14 @@ function showOccupationBranch(type){
       const el = document.getElementById(id);
       if(el) el.querySelectorAll('.form-option').forEach(b => b.classList.remove('selected'));
     });
-  const college = document.getElementById('profileCollegeName');
-  if(college) college.value = '';
-  const workplace = document.getElementById('profileWorkplace');
-  if(workplace) workplace.value = '';
+  // BUG-016 FIX: clear ALL occupation-conditional text inputs (not just two)
+  // so switching occupations doesn't leak stale values from a previous branch.
+  ['profileCollegeName','profileWorkplace','profileHcDepartment',
+   'profileItCompany','profileItDepartment',
+   'profileGovtOrg','profileDepartment','profileOtherOrg'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
   if(type !== 'none'){
     const el = document.getElementById('branch-' + type);
     if(el) el.style.display = 'block';
