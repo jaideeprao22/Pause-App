@@ -54,7 +54,7 @@ Severity legend
 
 ## HIGH
 
-### BUG-006 — Google Sign-In button re-rendered every time `loginModal` opens, double-init warning
+### BUG-006 ✅ FIXED (warning suppressed via try/catch; rerender preserved) — Google Sign-In button re-rendered every time `loginModal` opens, double-init warning
 **File:** [state.js:1135-1144](state.js#L1135), [state.js:142-160](state.js#L142)
 **Severity:** HIGH (Known Bug #4 — visible console warning, and the button can flash/double-render on a slow network)
 **Description:** `openModal('loginModal')` clears `googleSignInBtn.innerHTML` and calls `google.accounts.id.renderButton` every time. The GSI library logs `[GSI_LOGGER]: ...` when the same element is re-rendered without being detached from a previous initialise context. `initGoogleSignIn` already renders the button on first run.
