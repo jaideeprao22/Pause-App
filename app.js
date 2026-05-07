@@ -199,4 +199,11 @@ function renderAboutScales(){
 }
 
 // Start app
-init();
+// BUG-029 FIX: guard the bare init() call so the script tag order or any
+// future removal of `defer` from the index.html script tags doesn't cause
+// init to run before the DOM is parsed.
+if(document.readyState !== 'loading'){
+  init();
+} else {
+  document.addEventListener('DOMContentLoaded', init);
+}
