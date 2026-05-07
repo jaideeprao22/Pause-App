@@ -15,7 +15,7 @@ Severity legend
 
 ## CRITICAL
 
-### BUG-001 — Quick Scan saves an impact-only DWS, then a full assessment's history dws becomes inaccurate
+### BUG-001 ✅ FIXED (UI relabel only — formula kept as designed) — Quick Scan saves an impact-only DWS, then a full assessment's history dws becomes inaccurate
 **File:** [assessment.js:298-305](assessment.js#L298), [app.js:73-81](app.js#L73)
 **Severity:** CRITICAL (data corruption — wrong DWS recorded in `pauseV2History`)
 **Description:** In `finishAssessment` for `quick` mode, `dwsScore = calculateDWS(true)` (impact-only). `saveScores()` then writes a history entry where `disorder:{...disorderScores}` may still hold a previous full assessment's disorder scores, but `dws` is impact-only. Trend graphs and "Improved by X pts" comparisons silently mix two different score formulas, so `pauseV2History` is internally inconsistent — and is the single source of truth for the Progress screen + caregiver share.
