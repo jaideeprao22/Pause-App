@@ -61,7 +61,7 @@ Severity legend
 **Proposed fix:** In `openModal('loginModal')`, only re-render if the button's child iframe has been removed (e.g., `if(!btnEl.children.length) renderButton(...)`). Don't blindly clear.
 **Files touched:** state.js
 
-### BUG-007 — `bestDWS` reduce in `getBadgeStats` returns 0 when all history entries are impact-only
+### BUG-007 ✅ FIXED — `bestDWS` reduce in `getBadgeStats` returns 0 when all history entries are impact-only
 **File:** [badges.js:10](badges.js#L10)
 **Severity:** HIGH (badge "Digital Clean" can never be earned for users who only ever ran Quick Scans, even if every Quick Scan returned a healthy 80+)
 **Description:** `history.reduce((max, h) => h.dws > max ? h.dws : max, 0)`. If `h.dws` is `null`, `null > 0` is false, so 0 stays. If every entry has a real DWS but one is null, that's fine. But the bigger issue: with the BUG-001 quick-scan history corruption fixed, this is still broken — Quick Scans before fix saved `dws:null` in some paths.
