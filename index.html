@@ -788,7 +788,7 @@
   <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div class="modal-title">👋 Tell Us a Little About Yourself</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps us personalise your experience and — with your permission — contributes to community health research. All fields are required unless marked optional.</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6">This helps us personalise your experience and — with your permission — contributes to community health research. <strong style="color:var(--text)">All fields are required</strong> except those marked optional.</p>
     <div class="notice blue" style="margin-bottom:14px;font-size:12px">🤝 Your responses help us understand digital health across different communities in India, so we can build better tools for everyone. Your identity is never shared.</div>
 
     <!-- SECTION: Demographics -->
@@ -875,8 +875,12 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Hospital / Organisation <span style="color:var(--muted)">(optional)</span></label>
-        <input type="text" class="form-input" id="profileWorkplace" placeholder="Enter your workplace">
+        <label class="form-label">Hospital / Organisation</label>
+        <input type="text" class="form-input" id="profileWorkplace" placeholder="Enter your hospital or organisation">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department / Specialty</label>
+        <input type="text" class="form-input" id="profileHcDepartment" placeholder="e.g. Community Medicine, Surgery, Paediatrics">
       </div>
     </div>
 
@@ -903,6 +907,14 @@
           <button class="form-option" onclick="selectProfessionDetail('work_mode','Hybrid',this)">Hybrid</button>
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">Company / Organisation</label>
+        <input type="text" class="form-input" id="profileItCompany" placeholder="Enter your company name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department / Team</label>
+        <input type="text" class="form-input" id="profileItDepartment" placeholder="e.g. Engineering, Product, Data">
+      </div>
     </div>
 
     <!-- GOVERNMENT BRANCH -->
@@ -922,7 +934,11 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Department <span style="color:var(--muted)">(optional)</span></label>
+        <label class="form-label">Organisation / Office</label>
+        <input type="text" class="form-input" id="profileGovtOrg" placeholder="e.g. Health Dept., Telangana State">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department</label>
         <input type="text" class="form-input" id="profileDepartment" placeholder="Enter your department">
       </div>
     </div>
@@ -939,6 +955,10 @@
           <button class="form-option" onclick="selectProfessionDetail('profession_role','Skilled Trade',this)">Skilled Trade</button>
           <button class="form-option" onclick="selectProfessionDetail('profession_role','Other',this)">Other</button>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Organisation / Workplace</label>
+        <input type="text" class="form-input" id="profileOtherOrg" placeholder="Enter your organisation or business name">
       </div>
     </div>
     <div class="form-group">
@@ -1193,21 +1213,56 @@
 
 <!-- ONBOARDING MODAL -->
 <div class="modal-overlay" id="onboardingModal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
     <div class="modal-handle"></div>
-    <div style="text-align:center;padding:10px 0 20px">
-      <div style="font-size:48px;margin-bottom:12px">🧠</div>
-      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px">Welcome to PAUSE App</div>
-      <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:20px">A clinically-grounded digital wellness platform.<br><br>Screen yourself for <strong>6 digital disorders</strong> using internationally validated psychometric tools.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;text-align:left">
-        <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">🔬</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">6 Validated Scales</div></div>
-        <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">📊</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">Percentile Ranking</div></div>
-        <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">📓</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">Daily Logbook</div></div>
-        <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">🩺</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">Doctor Reports</div></div>
-      </div>
-      <div class="notice yellow" style="text-align:left;margin-bottom:16px"><div class="notice-title">⚠️ Important</div>This app is for educational screening only. Not a clinical diagnosis tool.</div>
+
+    <!-- HERO -->
+    <div style="text-align:center;padding:6px 0 14px">
+      <div style="font-size:48px;margin-bottom:10px">🧠</div>
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--text);margin-bottom:6px">Welcome to PAUSE App</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.65">A clinically-grounded digital wellness platform.<br>Screen yourself for <strong>6 digital disorders</strong> using internationally validated psychometric tools.</div>
     </div>
-    <button class="btn-primary" onclick="completeOnboarding()">Get Started →</button>
+
+    <!-- GET STARTED — placed prominently in the middle, immediately accessible -->
+    <button class="btn-primary" onclick="completeOnboarding()" style="margin:4px 0 22px">Get Started →</button>
+
+    <!-- FEATURES GRID -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;text-align:left">
+      <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">🔬</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">6 Validated Scales</div></div>
+      <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">📊</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">Percentile Ranking</div></div>
+      <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">📓</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">Daily Logbook</div></div>
+      <div style="background:var(--bg);border-radius:12px;padding:12px"><div style="font-size:18px">🩺</div><div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px">Doctor Reports</div></div>
+    </div>
+
+    <!-- PEOPLE BEHIND PAUSE -->
+    <div style="background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px;border:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;text-align:center">👥 The People Behind PAUSE</div>
+      <div style="text-align:center;font-size:12px;line-height:1.55">
+        <div style="margin-bottom:10px">
+          <div style="color:var(--text);font-weight:700">Dr. M. Jaideep Rao</div>
+          <div style="color:var(--muted);font-size:11px">Senior Resident · Community Medicine<br>Government Medical College, Maheshwaram</div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="color:var(--text);font-weight:700">Dr. Sridhar D.</div>
+          <div style="color:var(--muted);font-size:11px">Co-Investigator · Associate Professor</div>
+        </div>
+        <div>
+          <div style="color:var(--text);font-weight:700">Dr. Kiranmai B.</div>
+          <div style="color:var(--muted);font-size:11px">Guide & Head of Department · Professor</div>
+        </div>
+      </div>
+
+      <!-- SPECIAL THANKS — Dr. B. Triveni -->
+      <div style="border-top:1px dashed var(--border);margin-top:14px;padding-top:12px;text-align:center">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">🙏 With Heartfelt Gratitude</div>
+        <div style="color:var(--text);font-weight:700;font-size:13px">Dr. B. Triveni</div>
+        <div style="color:var(--muted);font-size:11px;margin-bottom:8px">Principal · GMC Maheshwaram</div>
+        <div style="color:var(--muted);font-size:11px;line-height:1.65;font-style:italic">Whose vision and steady institutional support gave this work the space and freedom to take shape. PAUSE exists because of leadership that believed young researchers deserved room to build, and that digital wellbeing deserved a place in community medicine.</div>
+      </div>
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div class="notice yellow" style="text-align:left;margin-bottom:6px"><div class="notice-title">⚠️ Important</div>This app is for educational screening only. Not a clinical diagnosis tool.</div>
   </div>
 </div>
 
