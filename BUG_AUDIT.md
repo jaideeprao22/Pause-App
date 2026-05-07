@@ -165,7 +165,7 @@ Severity legend
 **Proposed fix:** The percentile semantics here are confused — the canvas card says "Better than X% of users" with scores normalised in the wrong direction for disorder scales (lower = healthier for disorder, higher = healthier for DWS). The simplest correct fix is to compute `rank = ref.filter(v => v < score).length` for the disorder-direction (where higher score = worse). Or — given assessment.js already gates real percentiles behind `PERCENTILE_DATA_READY=false` — this share.js path is also non-pilot data and should be hidden similarly until n≥50.
 **Files touched:** share.js
 
-### BUG-022 — `dwsModal modalDWSStatus.style.color` not reset when score becomes null after a previous render
+### BUG-022 ✅ FIXED — `dwsModal modalDWSStatus.style.color` not reset when score becomes null after a previous render
 **File:** [results.js:317-322](results.js#L317)
 **Severity:** MEDIUM (cosmetic — colour from previous session leaks)
 **Description:** When `dwsScore === null`, the else-branch sets text but does NOT reset `modalDWSStatus.style.color`. If a prior render set red/orange, it persists.
