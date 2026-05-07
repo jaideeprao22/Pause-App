@@ -22,7 +22,7 @@ Severity legend
 **Proposed fix:** In `finishAssessment`, when assessMode==='quick', call `dwsScore = calculateDWS()` (no impactOnly) so the saved DWS reflects all data the history snapshot contains. This also fixes Known Bug #1 ("Quick Scan not calculating DWS composite score") — the M1 FIX comment is wrong; staleness is already surfaced via the home-screen recheck label.
 **Files touched:** assessment.js
 
-### BUG-002 — `loadAllUserDataFromSupabase` blindly overwrites local data with remote on every login
+### BUG-002 ✅ FIXED (skip-when-empty patch only; full v1.1 merge still TODO) — `loadAllUserDataFromSupabase` blindly overwrites local data with remote on every login
 **File:** [state.js:790-877](state.js#L790)
 **Severity:** CRITICAL (offline data loss for users who journal/log/assess BEFORE signing in)
 **Description:** The function replaces `pauseV2History`, `pauseLogbook`, `moodLog`, `screenTimeLog`, `pause_urge_log`, `pause_weekly_checkin`, and challenge state with whatever supabase returns — without merging by timestamp. The TODO comment at line 718-723 acknowledges this. Any data created during a guest/offline session is destroyed on login.
