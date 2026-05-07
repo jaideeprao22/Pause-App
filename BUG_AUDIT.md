@@ -121,7 +121,7 @@ Severity legend
 **Proposed fix:** Out of scope for fix cycle (would touch HTML and require careful cleanup). Flag for future cleanup. Leave in BUG_AUDIT but do not fix in Phase 2/3.
 **Files touched:** index.html
 
-### BUG-016 — `showOccupationBranch` doesn't reset all dependent text inputs (workplace fields leak between branches)
+### BUG-016 ✅ FIXED — `showOccupationBranch` doesn't reset all dependent text inputs (workplace fields leak between branches)
 **File:** [state.js:290-311](state.js#L290)
 **Severity:** HIGH (saves wrong-occupation text fields if user switches occupation mid-form — already partly mitigated in saveEditProfile but NOT in saveProfile)
 **Description:** `showOccupationBranch` resets `profileCollegeName` and `profileWorkplace` but not `profileItCompany`, `profileItDepartment`, `profileGovtOrg`, `profileDepartment`, `profileHcDepartment`, `profileOtherOrg`. So if a user fills "Healthcare → workplace=Apollo Hospital", then switches to "IT Professional", the Apollo string never gets to Profiles, but if they fill IT and submit, `profileWorkplace` is empty (correct). However if they switch back to Healthcare, the original Apollo value is still in the input (it was reset). So actually... let me re-check: line 305-306 resets `profileCollegeName` and `profileWorkplace`. The other text inputs (`profileItCompany`, etc.) are NOT reset. So switching Govt → IT then back to Govt leaves stale `profileItCompany`. saveProfile only reads the visible branch's inputs, so this is mostly harmless — except that `profileHcDepartment`, `profileItDepartment`, etc. all get persisted in `userProfile` if their branch is the final one. The leak is small.
