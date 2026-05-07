@@ -102,7 +102,7 @@ Severity legend
 **Proposed fix:** `const a = document.getElementById('userAvatar'); if(a) a.style.display = 'none';`
 **Files touched:** state.js
 
-### BUG-013 — `handleUser` accesses `userAvatar` without null guard
+### BUG-013 ✅ FIXED — `handleUser` accesses `userAvatar` without null guard
 **File:** [state.js:181-183](state.js#L181)
 **Severity:** HIGH (mirror of BUG-012 — TypeError on session restore if avatar element absent)
 **Proposed fix:** Same null-guard pattern.
