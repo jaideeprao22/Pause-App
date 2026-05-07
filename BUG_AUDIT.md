@@ -68,7 +68,7 @@ Severity legend
 **Proposed fix:** `history.filter(h => h.dws != null).reduce((max, h) => Math.max(max, h.dws), 0)`.
 **Files touched:** badges.js
 
-### BUG-008 — `improvedScore` badge condition compares `history[0].dws > history[1].dws` without null guards
+### BUG-008 ✅ FIXED — `improvedScore` badge condition compares `history[0].dws > history[1].dws` without null guards
 **File:** [badges.js:12](badges.js#L12)
 **Severity:** HIGH (`null > null` is false, but `undefined > 50` is false too — silently denies the badge)
 **Description:** If either is null, the comparison is always false and the badge never awards. Same root cause as BUG-007 but on a different field.
