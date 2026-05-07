@@ -172,11 +172,10 @@ Severity legend
 **Proposed fix:** Add `document.getElementById('modalDWSStatus').style.color = '';` to the else branch.
 **Files touched:** results.js
 
-### BUG-023 — `getCorrelationInsights` impact-pair conditions use `> 5` instead of `>= 5` (off-by-one with band boundary)
+### BUG-023 ❌ WITHDRAWN — feature, not bug — `getCorrelationInsights` impact-pair conditions use `> 5` instead of `>= 5` (off-by-one with band boundary)
 **File:** [assessment.js:389-392](assessment.js#L389)
-**Severity:** MEDIUM (impact module score of exactly 5 is the "Mild" boundary in `getImpactLevel` — users on the boundary miss the insight)
-**Proposed fix:** Use `>= 5` to match `getImpactLevel` boundary semantics.
-**Files touched:** assessment.js
+**Reason for withdrawal:** Re-analysis at start of Batch 5 found the audit was wrong about which side of the boundary belonged to which level. `getImpactLevel(5)` returns **Minimal** (the cap is `score <= 5`); **Mild** starts at score 6. The current `> 5` check (i.e. `>= 6`) correctly fires the correlation insight only when both impact scores are Mild or worse — which is the clinically appropriate threshold. Applying `>= 5` would over-flag healthy users at the top of the Minimal range with a "screens before bed fragment both sleep and daytime focus" message they don't warrant. No fix.
+**Files touched:** none
 
 ### BUG-024 — `renderTrendShareButton` not called from `nav.js` for screen-progress when fewer than 2 assessments exist initially
 **File:** [nav.js:43-44](nav.js#L43)
