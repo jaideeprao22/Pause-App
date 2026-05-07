@@ -1063,7 +1063,8 @@ async function submitFeedback(){
   } catch(e){ console.log('Feedback save error:', e); }
 
   // Show success regardless (offline-resilient)
-  document.getElementById('feedbackSuccess').style.display = 'block';
+  const _fbSuccess = document.getElementById('feedbackSuccess');
+  if(_fbSuccess) _fbSuccess.style.display = 'block';
   if(submitBtn) submitBtn.style.display = 'none';
 
   // Reset form state for next use
