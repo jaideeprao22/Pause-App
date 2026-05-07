@@ -233,7 +233,7 @@ Severity legend
 **Proposed fix:** Defensive only — add `/` to escape map.
 **Files touched:** cbt.js
 
-### BUG-033 — `bumpAppOpenStreak` "yesterday" calculation via `Date.now() - 86400000` is technically off during DST transitions
+### BUG-033 ✅ FIXED — `bumpAppOpenStreak` "yesterday" calculation via `Date.now() - 86400000` is technically off during DST transitions
 **File:** [state.js:55](state.js#L55)
 **Severity:** LOW (edge case — user opens app exactly during DST forward day at hour 0–1, may see streak reset incorrectly)
 **Proposed fix:** Use `new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)` instead of subtracting milliseconds.
