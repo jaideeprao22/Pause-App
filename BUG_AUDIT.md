@@ -182,7 +182,7 @@ Severity legend
 **Severity:** MEDIUM (the gate text shows correctly the first time, but if user does a 2nd assessment then navigates Home → Progress, `renderTrendShareButton` IS called via `if(typeof renderTrendShareButton === 'function')` so this is OK. **Re-checked: not a bug.**)
 **Status:** Removing — works as designed.
 
-### BUG-025 — `localStorage.setItem('maxChallengeStreak', completed.length)` writes a number not string
+### BUG-025 ✅ FIXED — `localStorage.setItem('maxChallengeStreak', completed.length)` writes a number not string
 **File:** [progress.js:430](progress.js#L430)
 **Severity:** MEDIUM (works due to coercion, but inconsistent with other writes that use `.toString()` — risks future code reading `typeof` checks)
 **Proposed fix:** `.toString()` for consistency.
