@@ -188,7 +188,7 @@ Severity legend
 **Proposed fix:** `.toString()` for consistency.
 **Files touched:** progress.js
 
-### BUG-026 — `nav.js` modal-overlay click-outside handler is bound at script load, missing dynamically-added modals
+### BUG-026 ✅ FIXED — `nav.js` modal-overlay click-outside handler is bound at script load, missing dynamically-added modals
 **File:** [nav.js:89-91](nav.js#L89)
 **Severity:** MEDIUM (the resume / single-over-partial / guest-warn modals built in `assessment.js` have their own non-`.modal-overlay` markup, so clicking their backdrop doesn't dismiss them)
 **Description:** The dynamic modals use `position:fixed;inset:0;background:rgba(0,0,0,0.6)` directly without the `.modal-overlay` class, so the document-level handler doesn't apply. CBT walkthrough and action plan modals already attach their own listener; the assessment modals don't.
