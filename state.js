@@ -179,8 +179,10 @@ async function handleUser(user){
   localStorage.removeItem('guestAssessWarningShown'); // BUG8 FIX: reset so warning shows for new users on shared devices
   currentUser = user;
   const avatar = document.getElementById('userAvatar');
-  avatar.style.display = 'flex';
-  avatar.textContent = user.email.charAt(0).toUpperCase();
+  if(avatar){
+    avatar.style.display = 'flex';
+    avatar.textContent = user.email.charAt(0).toUpperCase();
+  }
   renderLoginBanner();
   renderAccountSection();
 
@@ -213,7 +215,8 @@ function handleLogout(){
     physical_activity:'', prev_detox_attempt:'', followup_consent:'',
     study_field:'', profession_role:'', work_mode:''
   };
-  document.getElementById('userAvatar').style.display = 'none';
+  const _avatar = document.getElementById('userAvatar');
+  if(_avatar) _avatar.style.display = 'none';
   renderLoginBanner();
   renderAccountSection();
 }
@@ -300,10 +303,14 @@ function showOccupationBranch(type){
       const el = document.getElementById(id);
       if(el) el.querySelectorAll('.form-option').forEach(b => b.classList.remove('selected'));
     });
-  const college = document.getElementById('profileCollegeName');
-  if(college) college.value = '';
-  const workplace = document.getElementById('profileWorkplace');
-  if(workplace) workplace.value = '';
+  // BUG-016 FIX: clear ALL occupation-conditional text inputs (not just two)
+  // so switching occupations doesn't leak stale values from a previous branch.
+  ['profileCollegeName','profileWorkplace','profileHcDepartment',
+   'profileItCompany','profileItDepartment',
+   'profileGovtOrg','profileDepartment','profileOtherOrg'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
   if(type !== 'none'){
     const el = document.getElementById('branch-' + type);
     if(el) el.style.display = 'block';
@@ -605,6 +612,10 @@ function saveEditProfile(){
 async function syncProfileToSupabase(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
+  // BUG-010 FIX: don't create an empty Profiles row if the user hasn't filled
+  // the profile form yet. Age is the cheapest required field — its absence
+  // means userProfile is uninitialised. Sync runs again after saveProfile/saveEditProfile.
+  if(!userProfile || !userProfile.age) return;
   try {
     const { error } = await sb.from('Profiles').upsert({
       user_id:            currentUser.id,
@@ -810,8 +821,11 @@ async function loadAllUserDataFromSupabase(userId){
   } catch(e){ console.warn('Assessments fetch error:', e); _showSyncErrorToast(); }
 
   // ---- UrgeLog ----
+  // BUG-002 FIX: require remote array to be non-empty before overwriting local.
+  // Stops a fresh-login wipeout of locally-created entries when the remote
+  // table has no data yet for this user. Full timestamp-merge is still TODO v1.1.
   try {
-    if(urgeR.status === 'fulfilled' && urgeR.value && !urgeR.value.error && Array.isArray(urgeR.value.data)){
+    if(urgeR.status === 'fulfilled' && urgeR.value && !urgeR.value.error && Array.isArray(urgeR.value.data) && urgeR.value.data.length){
       const log = urgeR.value.data.map(r => ({
         date: r.logged_at || new Date().toISOString(),
         disorder: r.disorder, trigger: r.trigger, resisted: !!r.resisted,
@@ -823,7 +837,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- Logbook ----
   try {
-    if(logR.status === 'fulfilled' && logR.value && !logR.value.error && Array.isArray(logR.value.data)){
+    // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
+    if(logR.status === 'fulfilled' && logR.value && !logR.value.error && Array.isArray(logR.value.data) && logR.value.data.length){
       const entries = logR.value.data.map(r => ({
         id:        String(r.id),
         date:      r.date,
@@ -849,7 +864,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- MoodLog ----
   try {
-    if(moodR.status === 'fulfilled' && moodR.value && !moodR.value.error && Array.isArray(moodR.value.data)){
+    // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
+    if(moodR.status === 'fulfilled' && moodR.value && !moodR.value.error && Array.isArray(moodR.value.data) && moodR.value.data.length){
       const moodLog = moodR.value.data.map(r => ({ date: r.date, value: r.value }));
       localStorage.setItem('moodLog', JSON.stringify(moodLog));
     }
@@ -857,7 +873,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- ScreenTime ----
   try {
-    if(stR.status === 'fulfilled' && stR.value && !stR.value.error && Array.isArray(stR.value.data)){
+    // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
+    if(stR.status === 'fulfilled' && stR.value && !stR.value.error && Array.isArray(stR.value.data) && stR.value.data.length){
       const log = stR.value.data.map(r => ({ date: r.date, hours: r.hours }));
       localStorage.setItem('screenTimeLog', JSON.stringify(log));
     }
@@ -1060,7 +1077,8 @@ async function submitFeedback(){
   } catch(e){ console.log('Feedback save error:', e); }
 
   // Show success regardless (offline-resilient)
-  document.getElementById('feedbackSuccess').style.display = 'block';
+  const _fbSuccess = document.getElementById('feedbackSuccess');
+  if(_fbSuccess) _fbSuccess.style.display = 'block';
   if(submitBtn) submitBtn.style.display = 'none';
 
   // Reset form state for next use
@@ -1131,15 +1149,21 @@ function openModal(id){
     if(err) err.style.display = 'none';
   }
 
-  // Re-render Google sign-in button each time loginModal opens
+  // Re-render Google sign-in button each time loginModal opens.
+  // BUG-006 FIX: clear-and-rerender is a documented GIS workaround for stale
+  // iframe state when a tab is backgrounded then re-foregrounded. GIS may
+  // throw or log a multi-init warning on rerender; we wrap in try/catch so
+  // any thrown error doesn't surface to the user. Behaviour is preserved.
   if(id === 'loginModal' && window.google && googleSignInInitialized){
     const btnEl = document.getElementById('googleSignInBtn');
     if(btnEl){
       btnEl.innerHTML = ''; // clear stale iframe first
-      google.accounts.id.renderButton(btnEl, {
-        theme:'outline', size:'large', width:320,
-        text:'continue_with', shape:'rectangular'
-      });
+      try {
+        google.accounts.id.renderButton(btnEl, {
+          theme:'outline', size:'large', width:320,
+          text:'continue_with', shape:'rectangular'
+        });
+      } catch(e){ /* GIS rerender warning — expected, intentionally swallowed */ }
     }
   }
 }

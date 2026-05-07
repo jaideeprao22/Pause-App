@@ -276,6 +276,13 @@ function _startSession(){
   }
 }
 
+// BUG-009 FIX: stop the mic when the page is hidden (tab switch, app backgrounded,
+// screen lock). Without this, _startSession() chains itself forever via onend
+// while isRecording is true, draining battery and keeping the mic hot off-screen.
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden && isRecording) stopRecording();
+});
+
 function stopRecording(){
   // Set flag FIRST so the in-flight onend doesn't re-trigger a session start.
   isRecording = false;

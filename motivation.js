@@ -134,7 +134,7 @@ function scheduleMotivationNotification(){
   if(next <= now) next.setDate(next.getDate() + 1);
   const delay = next - now;
   setTimeout(() => {
-    if(Notification.permission === 'granted' && localStorage.getItem('motivNotifEnabled') === 'true'){
+    if('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('motivNotifEnabled') === 'true'){
       const {message} = getTodayMotivation();
       // Bug FIX: use dynamic icon path (matches notifications.js pattern) so it works on
       // any host — TWA, custom domain, GitHub Pages — not just /Pause-App/.

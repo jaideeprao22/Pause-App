@@ -7,9 +7,9 @@ function getBadgeStats(){
   return {
     totalAssessments: history.length,
     fullAssessments: history.filter(h => Object.keys(h.disorder||{}).length === 6).length,
-    bestDWS: history.reduce((max, h) => h.dws > max ? h.dws : max, 0),
+    bestDWS: history.filter(h => h.dws != null).reduce((max, h) => Math.max(max, h.dws), 0),
     challengeWeeksCompleted: parseInt(localStorage.getItem('challengeWeeksCompleted')||'0'),
-    improvedScore: history.length >= 2 && history[0].dws > history[1].dws,
+    improvedScore: history.length >= 2 && history[0].dws != null && history[1].dws != null && history[0].dws > history[1].dws,
     maxStreak: parseInt(localStorage.getItem('maxChallengeStreak')||'0'),
     shared: localStorage.getItem('hasShared') === 'true',
     disordersScreened: Object.keys(disorderScores).length
