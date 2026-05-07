@@ -612,6 +612,10 @@ function saveEditProfile(){
 async function syncProfileToSupabase(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
+  // BUG-010 FIX: don't create an empty Profiles row if the user hasn't filled
+  // the profile form yet. Age is the cheapest required field — its absence
+  // means userProfile is uninitialised. Sync runs again after saveProfile/saveEditProfile.
+  if(!userProfile || !userProfile.age) return;
   try {
     const { error } = await sb.from('Profiles').upsert({
       user_id:            currentUser.id,
