@@ -1126,7 +1126,7 @@
     </div>
     <div class="edit-profile-row">
       <label>Occupation</label>
-      <select id="editOccupation">
+      <select id="editOccupation" onchange="showEditOccupationBranch(this.value)">
         <option value="Student">Student</option>
         <option value="Healthcare">Healthcare</option>
         <option value="IT Professional">IT Professional</option>
@@ -1135,6 +1135,144 @@
         <option value="Not Working">Not Working</option>
       </select>
     </div>
+
+    <!-- EDIT — STUDENT BRANCH -->
+    <div id="edit-branch-student" class="edit-occupation-branch" style="display:none">
+      <div class="edit-profile-row">
+        <label>Field of Study</label>
+        <select id="editStudyField">
+          <option value="">Select…</option>
+          <option value="Medicine">Medicine</option>
+          <option value="Dental">Dental</option>
+          <option value="Nursing">Nursing</option>
+          <option value="Physiotherapy">Physiotherapy</option>
+          <option value="AYUSH">AYUSH</option>
+          <option value="Paramedical">Paramedical</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Arts / Humanities">Arts / Humanities</option>
+          <option value="Commerce / Business">Commerce / Business</option>
+          <option value="Science">Science</option>
+          <option value="Law">Law</option>
+          <option value="Education / Teaching">Education / Teaching</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="edit-profile-row">
+        <label>College / Institution</label>
+        <input type="text" id="editCollegeName" placeholder="Enter your college name"/>
+      </div>
+    </div>
+
+    <!-- EDIT — HEALTHCARE BRANCH -->
+    <div id="edit-branch-healthcare" class="edit-occupation-branch" style="display:none">
+      <div class="edit-profile-row">
+        <label>Healthcare Role</label>
+        <select id="editHcRole">
+          <option value="">Select…</option>
+          <option value="Intern (House Surgeon)">Intern</option>
+          <option value="PG Resident (MD/MS/DNB)">PG Resident</option>
+          <option value="Doctor (MBBS)">Doctor (MBBS)</option>
+          <option value="Specialist / Consultant">Specialist</option>
+          <option value="Nurse">Nurse</option>
+          <option value="Pharmacist">Pharmacist</option>
+          <option value="Allied Health">Allied Health</option>
+          <option value="Public Health">Public Health</option>
+          <option value="Hospital Admin">Hospital Admin</option>
+          <option value="Other Healthcare">Other</option>
+        </select>
+      </div>
+      <div class="edit-profile-row">
+        <label>Hospital / Organisation</label>
+        <input type="text" id="editWorkplace" placeholder="Enter your hospital or organisation"/>
+      </div>
+      <div class="edit-profile-row">
+        <label>Department / Specialty</label>
+        <input type="text" id="editHcDepartment" placeholder="e.g. Community Medicine, Surgery, Paediatrics"/>
+      </div>
+    </div>
+
+    <!-- EDIT — IT BRANCH -->
+    <div id="edit-branch-it" class="edit-occupation-branch" style="display:none">
+      <div class="edit-profile-row">
+        <label>IT Role</label>
+        <select id="editItRole">
+          <option value="">Select…</option>
+          <option value="Software Developer">Developer</option>
+          <option value="Data Analyst">Data Analyst</option>
+          <option value="UI/UX Designer">UI/UX Designer</option>
+          <option value="Product Manager">Product Manager</option>
+          <option value="QA / Testing">QA / Testing</option>
+          <option value="DevOps / Cloud">DevOps / Cloud</option>
+          <option value="IT Support">IT Support</option>
+          <option value="Other IT">Other</option>
+        </select>
+      </div>
+      <div class="edit-profile-row">
+        <label>Work Mode</label>
+        <select id="editWorkMode">
+          <option value="">Select…</option>
+          <option value="Remote">Remote</option>
+          <option value="On-site">On-site</option>
+          <option value="Hybrid">Hybrid</option>
+        </select>
+      </div>
+      <div class="edit-profile-row">
+        <label>Company / Organisation</label>
+        <input type="text" id="editItCompany" placeholder="Enter your company name"/>
+      </div>
+      <div class="edit-profile-row">
+        <label>Department / Team</label>
+        <input type="text" id="editItDepartment" placeholder="e.g. Engineering, Product, Data"/>
+      </div>
+    </div>
+
+    <!-- EDIT — GOVT BRANCH -->
+    <div id="edit-branch-govt" class="edit-occupation-branch" style="display:none">
+      <div class="edit-profile-row">
+        <label>Government Role</label>
+        <select id="editGovtRole">
+          <option value="">Select…</option>
+          <option value="IAS / IPS / IFS">IAS / IPS / IFS</option>
+          <option value="Central Government">Central Govt.</option>
+          <option value="State Government">State Govt.</option>
+          <option value="PSU Employee">PSU Employee</option>
+          <option value="Defence / Armed Forces">Defence</option>
+          <option value="Police">Police</option>
+          <option value="Judiciary">Judiciary</option>
+          <option value="Local Body / Municipality">Local Body</option>
+          <option value="Other Government">Other</option>
+        </select>
+      </div>
+      <div class="edit-profile-row">
+        <label>Organisation / Office</label>
+        <input type="text" id="editGovtOrg" placeholder="e.g. Health Dept., Telangana State"/>
+      </div>
+      <div class="edit-profile-row">
+        <label>Department</label>
+        <input type="text" id="editGovtDepartment" placeholder="Enter your department"/>
+      </div>
+    </div>
+
+    <!-- EDIT — OTHER PROFESSIONAL BRANCH -->
+    <div id="edit-branch-other" class="edit-occupation-branch" style="display:none">
+      <div class="edit-profile-row">
+        <label>Professional Field</label>
+        <select id="editOtherRole">
+          <option value="">Select…</option>
+          <option value="Business / Self-employed">Business</option>
+          <option value="Teaching / Academia">Teaching</option>
+          <option value="Legal / Finance">Legal / Finance</option>
+          <option value="Media / Creative">Media / Creative</option>
+          <option value="Skilled Trade">Skilled Trade</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="edit-profile-row">
+        <label>Organisation / Workplace</label>
+        <input type="text" id="editOtherOrg" placeholder="Enter your organisation or business name"/>
+      </div>
+    </div>
+
     <div class="edit-profile-row">
       <label>Country</label>
       <select id="editCountry">

@@ -195,10 +195,12 @@ function renderMoodCheck(){
 
 function logMood(value){
   const today = new Date().toISOString().split('T')[0];
-  const moodLog = safeJsonParse('moodLog', []);
+  // Replace any prior entry for today so "Change" overwrites instead of duplicating
+  const moodLog = safeJsonParse('moodLog', []).filter(m => m.date !== today);
   moodLog.unshift({date: today, value});
   if(moodLog.length > 60) moodLog.splice(60);
   localStorage.setItem('moodLog', JSON.stringify(moodLog));
+  if(typeof saveMoodToSupabase === 'function') saveMoodToSupabase(today, value);
   renderMoodCheck();
 }
 
@@ -206,6 +208,7 @@ function resetTodayMood(){
   const today = new Date().toISOString().split('T')[0];
   const moodLog = safeJsonParse('moodLog', []).filter(m => m.date !== today);
   localStorage.setItem('moodLog', JSON.stringify(moodLog));
+  if(typeof deleteMoodFromSupabase === 'function') deleteMoodFromSupabase(today);
   renderMoodCheck();
 }
 

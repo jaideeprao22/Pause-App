@@ -188,13 +188,19 @@ async function handleUser(user){
   const profile = localStorage.getItem('pause_profile_' + user.id)
                || localStorage.getItem('pauseProfile_' + user.id) // migrate old key
                || localStorage.getItem('pause_profile_guest'); // migrate from guest session
-  if(!profile){
-    setTimeout(() => openModal('profileModal'), 800);
-  } else {
+  if(profile){
     try { userProfile = JSON.parse(profile); } catch(e){ userProfile = {}; }
     // Migrate old key to new if needed
     localStorage.setItem('pause_profile_' + user.id, JSON.stringify(userProfile));
   }
+  // FIX B: pull every per-user data type from Supabase, then re-render.
+  // After this resolves, if there's still no profile (neither local nor remote),
+  // open the profile modal so the user fills it in.
+  loadAllUserDataFromSupabase(user.id).finally(() => {
+    if(!userProfile || !userProfile.age){
+      setTimeout(() => openModal('profileModal'), 800);
+    }
+  });
 }
 
 function handleLogout(){
@@ -312,32 +318,82 @@ function selectProfessionDetail(key, value, btn){
   }
 }
 
-function saveProfile(){
-  const age = parseInt(document.getElementById('profileAge').value);
-  if(!age || age < 13 || age > 100){ showToast('Please enter a valid age.'); return; }
-  if(!profileSelections.gender)            { showToast('Please select your gender.'); return; }
-  if(!document.getElementById('profileEducation').value){ showToast('Please select your education level.'); return; }
-  if(!profileSelections.occupation)        { showToast('Please select your occupation.'); return; }
-  if(profileSelections.occupation === 'Student'){
-    if(!profileSelections.study_field)     { showToast('Please select your field of study.'); return; }
-    const college = document.getElementById('profileCollegeName')?.value?.trim();
-    if(!college)                           { showToast('Please enter your college / institution name.'); return; }
+// FIX A: highlight + scroll the first missing field, then toast its name.
+// `target` is an element ID (input/select) OR a form-options container ID.
+function _highlightProfileField(targetId, friendlyName){
+  const el = document.getElementById(targetId);
+  if(el){
+    try { el.scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
+    const prevOutline   = el.style.outline;
+    const prevBoxShadow = el.style.boxShadow;
+    el.style.outline   = '2px solid #c0392b';
+    el.style.boxShadow = '0 0 0 4px rgba(192,57,43,0.18)';
+    el.style.borderRadius = el.style.borderRadius || '12px';
+    setTimeout(() => { el.style.outline = prevOutline; el.style.boxShadow = prevBoxShadow; }, 2800);
   }
-  if(profileSelections.occupation === 'Healthcare' && !profileSelections.profession_role)        { showToast('Please select your healthcare role.'); return; }
-  if(profileSelections.occupation === 'IT Professional' && !profileSelections.profession_role)   { showToast('Please select your IT role.'); return; }
-  if(profileSelections.occupation === 'IT Professional' && !profileSelections.work_mode)         { showToast('Please select your work mode.'); return; }
-  if(profileSelections.occupation === 'Government / Public Sector' && !profileSelections.profession_role){ showToast('Please select your government role.'); return; }
-  if(profileSelections.occupation === 'Other Professional' && !profileSelections.profession_role){ showToast('Please select your professional field.'); return; }
-  if(!profileSelections.residence)         { showToast('Please select your area of residence.'); return; }
-  if(!profileSelections.living_situation)  { showToast('Please select your living situation.'); return; }
-  if(!profileSelections.device)            { showToast('Please select your primary device.'); return; }
-  if(!document.getElementById('profileScreentime').value){ showToast('Please select your daily screen time.'); return; }
-  if(!document.getElementById('profileSleep').value)     { showToast('Please select your average sleep.'); return; }
-  if(!profileSelections.self_rated_health) { showToast('Please rate your overall health.'); return; }
-  if(!profileSelections.chronic_illness)   { showToast('Please answer the chronic illness question.'); return; }
-  if(!profileSelections.physical_activity) { showToast('Please select your physical activity level.'); return; }
-  if(!profileSelections.prev_detox_attempt){ showToast('Please answer the digital detox question.'); return; }
-  if(!profileSelections.followup_consent)  { showToast('Please answer the follow-up consent question.'); return; }
+  showToast('Please fill: ' + friendlyName);
+}
+
+function saveProfile(){
+  // ── FIX A: every required field validated; first miss scrolls + highlights + toasts ──
+  const ageRaw = document.getElementById('profileAge').value;
+  const age    = parseInt(ageRaw, 10);
+  if(!ageRaw || isNaN(age) || age < 13 || age > 100){
+    _highlightProfileField('profileAge', 'Age (13–100)');
+    return;
+  }
+  if(!profileSelections.gender){            _highlightProfileField('genderOptions', 'Gender'); return; }
+  if(!document.getElementById('profileEducation').value){
+    _highlightProfileField('profileEducation', 'Education'); return;
+  }
+  if(!profileSelections.occupation){        _highlightProfileField('occupationOptions', 'Occupation'); return; }
+
+  // Occupation-conditional fields (NEW required text inputs)
+  if(profileSelections.occupation === 'Student'){
+    if(!profileSelections.study_field){     _highlightProfileField('studyFieldOptions', 'Field of Study'); return; }
+    const college = document.getElementById('profileCollegeName')?.value?.trim();
+    if(!college){                           _highlightProfileField('profileCollegeName', 'College / Institution name'); return; }
+  }
+  if(profileSelections.occupation === 'Healthcare'){
+    if(!profileSelections.profession_role){ _highlightProfileField('healthcareRoleOptions', 'Healthcare role'); return; }
+    const wp = document.getElementById('profileWorkplace')?.value?.trim();
+    if(!wp){                                _highlightProfileField('profileWorkplace', 'Hospital / Organisation'); return; }
+    const hcDept = document.getElementById('profileHcDepartment')?.value?.trim();
+    if(!hcDept){                            _highlightProfileField('profileHcDepartment', 'Department / Specialty'); return; }
+  }
+  if(profileSelections.occupation === 'IT Professional'){
+    if(!profileSelections.profession_role){ _highlightProfileField('itRoleOptions', 'IT role'); return; }
+    if(!profileSelections.work_mode){       _highlightProfileField('workModeOptions', 'Work mode'); return; }
+    const co = document.getElementById('profileItCompany')?.value?.trim();
+    if(!co){                                _highlightProfileField('profileItCompany', 'Company / Organisation'); return; }
+    const itDept = document.getElementById('profileItDepartment')?.value?.trim();
+    if(!itDept){                            _highlightProfileField('profileItDepartment', 'Department / Team'); return; }
+  }
+  if(profileSelections.occupation === 'Government / Public Sector'){
+    if(!profileSelections.profession_role){ _highlightProfileField('govtRoleOptions', 'Government role'); return; }
+    const govtOrg = document.getElementById('profileGovtOrg')?.value?.trim();
+    if(!govtOrg){                           _highlightProfileField('profileGovtOrg', 'Organisation / Office'); return; }
+    const govtDept = document.getElementById('profileDepartment')?.value?.trim();
+    if(!govtDept){                          _highlightProfileField('profileDepartment', 'Department'); return; }
+  }
+  if(profileSelections.occupation === 'Other Professional'){
+    if(!profileSelections.profession_role){ _highlightProfileField('otherProfessionOptions', 'Professional field'); return; }
+    const otherOrg = document.getElementById('profileOtherOrg')?.value?.trim();
+    if(!otherOrg){                          _highlightProfileField('profileOtherOrg', 'Organisation / Workplace'); return; }
+  }
+
+  if(!document.getElementById('profileCountry').value){ _highlightProfileField('profileCountry', 'Country'); return; }
+  if(!profileSelections.residence){         _highlightProfileField('residenceOptions', 'Area of residence'); return; }
+  if(!profileSelections.living_situation){  _highlightProfileField('livingSituationOptions', 'Living situation'); return; }
+  if(!profileSelections.device){            _highlightProfileField('deviceOptions', 'Primary device'); return; }
+  if(!document.getElementById('profileScreentime').value){ _highlightProfileField('profileScreentime', 'Daily screen time'); return; }
+  if(!document.getElementById('profileSleep').value){      _highlightProfileField('profileSleep',      'Average sleep');     return; }
+  if(!profileSelections.self_rated_health){ _highlightProfileField('selfRatedHealthOptions', 'Overall health rating'); return; }
+  if(!profileSelections.chronic_illness){   _highlightProfileField('chronicIllnessOptions',  'Chronic illness question'); return; }
+  if(!profileSelections.physical_activity){ _highlightProfileField('physicalActivityOptions','Physical activity level');  return; }
+  if(!profileSelections.prev_detox_attempt){_highlightProfileField('prevDetoxOptions',       'Digital detox question');   return; }
+  if(!profileSelections.followup_consent){  _highlightProfileField('followupConsentOptions', 'Follow-up consent');        return; }
+  // profileReferral is intentionally optional — no validation
 
   userProfile = {
     age,
@@ -348,7 +404,13 @@ function saveProfile(){
     college_name:       document.getElementById('profileCollegeName')?.value?.trim() || null,
     profession_role:    profileSelections.profession_role || null,
     work_mode:          profileSelections.work_mode       || null,
-    workplace:          document.getElementById('profileWorkplace')?.value?.trim() || document.getElementById('profileDepartment')?.value?.trim() || null,
+    workplace:          document.getElementById('profileWorkplace')?.value?.trim()    || null,
+    hc_department:      document.getElementById('profileHcDepartment')?.value?.trim() || null,
+    it_company:         document.getElementById('profileItCompany')?.value?.trim()    || null,
+    it_department:      document.getElementById('profileItDepartment')?.value?.trim() || null,
+    govt_org:           document.getElementById('profileGovtOrg')?.value?.trim()      || null,
+    govt_department:    document.getElementById('profileDepartment')?.value?.trim()   || null,
+    other_org:          document.getElementById('profileOtherOrg')?.value?.trim()     || null,
     country:            document.getElementById('profileCountry').value || null,
     residence_type:     profileSelections.residence,
     living_situation:   profileSelections.living_situation,
@@ -368,10 +430,31 @@ function saveProfile(){
   if(currentUser){
     // L3 FIX: write only the canonical key — handleUser() already migrates old pauseProfile_ key on login
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
+    syncProfileToSupabase(); // FIX B: was previously only called from saveEditProfile
   } else {
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile)); // BUG5 FIX: persist for guests
   }
   closeModal('profileModal');
+}
+
+// Edit-modal occupation-branch parity — mirrors showOccupationBranch in the
+// signup modal but operates on the edit-* IDs. Hides every branch and shows
+// only the one matching the currently selected occupation.
+const _editAllBranches = ['student','healthcare','it','govt','other'];
+function showEditOccupationBranch(occupationValue){
+  // Map the occupation <option value> to its branch suffix
+  const map = {
+    'Student':                    'student',
+    'Healthcare':                 'healthcare',
+    'IT Professional':            'it',
+    'Government / Public Sector': 'govt',
+    'Other Professional':         'other'
+  };
+  const target = map[occupationValue] || null; // 'Not Working' or unknown → no branch
+  _editAllBranches.forEach(b => {
+    const el = document.getElementById('edit-branch-' + b);
+    if(el) el.style.display = (b === target) ? 'block' : 'none';
+  });
 }
 
 // FIX 6: Edit profile — opened from userModal "Edit My Details" button
@@ -383,44 +466,108 @@ function openEditProfile(){
     if(!el || val === undefined || val === null) return;
     el.value = val;
   };
-  sv('editAge',        userProfile.age);
-  sv('editGender',     userProfile.gender);
-  sv('editOccupation', userProfile.occupation);
-  sv('editCountry',    userProfile.country);
-  sv('editDevice',     userProfile.primary_device);
-  sv('editScreentime', userProfile.daily_screentime);
-  sv('editSleep',      userProfile.avg_sleep);
-  sv('editActivity',   userProfile.physical_activity);
-  sv('editHealth',     userProfile.self_rated_health);
-  sv('editChronic',    userProfile.chronic_illness);
+  sv('editAge',           userProfile.age);
+  sv('editGender',        userProfile.gender);
+  sv('editOccupation',    userProfile.occupation);
+  sv('editCountry',       userProfile.country);
+  sv('editDevice',        userProfile.primary_device);
+  sv('editScreentime',    userProfile.daily_screentime);
+  sv('editSleep',         userProfile.avg_sleep);
+  sv('editActivity',      userProfile.physical_activity);
+  sv('editHealth',        userProfile.self_rated_health);
+  sv('editChronic',       userProfile.chronic_illness);
+  // Pre-fill branch fields so users don't have to retype what we already have
+  sv('editStudyField',    userProfile.study_field);
+  sv('editCollegeName',   userProfile.college_name);
+  sv('editHcRole',        userProfile.occupation === 'Healthcare'                 ? userProfile.profession_role : '');
+  sv('editItRole',        userProfile.occupation === 'IT Professional'            ? userProfile.profession_role : '');
+  sv('editGovtRole',      userProfile.occupation === 'Government / Public Sector' ? userProfile.profession_role : '');
+  sv('editOtherRole',     userProfile.occupation === 'Other Professional'         ? userProfile.profession_role : '');
+  sv('editWorkMode',      userProfile.work_mode);
+  sv('editWorkplace',     userProfile.workplace);
+  sv('editHcDepartment',  userProfile.hc_department);
+  sv('editItCompany',     userProfile.it_company);
+  sv('editItDepartment',  userProfile.it_department);
+  sv('editGovtOrg',       userProfile.govt_org);
+  sv('editGovtDepartment',userProfile.govt_department);
+  sv('editOtherOrg',      userProfile.other_org);
+  showEditOccupationBranch(userProfile.occupation);
   openModal('editProfileModal');
 }
 
 function saveEditProfile(){
-  // --- Validation ---
-  const age = parseInt(document.getElementById('editAge').value);
-  if(!age || age < 13 || age > 100)                        { showToast('Please enter a valid age.'); return; }
-  if(!document.getElementById('editGender').value)         { showToast('Please select your gender.'); return; }
-  if(!document.getElementById('editOccupation').value)     { showToast('Please select your occupation.'); return; }
-  if(!document.getElementById('editDevice').value)         { showToast('Please select your primary device.'); return; }
-  if(!document.getElementById('editScreentime').value)     { showToast('Please select your daily screen time.'); return; }
-  if(!document.getElementById('editSleep').value)          { showToast('Please select your average sleep.'); return; }
-  if(!document.getElementById('editActivity').value)       { showToast('Please select your physical activity level.'); return; }
-  if(!document.getElementById('editHealth').value)         { showToast('Please rate your overall health.'); return; }
-  if(!document.getElementById('editChronic').value)        { showToast('Please answer the chronic illness question.'); return; }
+  const _highlightEdit = (id, name) => _highlightProfileField(id, name);
+  const _val = id => (document.getElementById(id)?.value || '').trim();
 
-  // --- Apply updates ---
-  userProfile.age              = age;
-  userProfile.gender           = document.getElementById('editGender').value;
-  userProfile.occupation       = document.getElementById('editOccupation').value;
-  userProfile.country          = document.getElementById('editCountry').value     || userProfile.country;
-  userProfile.primary_device   = document.getElementById('editDevice').value;
-  userProfile.daily_screentime = document.getElementById('editScreentime').value;
-  userProfile.avg_sleep        = document.getElementById('editSleep').value;
-  userProfile.physical_activity  = document.getElementById('editActivity').value;
-  userProfile.self_rated_health  = document.getElementById('editHealth').value;
-  userProfile.chronic_illness    = document.getElementById('editChronic').value;
-  userProfile.updatedAt        = new Date().toISOString();
+  // --- Common validation ---
+  const ageRaw = document.getElementById('editAge').value;
+  const age    = parseInt(ageRaw, 10);
+  if(!ageRaw || isNaN(age) || age < 13 || age > 100){ _highlightEdit('editAge', 'Age (13–100)'); return; }
+  if(!_val('editGender')){     _highlightEdit('editGender',     'Gender');                return; }
+  const occupation = _val('editOccupation');
+  if(!occupation){             _highlightEdit('editOccupation', 'Occupation');            return; }
+  if(!_val('editDevice')){     _highlightEdit('editDevice',     'Primary device');        return; }
+  if(!_val('editScreentime')){ _highlightEdit('editScreentime', 'Daily screen time');     return; }
+  if(!_val('editSleep')){      _highlightEdit('editSleep',      'Average sleep');         return; }
+  if(!_val('editActivity')){   _highlightEdit('editActivity',   'Physical activity level'); return; }
+  if(!_val('editHealth')){     _highlightEdit('editHealth',     'Overall health rating'); return; }
+  if(!_val('editChronic')){    _highlightEdit('editChronic',    'Chronic illness question'); return; }
+
+  // --- Occupation-conditional validation (only validates the visible branch) ---
+  if(occupation === 'Student'){
+    if(!_val('editStudyField'))   { _highlightEdit('editStudyField',   'Field of Study');                return; }
+    if(!_val('editCollegeName'))  { _highlightEdit('editCollegeName',  'College / Institution name');    return; }
+  } else if(occupation === 'Healthcare'){
+    if(!_val('editHcRole'))       { _highlightEdit('editHcRole',       'Healthcare role');               return; }
+    if(!_val('editWorkplace'))    { _highlightEdit('editWorkplace',    'Hospital / Organisation');       return; }
+    if(!_val('editHcDepartment')) { _highlightEdit('editHcDepartment', 'Department / Specialty');        return; }
+  } else if(occupation === 'IT Professional'){
+    if(!_val('editItRole'))       { _highlightEdit('editItRole',       'IT role');                       return; }
+    if(!_val('editWorkMode'))     { _highlightEdit('editWorkMode',     'Work mode');                     return; }
+    if(!_val('editItCompany'))    { _highlightEdit('editItCompany',    'Company / Organisation');        return; }
+    if(!_val('editItDepartment')) { _highlightEdit('editItDepartment', 'Department / Team');             return; }
+  } else if(occupation === 'Government / Public Sector'){
+    if(!_val('editGovtRole'))      { _highlightEdit('editGovtRole',       'Government role');             return; }
+    if(!_val('editGovtOrg'))       { _highlightEdit('editGovtOrg',        'Organisation / Office');       return; }
+    if(!_val('editGovtDepartment')){ _highlightEdit('editGovtDepartment', 'Department');                  return; }
+  } else if(occupation === 'Other Professional'){
+    if(!_val('editOtherRole'))    { _highlightEdit('editOtherRole', 'Professional field');            return; }
+    if(!_val('editOtherOrg'))     { _highlightEdit('editOtherOrg',  'Organisation / Workplace');      return; }
+  }
+  // 'Not Working' or any unmapped occupation: no extra fields to validate.
+
+  // --- Apply common updates ---
+  userProfile.age                = age;
+  userProfile.gender             = _val('editGender');
+  userProfile.occupation         = occupation;
+  userProfile.country            = _val('editCountry') || userProfile.country;
+  userProfile.primary_device     = _val('editDevice');
+  userProfile.daily_screentime   = _val('editScreentime');
+  userProfile.avg_sleep          = _val('editSleep');
+  userProfile.physical_activity  = _val('editActivity');
+  userProfile.self_rated_health  = _val('editHealth');
+  userProfile.chronic_illness    = _val('editChronic');
+
+  // --- Apply occupation-conditional updates and CLEAR the others so stale
+  // values from a prior occupation don't leak into the saved profile ---
+  userProfile.study_field     = (occupation === 'Student')                    ? (_val('editStudyField')    || null) : null;
+  userProfile.college_name    = (occupation === 'Student')                    ? (_val('editCollegeName')   || null) : null;
+  userProfile.workplace       = (occupation === 'Healthcare')                 ? (_val('editWorkplace')     || null) : null;
+  userProfile.hc_department   = (occupation === 'Healthcare')                 ? (_val('editHcDepartment')  || null) : null;
+  userProfile.work_mode       = (occupation === 'IT Professional')            ? (_val('editWorkMode')      || null) : null;
+  userProfile.it_company      = (occupation === 'IT Professional')            ? (_val('editItCompany')     || null) : null;
+  userProfile.it_department   = (occupation === 'IT Professional')            ? (_val('editItDepartment')  || null) : null;
+  userProfile.govt_org        = (occupation === 'Government / Public Sector') ? (_val('editGovtOrg')       || null) : null;
+  userProfile.govt_department = (occupation === 'Government / Public Sector') ? (_val('editGovtDepartment')|| null) : null;
+  userProfile.other_org       = (occupation === 'Other Professional')         ? (_val('editOtherOrg')      || null) : null;
+  userProfile.profession_role = (
+    occupation === 'Healthcare'                 ? _val('editHcRole')    :
+    occupation === 'IT Professional'            ? _val('editItRole')    :
+    occupation === 'Government / Public Sector' ? _val('editGovtRole')  :
+    occupation === 'Other Professional'         ? _val('editOtherRole') : null
+  ) || null;
+
+  userProfile.updatedAt = new Date().toISOString();
 
   // --- Persist locally ---
   if(currentUser){
@@ -459,21 +606,288 @@ async function syncProfileToSupabase(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
   try {
-    await sb.from('Profiles').upsert({
-      user_id:          currentUser.id,
-      age:              userProfile.age              || null,
-      gender:           userProfile.gender           || null,
-      occupation:       userProfile.occupation       || null,
-      country:          userProfile.country          || null,
-      primary_device:   userProfile.primary_device   || null,
-      daily_screentime: userProfile.daily_screentime || null,
-      avg_sleep:        userProfile.avg_sleep        || null,
-      self_rated_health:userProfile.self_rated_health|| null,
-      chronic_illness:  userProfile.chronic_illness  || null,
-      physical_activity:userProfile.physical_activity|| null,
-      updated_at:       new Date().toISOString()
+    const { error } = await sb.from('Profiles').upsert({
+      user_id:            currentUser.id,
+      age:                userProfile.age                || null,
+      gender:             userProfile.gender             || null,
+      education:          userProfile.education          || null,
+      occupation:         userProfile.occupation         || null,
+      study_field:        userProfile.study_field        || null,
+      college_name:       userProfile.college_name       || null,
+      profession_role:    userProfile.profession_role    || null,
+      work_mode:          userProfile.work_mode          || null,
+      workplace:          userProfile.workplace          || null,
+      hc_department:      userProfile.hc_department      || null,
+      it_company:         userProfile.it_company         || null,
+      it_department:      userProfile.it_department      || null,
+      govt_org:           userProfile.govt_org           || null,
+      govt_department:    userProfile.govt_department    || null,
+      other_org:          userProfile.other_org          || null,
+      country:            userProfile.country            || null,
+      residence_type:     userProfile.residence_type     || null,
+      living_situation:   userProfile.living_situation   || null,
+      primary_device:     userProfile.primary_device     || null,
+      daily_screentime:   userProfile.daily_screentime   || null,
+      avg_sleep:          userProfile.avg_sleep          || null,
+      self_rated_health:  userProfile.self_rated_health  || null,
+      chronic_illness:    userProfile.chronic_illness    || null,
+      physical_activity:  userProfile.physical_activity  || null,
+      prev_detox_attempt: userProfile.prev_detox_attempt || null,
+      referral_source:    userProfile.referral_source    || null,
+      followup_consent:   typeof userProfile.followup_consent === 'boolean' ? userProfile.followup_consent : null,
+      terms_version:      userProfile.terms_version      || '1.0',
+      updated_at:         new Date().toISOString()
     }, { onConflict: 'user_id' });
-  } catch(e){ console.log('Profile sync error:', e); }
+    if(error){ console.warn('Profile sync error:', error); _showSyncErrorToast(); }
+  } catch(e){ console.warn('Profile sync error:', e); _showSyncErrorToast(); }
+}
+
+// ============================================================
+// FIX B: SYNC HELPERS
+// Toast user once per session if any cloud sync fails. Prevents toast-spam
+// when offline / RLS misconfigured / network flaky, while still surfacing
+// the issue prominently the first time it happens.
+// ============================================================
+let _syncErrorToastShown = false;
+function _showSyncErrorToast(){
+  if(_syncErrorToastShown) return;
+  _syncErrorToastShown = true;
+  showToast("Couldn't sync to cloud — your data is saved locally only.", 4500);
+}
+
+async function saveMoodToSupabase(date, value){
+  if(!currentUser) return;
+  if(localStorage.getItem('pause_research_withdrawn')) return;
+  try {
+    const { error } = await sb.from('MoodLog').upsert({
+      user_id: currentUser.id, date, value, recorded_at: new Date().toISOString()
+    }, { onConflict: 'user_id,date' });
+    if(error){ console.warn('Mood sync error:', error); _showSyncErrorToast(); }
+  } catch(e){ console.warn('Mood sync error:', e); _showSyncErrorToast(); }
+}
+
+async function deleteMoodFromSupabase(date){
+  if(!currentUser) return;
+  try {
+    const { error } = await sb.from('MoodLog').delete().eq('user_id', currentUser.id).eq('date', date);
+    if(error){ console.warn('Mood delete error:', error); _showSyncErrorToast(); }
+  } catch(e){ console.warn('Mood delete error:', e); _showSyncErrorToast(); }
+}
+
+async function saveScreenTimeToSupabase(date, hours){
+  if(!currentUser) return;
+  if(localStorage.getItem('pause_research_withdrawn')) return;
+  try {
+    const { error } = await sb.from('ScreenTime').upsert({
+      user_id: currentUser.id, date, hours, recorded_at: new Date().toISOString()
+    }, { onConflict: 'user_id,date' });
+    if(error){ console.warn('ScreenTime sync error:', error); _showSyncErrorToast(); }
+  } catch(e){ console.warn('ScreenTime sync error:', e); _showSyncErrorToast(); }
+}
+
+async function saveChallengeStateToSupabase(){
+  if(!currentUser) return;
+  if(localStorage.getItem('pause_research_withdrawn')) return;
+  try {
+    const ws = parseInt(localStorage.getItem('challengeWeekStart')   || '0', 10);
+    const wn = parseInt(localStorage.getItem('currentWeekNum')       || '1', 10);
+    const wc = parseInt(localStorage.getItem('challengeWeeksCompleted')||'0', 10);
+    const ms = parseInt(localStorage.getItem('maxChallengeStreak')   || '0', 10);
+    const pack      = safeJsonParse('currentChallengePack', null);
+    const completed = safeJsonParse('pauseChallenge', []);
+    const { error } = await sb.from('ChallengeState').upsert({
+      user_id:           currentUser.id,
+      week_start:        ws || null,
+      current_week_num:  wn,
+      weeks_completed:   wc,
+      max_streak:        ms,
+      current_pack:      pack,
+      completed_indices: completed,
+      updated_at:        new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    if(error){ console.warn('Challenge sync error:', error); _showSyncErrorToast(); }
+  } catch(e){ console.warn('Challenge sync error:', e); _showSyncErrorToast(); }
+}
+
+// ============================================================
+// FIX B: ON-LOGIN FETCH
+// Pulls every per-user data type we sync to Supabase, writes it back into
+// localStorage + in-memory state, and re-renders dependent views. Idempotent
+// — safe to call multiple times. Falls through silently on any per-table
+// failure so a single missing table doesn't block the rest.
+//
+// TODO v1.1: handle offline-then-login merge by timestamp.
+// Right now this is server-wins: any local-only data created BEFORE the user
+// signs in (e.g. journaled offline) is overwritten by what's on the server.
+// The right fix is to merge the two by per-row timestamp / created_at, keeping
+// whichever side is newer. Deferred to v1.1 to keep this change focused.
+// ============================================================
+function _profileFromSupabaseRow(row){
+  return {
+    age:                row.age,
+    gender:             row.gender,
+    education:          row.education,
+    occupation:         row.occupation,
+    study_field:        row.study_field,
+    college_name:       row.college_name,
+    profession_role:    row.profession_role,
+    work_mode:          row.work_mode,
+    workplace:          row.workplace,
+    hc_department:      row.hc_department,
+    it_company:         row.it_company,
+    it_department:      row.it_department,
+    govt_org:           row.govt_org,
+    govt_department:    row.govt_department,
+    other_org:          row.other_org,
+    country:            row.country,
+    residence_type:     row.residence_type,
+    living_situation:   row.living_situation,
+    primary_device:     row.primary_device,
+    daily_screentime:   row.daily_screentime,
+    avg_sleep:          row.avg_sleep,
+    self_rated_health:  row.self_rated_health,
+    chronic_illness:    row.chronic_illness,
+    physical_activity:  row.physical_activity,
+    prev_detox_attempt: row.prev_detox_attempt,
+    referral_source:    row.referral_source,
+    followup_consent:   row.followup_consent,
+    terms_version:      row.terms_version || '1.0',
+    createdAt:          row.created_at  || new Date().toISOString(),
+    updatedAt:          row.updated_at  || null
+  };
+}
+
+async function loadAllUserDataFromSupabase(userId){
+  if(!userId) return;
+
+  const results = await Promise.allSettled([
+    sb.from('Profiles').select('*').eq('user_id', userId).maybeSingle(),
+    sb.from('Assessments').select('*').eq('user_id', userId).order('created_at', { ascending:false }).limit(20),
+    sb.from('UrgeLog').select('*').eq('user_id', userId).order('logged_at', { ascending:false }).limit(200),
+    sb.from('logbook').select('*').eq('user_id', userId).order('created_at', { ascending:false }).limit(200),
+    sb.from('WeeklyCheckin').select('*').eq('user_id', userId).order('checked_at', { ascending:false }).limit(1),
+    sb.from('MoodLog').select('*').eq('user_id', userId).order('date', { ascending:false }).limit(60),
+    sb.from('ScreenTime').select('*').eq('user_id', userId).order('date', { ascending:false }).limit(30),
+    sb.from('ChallengeState').select('*').eq('user_id', userId).maybeSingle()
+  ]);
+  const [profileR, assessR, urgeR, logR, weeklyR, moodR, stR, chR] = results;
+
+  // ---- Profile: only adopt remote if local missing/empty (local is most up-to-date if present) ----
+  try {
+    if(profileR.status === 'fulfilled' && profileR.value && !profileR.value.error && profileR.value.data){
+      const localRaw = localStorage.getItem('pause_profile_' + userId);
+      const localEmpty = !localRaw || (() => { try { const p = JSON.parse(localRaw); return !p || !p.age; } catch(e){ return true; } })();
+      if(localEmpty){
+        userProfile = _profileFromSupabaseRow(profileR.value.data);
+        localStorage.setItem('pause_profile_' + userId, JSON.stringify(userProfile));
+      }
+    } else if(profileR.status === 'fulfilled' && profileR.value && profileR.value.error){
+      console.warn('Profile fetch error:', profileR.value.error); _showSyncErrorToast();
+    }
+  } catch(e){ console.warn('Profile fetch error:', e); _showSyncErrorToast(); }
+
+  // ---- Assessments → rebuild pauseV2History + latest snapshot ----
+  try {
+    if(assessR.status === 'fulfilled' && assessR.value && !assessR.value.error && Array.isArray(assessR.value.data) && assessR.value.data.length){
+      const rows = assessR.value.data;
+      const history = rows.map(r => ({
+        dws:      r.dws_score,
+        disorder: r.disorder_scores || {},
+        impact:   r.impact_scores   || {},
+        date:     new Date(r.created_at || Date.now()).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+      }));
+      localStorage.setItem('pauseV2History', JSON.stringify(history));
+      const latest = history[0];
+      if(latest){
+        if(typeof disorderScores !== 'undefined') disorderScores = latest.disorder || {};
+        if(typeof impactScores   !== 'undefined') impactScores   = latest.impact   || {};
+        if(typeof dwsScore       !== 'undefined') dwsScore       = (latest.dws ?? null);
+        if(typeof saveScoresLocal === 'function') saveScoresLocal();
+      }
+    } else if(assessR.status === 'fulfilled' && assessR.value && assessR.value.error){
+      console.warn('Assessments fetch error:', assessR.value.error); _showSyncErrorToast();
+    }
+  } catch(e){ console.warn('Assessments fetch error:', e); _showSyncErrorToast(); }
+
+  // ---- UrgeLog ----
+  try {
+    if(urgeR.status === 'fulfilled' && urgeR.value && !urgeR.value.error && Array.isArray(urgeR.value.data)){
+      const log = urgeR.value.data.map(r => ({
+        date: r.logged_at || new Date().toISOString(),
+        disorder: r.disorder, trigger: r.trigger, resisted: !!r.resisted,
+        id: r.id || Date.now()
+      }));
+      localStorage.setItem(URGE_LOG_KEY, JSON.stringify(log));
+    }
+  } catch(e){ console.warn('UrgeLog fetch error:', e); }
+
+  // ---- Logbook ----
+  try {
+    if(logR.status === 'fulfilled' && logR.value && !logR.value.error && Array.isArray(logR.value.data)){
+      const entries = logR.value.data.map(r => ({
+        id:        String(r.id),
+        date:      r.date,
+        promptIdx: 0,
+        prompt:    r.prompt || '',
+        text:      r.text   || '',
+        createdAt: r.created_at
+      }));
+      localStorage.setItem('pauseLogbook', JSON.stringify(entries));
+    }
+  } catch(e){ console.warn('Logbook fetch error:', e); }
+
+  // ---- WeeklyCheckin (latest only) ----
+  try {
+    if(weeklyR.status === 'fulfilled' && weeklyR.value && !weeklyR.value.error && Array.isArray(weeklyR.value.data) && weeklyR.value.data.length){
+      const r = weeklyR.value.data[0];
+      localStorage.setItem('pause_weekly_checkin', JSON.stringify({
+        lastShown: r.checked_at,
+        responses: { q1: r.q1, q2: r.q2, q3: r.q3 }
+      }));
+    }
+  } catch(e){ console.warn('WeeklyCheckin fetch error:', e); }
+
+  // ---- MoodLog ----
+  try {
+    if(moodR.status === 'fulfilled' && moodR.value && !moodR.value.error && Array.isArray(moodR.value.data)){
+      const moodLog = moodR.value.data.map(r => ({ date: r.date, value: r.value }));
+      localStorage.setItem('moodLog', JSON.stringify(moodLog));
+    }
+  } catch(e){ console.warn('MoodLog fetch error:', e); }
+
+  // ---- ScreenTime ----
+  try {
+    if(stR.status === 'fulfilled' && stR.value && !stR.value.error && Array.isArray(stR.value.data)){
+      const log = stR.value.data.map(r => ({ date: r.date, hours: r.hours }));
+      localStorage.setItem('screenTimeLog', JSON.stringify(log));
+    }
+  } catch(e){ console.warn('ScreenTime fetch error:', e); }
+
+  // ---- ChallengeState (single row) ----
+  try {
+    if(chR.status === 'fulfilled' && chR.value && !chR.value.error && chR.value.data){
+      const r = chR.value.data;
+      if(r.week_start)                  localStorage.setItem('challengeWeekStart',     String(r.week_start));
+      if(r.current_week_num != null)    localStorage.setItem('currentWeekNum',         String(r.current_week_num));
+      if(r.weeks_completed != null)     localStorage.setItem('challengeWeeksCompleted',String(r.weeks_completed));
+      if(r.max_streak != null)          localStorage.setItem('maxChallengeStreak',     String(r.max_streak));
+      if(r.current_pack)                localStorage.setItem('currentChallengePack',   JSON.stringify(r.current_pack));
+      if(Array.isArray(r.completed_indices)) localStorage.setItem('pauseChallenge',    JSON.stringify(r.completed_indices));
+    }
+  } catch(e){ console.warn('ChallengeState fetch error:', e); }
+
+  // ---- Re-render everything that depends on the freshly-loaded data ----
+  try { if(typeof updateDWSDisplay      === 'function') updateDWSDisplay();      } catch(e){}
+  try { if(typeof renderHomeDisorders   === 'function') renderHomeDisorders();   } catch(e){}
+  try { if(typeof renderProgress        === 'function') renderProgress();        } catch(e){}
+  try { if(typeof renderChallenge       === 'function') renderChallenge();       } catch(e){}
+  try { if(typeof checkAndAwardBadges   === 'function') checkAndAwardBadges();   } catch(e){}
+  try { if(typeof renderBadges          === 'function') renderBadges();          } catch(e){}
+  try { if(typeof renderMoodCheck       === 'function') renderMoodCheck();       } catch(e){}
+  try { if(typeof renderMotivationCard  === 'function') renderMotivationCard();  } catch(e){}
+  try { if(typeof renderScreenTimeSection === 'function') renderScreenTimeSection(); } catch(e){}
+  try { if(typeof renderUrgeJournal     === 'function') renderUrgeJournal();     } catch(e){}
+  try { if(typeof renderAssessMenu      === 'function') renderAssessMenu();      } catch(e){}
 }
 
 function showUserModal(){
