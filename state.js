@@ -1145,15 +1145,21 @@ function openModal(id){
     if(err) err.style.display = 'none';
   }
 
-  // Re-render Google sign-in button each time loginModal opens
+  // Re-render Google sign-in button each time loginModal opens.
+  // BUG-006 FIX: clear-and-rerender is a documented GIS workaround for stale
+  // iframe state when a tab is backgrounded then re-foregrounded. GIS may
+  // throw or log a multi-init warning on rerender; we wrap in try/catch so
+  // any thrown error doesn't surface to the user. Behaviour is preserved.
   if(id === 'loginModal' && window.google && googleSignInInitialized){
     const btnEl = document.getElementById('googleSignInBtn');
     if(btnEl){
       btnEl.innerHTML = ''; // clear stale iframe first
-      google.accounts.id.renderButton(btnEl, {
-        theme:'outline', size:'large', width:320,
-        text:'continue_with', shape:'rectangular'
-      });
+      try {
+        google.accounts.id.renderButton(btnEl, {
+          theme:'outline', size:'large', width:320,
+          text:'continue_with', shape:'rectangular'
+        });
+      } catch(e){ /* GIS rerender warning — expected, intentionally swallowed */ }
     }
   }
 }
