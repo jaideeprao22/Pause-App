@@ -209,7 +209,7 @@ Severity legend
 
 ## LOW
 
-### BUG-029 — `init()` runs unconditionally at script load with no DOMContentLoaded guard
+### BUG-029 ✅ FIXED — `init()` runs unconditionally at script load with no DOMContentLoaded guard
 **File:** [app.js:202](app.js#L202)
 **Severity:** LOW (works because all script tags use `defer`, but fragile if anyone removes `defer` or the script tag order changes)
 **Proposed fix:** Wrap with `if(document.readyState !== 'loading'){ init(); } else { document.addEventListener('DOMContentLoaded', init); }`. Optional polish.
