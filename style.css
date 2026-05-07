@@ -6,7 +6,7 @@
 --border:#e2e8f0;--radius:18px;
 --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
 }
-html,body{height:100%;overflow:hidden;background:var(--navy);font-family:'DM Sans',sans-serif}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:var(--navy);font-family:'DM Sans',sans-serif}
 #app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
 .header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:calc(14px + var(--safe-top)) 20px 14px;flex-shrink:0;z-index:50;position:relative;overflow:hidden}
 .header::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(61,111,255,0.08);border-radius:50%}
@@ -80,7 +80,7 @@ body.is-assessment .header-left{flex:0 0 auto}
 .nav-icon{font-size:18px}
 .nav-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase}
 .nav-btn.active .nav-label{color:var(--accent)}
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:none}
 .screen.active{display:block}
 .screen-content{padding:16px 14px 20px}
 .card{background:#fff;border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:0 2px 12px rgba(10,22,40,0.06);border:1px solid rgba(226,232,240,0.8)}
