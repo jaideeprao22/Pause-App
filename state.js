@@ -817,8 +817,11 @@ async function loadAllUserDataFromSupabase(userId){
   } catch(e){ console.warn('Assessments fetch error:', e); _showSyncErrorToast(); }
 
   // ---- UrgeLog ----
+  // BUG-002 FIX: require remote array to be non-empty before overwriting local.
+  // Stops a fresh-login wipeout of locally-created entries when the remote
+  // table has no data yet for this user. Full timestamp-merge is still TODO v1.1.
   try {
-    if(urgeR.status === 'fulfilled' && urgeR.value && !urgeR.value.error && Array.isArray(urgeR.value.data)){
+    if(urgeR.status === 'fulfilled' && urgeR.value && !urgeR.value.error && Array.isArray(urgeR.value.data) && urgeR.value.data.length){
       const log = urgeR.value.data.map(r => ({
         date: r.logged_at || new Date().toISOString(),
         disorder: r.disorder, trigger: r.trigger, resisted: !!r.resisted,
@@ -830,7 +833,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- Logbook ----
   try {
-    if(logR.status === 'fulfilled' && logR.value && !logR.value.error && Array.isArray(logR.value.data)){
+    // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
+    if(logR.status === 'fulfilled' && logR.value && !logR.value.error && Array.isArray(logR.value.data) && logR.value.data.length){
       const entries = logR.value.data.map(r => ({
         id:        String(r.id),
         date:      r.date,
@@ -856,7 +860,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- MoodLog ----
   try {
-    if(moodR.status === 'fulfilled' && moodR.value && !moodR.value.error && Array.isArray(moodR.value.data)){
+    // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
+    if(moodR.status === 'fulfilled' && moodR.value && !moodR.value.error && Array.isArray(moodR.value.data) && moodR.value.data.length){
       const moodLog = moodR.value.data.map(r => ({ date: r.date, value: r.value }));
       localStorage.setItem('moodLog', JSON.stringify(moodLog));
     }
@@ -864,7 +869,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- ScreenTime ----
   try {
-    if(stR.status === 'fulfilled' && stR.value && !stR.value.error && Array.isArray(stR.value.data)){
+    // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
+    if(stR.status === 'fulfilled' && stR.value && !stR.value.error && Array.isArray(stR.value.data) && stR.value.data.length){
       const log = stR.value.data.map(r => ({ date: r.date, hours: r.hours }));
       localStorage.setItem('screenTimeLog', JSON.stringify(log));
     }
