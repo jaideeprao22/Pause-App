@@ -146,7 +146,7 @@ Severity legend
 **Proposed fix:** Return null on parse failure and skip those entries explicitly with `.filter(Boolean)`.
 **Files touched:** weekly.js
 
-### BUG-019 — `getBadgeStats.disordersScreened` reads in-memory `disorderScores`, not historical breadth
+### BUG-019 ✅ FIXED — `getBadgeStats.disordersScreened` reads in-memory `disorderScores`, not historical breadth
 **File:** [badges.js:15](badges.js#L15)
 **Severity:** MEDIUM ("Complete Screener" badge counts only the most recent assessment's disorders, not the lifetime union — a user who screened all 6 across 6 single-disorder sessions never earns it because the in-memory state is reloaded from `pauseV2Scores` which gets overwritten)
 **Proposed fix:** `disordersScreened: new Set(history.flatMap(h => Object.keys(h.disorder || {}))).size`
