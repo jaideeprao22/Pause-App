@@ -373,6 +373,7 @@ function renderChallenge(){
   const sevenDaysPassed = weekStart && (now - parseInt(weekStart) > 7*24*60*60*1000);
   const isFirstLoad = !weekStart;
   let prevPackForRegen = null;
+  let didReset = false; // BUG-003 FIX: track whether a real week-rollover happened
 
   if(isFirstLoad){
     // First ever load — start Week 1
@@ -382,33 +383,29 @@ function renderChallenge(){
     localStorage.setItem('challengeWeeksCompleted', '0');
     if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   } else if(sevenDaysPassed){
+    // BUG-003 FIX: lenient policy — only auto-reset when the previous week was
+    // actually completed. For incomplete weeks, keep the existing pack and
+    // weekStart so the user can pick up where they left off. No "expired" banner.
     const completed = safeJsonParse('pauseChallenge', []);
-    const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum')||'1');
-
-    // BUG FIX 1: Count as completed only if all 7 challenges done
     if(completed.length === 7){
+      const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum')||'1');
       const weeks = parseInt(localStorage.getItem('challengeWeeksCompleted')||'0');
       localStorage.setItem('challengeWeeksCompleted', (weeks + 1).toString());
+      localStorage.setItem('currentWeekNum', (prevWeekNum + 1).toString());
+      localStorage.setItem('pauseChallenge','[]');
+      localStorage.setItem('challengeWeekStart', now.toString());
+      localStorage.setItem('weekJustReset', 'completed');
+      prevPackForRegen = _loadActivePack();
+      didReset = true;
+      if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
     }
-
-    // BUG FIX 2: Always increment week number, whether complete or not
-    localStorage.setItem('currentWeekNum', (prevWeekNum + 1).toString());
-
-    // Reset challenge for new week
-    localStorage.setItem('pauseChallenge','[]');
-    localStorage.setItem('challengeWeekStart', now.toString());
-    localStorage.setItem('weekJustReset', completed.length === 7 ? 'completed' : 'expired');
-
-    // Stash previous pack so the new one can exclude its tip IDs where pool size allows
-    prevPackForRegen = _loadActivePack();
-    if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   }
 
   // Ensure an active pack exists for the current cycle. Backfills mid-cycle
   // for users upgrading from the pre-pack version (their pauseChallenge
   // indices stay; content just changes — clean by next reset).
   let pack = _loadActivePack();
-  if(!pack || isFirstLoad || sevenDaysPassed){
+  if(!pack || isFirstLoad || didReset){
     pack = _generateChallengePack(prevPackForRegen);
     _saveActivePack(pack);
   }
@@ -442,14 +439,11 @@ function renderChallenge(){
       <div class="notice-title">🏆 Last week complete!</div>
       You finished all 7 challenges. Week ${weekNum} has started.
     </div>`;
-    localStorage.removeItem('weekJustReset');
-  } else if(weekJustReset === 'expired'){
-    resetBanner = `<div class="notice yellow" style="margin-bottom:8px">
-      <div class="notice-title">⏰ A new week has started</div>
-      Your previous week's challenges have reset. Keep going — Week ${weekNum} is here!
-    </div>`;
-    localStorage.removeItem('weekJustReset');
   }
+  // BUG-003 FIX: 'expired' branch removed — we no longer reset on incomplete
+  // weeks, so there's nothing to apologise for. Clear any stale value left
+  // over from older app versions so it doesn't loiter in localStorage.
+  if(weekJustReset) localStorage.removeItem('weekJustReset');
 
   const days = (pack && Array.isArray(pack.days)) ? pack.days : [];
 
