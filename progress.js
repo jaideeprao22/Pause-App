@@ -257,6 +257,95 @@ function _saveActivePack(pack){
   if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
 }
 
+// CHALLENGE-PERSONALIZED-CONTENT: tie-break order when normalized scores
+// collide. Earlier in the list = higher priority. Per spec.
+const _CHALLENGE_TIE_BREAK = ['cyberchondria','gaming','socialmedia','shortform','workaddiction','ai'];
+
+// Returns disorder IDs ranked by normalized severity (descending), with the
+// _CHALLENGE_TIE_BREAK list resolving equal scores. Only includes disorders
+// that have a score; partial assessments produce a shorter list.
+function _rankDisorders(){
+  const scored = DISORDERS.map(d => {
+    if(disorderScores[d.id] === undefined) return null;
+    const norm = (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
+    return { id: d.id, norm, tieIdx: _CHALLENGE_TIE_BREAK.indexOf(d.id) };
+  }).filter(Boolean);
+  scored.sort((a, b) => (b.norm - a.norm) || (a.tieIdx - b.tieIdx));
+  return scored.map(s => s.id);
+}
+
+// Returns the highest-scoring impact module ID, or null if none scored.
+function _rankImpactModule(){
+  let best = null, bestNorm = -1;
+  IMPACT_MODULES.forEach(m => {
+    if(impactScores[m.id] === undefined) return;
+    const norm = impactScores[m.id] / (m.questions.length * 4);
+    if(norm > bestNorm){ bestNorm = norm; best = m.id; }
+  });
+  return best;
+}
+
+// Builds the "Your <SCALE> score came back in the <BAND> range." line.
+function _whyMattersDisorder(disorderId){
+  const d = DISORDERS.find(x => x.id === disorderId);
+  if(!d || disorderScores[d.id] === undefined) return '';
+  const level = getLevel(d, disorderScores[d.id]);
+  return `Your ${d.scale} score came back in the ${level.label.toLowerCase()} range.`;
+}
+
+function _whyMattersImpact(impactId){
+  const score = impactScores[impactId];
+  if(score === undefined) return '';
+  const level = getImpactLevel(score);
+  const m = IMPACT_MODULES.find(x => x.id === impactId);
+  return `Your ${m ? m.name.toLowerCase() : impactId} score came back in the ${level.label.toLowerCase()} range.`;
+}
+
+// Per-day builders for the personalized pack. text re-uses existing TIPS_BY_DISORDER
+// / IMPACT_TIPS content (no new CBT authoring per spec). todoTask is a placeholder
+// the user will fill in later.
+function _makePersonalizedDisorderDay(disorderId){
+  const d = DISORDERS.find(x => x.id === disorderId);
+  if(!d) return null;
+  const tipPool = TIPS_BY_DISORDER[disorderId] || [];
+  const tip = tipPool[0];
+  const text = (typeof tip === 'string') ? tip : ((tip && tip.text) || '');
+  return {
+    kind: 'disorder',
+    disorder: disorderId,
+    disorderName: d.name,
+    color: d.color, icon: d.icon,
+    tipId: disorderId + ':0',
+    text,
+    cbtModuleId: tip && tip.cbtModuleId,
+    dayKind: 'disorder',
+    dayLabel: DISORDER_DAY_LABEL[disorderId] || d.name,
+    whyMatters: _whyMattersDisorder(disorderId),
+    todoTask: 'TODO_TASK_' + disorderId + '_DAY',
+    cbtRef: disorderId
+  };
+}
+
+function _makePersonalizedImpactDay(impactId){
+  const m = IMPACT_MODULES.find(x => x.id === impactId);
+  if(!m) return null;
+  const tips = (typeof IMPACT_TIPS !== 'undefined' && IMPACT_TIPS[impactId]) || [];
+  const text = tips[0] || '';
+  return {
+    kind: 'impact',
+    impactModuleId: impactId,
+    impactModuleName: m.name,
+    color: m.color, icon: m.icon,
+    tipId: 'impact:' + impactId + ':0',
+    text,
+    dayKind: 'impact',
+    dayLabel: (typeof IMPACT_DAY_LABEL !== 'undefined' && IMPACT_DAY_LABEL[impactId]) || m.name,
+    whyMatters: _whyMattersImpact(impactId),
+    todoTask: 'TODO_TASK_' + impactId + '_DAY',
+    cbtRef: impactId
+  };
+}
+
 function _disorderTipObj(disorderId, idx){
   const d = DISORDERS.find(x => x.id === disorderId);
   const tip = (TIPS_BY_DISORDER[disorderId] || [])[idx];
@@ -347,35 +436,63 @@ function _genericMixedPack(weekNum){
 
 function _generateChallengePack(prevPack){
   const weekNum = parseInt(localStorage.getItem('currentWeekNum') || '1');
-  const allTops = (typeof getTopDisordersByPct === 'function') ? getTopDisordersByPct(6) : [];
-  const concerning = allTops.filter(id => {
-    const d = DISORDERS.find(x => x.id === id);
-    if(!d || disorderScores[d.id] === undefined) return false;
-    const pct = (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
-    return pct > _CONCERN_PCT_THRESHOLD;
+
+  // CHALLENGE-PERSONALIZED-CONTENT (strict gate): all 6 disorders must be
+  // scored to qualify for personalization. Anything less (zero or partial
+  // assessment) falls through to the generic pack + top-of-tab CTA.
+  const ranked = _rankDisorders();
+  if(ranked.length < 6){
+    const pack = _genericMixedPack(weekNum);
+    pack.generatedAt = Date.now();
+    pack.weekNum = weekNum;
+    pack.usedTipIds = pack.days.map(d => d.tipId);
+    return pack; // legacy shape, no metaVersion — top-of-tab CTA renders.
+  }
+
+  // Personalized pack. Days 1-6 = ranked disorders (most → least severe by
+  // normalized score, tie-break per _CHALLENGE_TIE_BREAK). Day 7 = highest-
+  // scoring impact module if any, else wildcard fallback.
+  const days = [];
+  ranked.slice(0, 6).forEach(id => {
+    const day = _makePersonalizedDisorderDay(id);
+    if(day) days.push(day);
   });
-  const excludeSet = new Set((prevPack && Array.isArray(prevPack.usedTipIds)) ? prevPack.usedTipIds : []);
 
-  let pack = (concerning.length === 0)
-    ? _genericMixedPack(weekNum)
-    : _personalizedPack(concerning.slice(0, 2), excludeSet);
+  const impactId = _rankImpactModule();
+  if(impactId){
+    const day = _makePersonalizedImpactDay(impactId);
+    if(day) days.push(day);
+  } else {
+    // 0 impacts scored → Day 7 = wildcard (existing CHALLENGES content).
+    const wc = _pickWildcards(1, new Set());
+    if(wc.length) days.push(wc[0]);
+  }
 
-  // Top up to exactly 7 days using wildcards (defensive: only fires if a tip
-  // pool was unexpectedly empty). CHALLENGES has 7 entries, so this terminates.
-  while(pack.days.length < 7){
-    const used = new Set(pack.days.map(d => d.tipId));
+  // Defensive top-up to 7 (only fires if a tip pool was unexpectedly empty).
+  while(days.length < 7){
+    const used = new Set(days.map(d => d.tipId));
     const wIdxAvail = CHALLENGES.map((_,i)=>i).filter(i => !used.has('wildcard:'+i));
     if(!wIdxAvail.length) break;
     const wc = _wildcardTipObj(wIdxAvail[0]);
     if(!wc) break;
-    pack.days.push(wc);
+    days.push(wc);
   }
-  pack.days = pack.days.slice(0, 7);
+  days.length = Math.min(days.length, 7);
 
-  pack.generatedAt = Date.now();
-  pack.weekNum = weekNum;
-  pack.usedTipIds = pack.days.map(d => d.tipId);
-  return pack;
+  return {
+    days,
+    sourceDisorders: ranked.slice(0, 6),
+    fallback: false,
+    generatedAt: Date.now(),
+    weekNum,
+    usedTipIds: days.map(d => d.tipId),
+    // CHALLENGE-PERSONALIZED-CONTENT meta v2 (frozen at generation):
+    metaVersion: 2,
+    disorderOrder: ranked.slice(0, 6),
+    impactModule: impactId,
+    startedAt: new Date().toISOString(),
+    isPersonalized: true
+  };
 }
 
 function renderChallenge(){
@@ -463,11 +580,27 @@ function renderChallenge(){
       <div class="notice-title">🏆 Last week complete!</div>
       You finished all 7 challenges. Week ${weekNum} has started.
     </div>`;
+  } else if(weekJustReset === 'manual'){
+    resetBanner = `<div class="notice blue" style="margin-bottom:8px;text-align:center">
+      <div class="notice-title">🔄 Fresh start</div>
+      A new 7-day challenge week has begun.
+    </div>`;
   }
   // BUG-003 FIX: 'expired' branch removed — we no longer reset on incomplete
   // weeks, so there's nothing to apologise for. Clear any stale value left
   // over from older app versions so it doesn't loiter in localStorage.
   if(weekJustReset) localStorage.removeItem('weekJustReset');
+
+  // CHALLENGE-PERSONALIZED-CONTENT: top-of-tab CTA when the active pack is
+  // generic (not personalized — i.e., no metaVersion field). Prompts the
+  // user to complete a Full Check-up so the next pack ranks by their scores.
+  const personalizationCta = (pack && !pack.metaVersion)
+    ? `<div onclick="showScreen('screen-assess-menu')" style="cursor:pointer;background:linear-gradient(135deg,#0f2d5e,#1a4a8a);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">✨</div>
+        <div style="font-size:13px;font-weight:800;margin-bottom:4px">Personalize your 7-day plan</div>
+        <div style="font-size:11px;opacity:0.85;line-height:1.55">Complete a Full Check-up so we can rank your daily challenges by what affects you most.</div>
+      </div>`
+    : '';
 
   const days = (pack && Array.isArray(pack.days)) ? pack.days : [];
 
@@ -477,31 +610,62 @@ function renderChallenge(){
   // CHALLENGE-DAY-LOCK: `isLocked` dims un-ticked cards once today's tick
   // is used. Locked cards still receive clicks (no pointer-events:none) so
   // toggleChallenge can fire the "one per day" toast.
+  // CHALLENGE-PERSONALIZED-CONTENT: when `c.dayLabel` is set (metaVersion 2
+  // shape), render the title strip + whyMatters + todoTask + CBT-link button
+  // additively. Legacy days without dayLabel render the original layout.
   function _dayCardHtml(c, i, isCompleted, clickable, isLocked){
-    const labelHtml = c.kind === 'wildcard'
-      ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px">✨ Bonus</div>`
-      : `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${c.color || 'var(--muted)'};margin-bottom:3px">${c.disorderName || ''}</div>`;
+    const accentColor = c.color || 'var(--accent)';
+    const titleStrip = c.dayLabel
+      ? `<div style="font-size:13px;font-weight:800;color:${accentColor};margin-bottom:6px">Day ${i+1}: ${c.dayLabel}</div>`
+      : '';
+    const labelHtml = (!c.dayLabel)
+      ? (c.kind === 'wildcard'
+          ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px">✨ Bonus</div>`
+          : `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${c.color || 'var(--muted)'};margin-bottom:3px">${c.disorderName || ''}</div>`)
+      : '';
+    const taskHtml = c.todoTask
+      ? `<div style="font-size:12px;color:var(--text);margin-top:6px;padding:8px 10px;background:${accentColor}10;border-radius:8px;border-left:3px solid ${accentColor}">📝 ${c.todoTask}</div>`
+      : '';
+    const whyHtml = c.whyMatters
+      ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic">${c.whyMatters}</div>`
+      : '';
+    const cbtBtnHtml = c.cbtRef
+      ? `<button onclick="event.stopPropagation();_openCbtForDay('${c.cbtRef}')" style="margin-top:8px;padding:6px 10px;background:none;border:1px solid ${accentColor}40;color:${accentColor};font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;font-family:inherit">View CBT exercise →</button>`
+      : '';
     const onClick = clickable ? `onclick="toggleChallenge(${i})"` : '';
     const lockStyle = isLocked ? 'opacity:0.5;cursor:not-allowed' : '';
     return `<div class="challenge-day ${isCompleted?'completed':''}" style="${lockStyle}" ${onClick}>
       <div class="challenge-check ${isCompleted?'done':''}">${isCompleted?'✓':c.icon}</div>
       <div style="flex:1">
+        ${titleStrip}
         ${labelHtml}
         <div class="challenge-text">${c.text}</div>
-        ${isCompleted?'<div style="font-size:10px;color:var(--teal);margin-top:2px;font-weight:700">Completed ✓</div>':''}
+        ${taskHtml}
+        ${whyHtml}
+        ${cbtBtnHtml}
+        ${isCompleted?'<div style="font-size:10px;color:var(--teal);margin-top:6px;font-weight:700">Completed ✓</div>':''}
       </div>
       <div class="challenge-day-label">Day ${i+1}</div>
     </div>`;
   }
 
+  // CHALLENGE-PERSONALIZED-CONTENT: small reset link at the bottom so testers
+  // stuck on a pre-personalization in-flight pack can manually re-roll into
+  // the new shape without waiting for week completion (BUG-003 lenient
+  // policy never auto-resets incomplete weeks).
+  const resetLink = `<div style="text-align:center;margin-top:18px;padding-bottom:6px">
+    <a onclick="confirmResetChallenge()" style="font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline">Start a new 7-day challenge</a>
+  </div>`;
+
   // Show completion state
   if(completed.length === 7){
-    el.innerHTML = resetBanner + `<div class="notice green" style="text-align:center;padding:20px">
+    el.innerHTML = personalizationCta + resetBanner + `<div class="notice green" style="text-align:center;padding:20px">
       <div style="font-size:36px;margin-bottom:8px">🏆</div>
       <div class="notice-title">Week ${weekNum} Complete!</div>
       You've finished all 7 challenges. A new challenge week will start automatically in 7 days.
     </div>` +
-    days.map((c,i) => _dayCardHtml(c, i, true, false, false)).join('');
+    days.map((c,i) => _dayCardHtml(c, i, true, false, false)).join('') +
+    resetLink;
     return;
   }
 
@@ -509,11 +673,11 @@ function renderChallenge(){
   // card at any moment (`tickableIdx`). Already-ticked cards stay
   // clickable (so toggleChallenge can decide whether to un-tick or fire
   // the "un-tick most recent first" toast). All other cards are locked.
-  el.innerHTML = resetBanner + days.map((c,i) => {
+  el.innerHTML = personalizationCta + resetBanner + days.map((c,i) => {
     const isCompleted = completed.some(t => t.idx === i);
     const isLocked = !isCompleted && i !== tickableIdx;
     return _dayCardHtml(c, i, isCompleted, true, isLocked);
-  }).join('');
+  }).join('') + resetLink;
 }
 
 function toggleChallenge(idx){
@@ -555,6 +719,53 @@ function toggleChallenge(idx){
   if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   renderChallenge();
   checkAndAwardBadges();
+}
+
+// CHALLENGE-PERSONALIZED-CONTENT: manual reset button + handler. Modal pattern
+// matches the existing assessment-modal style (no native confirm() — blocked in
+// some TWA WebViews). Click outside backdrop also dismisses.
+function confirmResetChallenge(){
+  const existing = document.getElementById('challengeResetModal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'challengeResetModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--card);border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+      <div style="font-size:24px;text-align:center;margin-bottom:8px">🔄</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text);text-align:center;margin-bottom:8px">Reset progress for this week and start fresh?</div>
+      <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.6">
+        Your current ticks for this week will be cleared. A new pack will be generated based on your latest assessment.
+      </div>
+      <button onclick="document.getElementById('challengeResetModal').remove();_doResetChallenge()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit">Yes, reset</button>
+      <button onclick="document.getElementById('challengeResetModal').remove()" style="width:100%;padding:11px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>
+    </div>`;
+  modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function _doResetChallenge(){
+  const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum') || '1');
+  localStorage.setItem('currentWeekNum', (prevWeekNum + 1).toString());
+  localStorage.setItem('pauseChallenge', '[]');
+  localStorage.setItem('challengeWeekStart', Date.now().toString());
+  localStorage.removeItem('currentChallengePack'); // force regen on next render
+  localStorage.setItem('weekJustReset', 'manual');
+  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+  renderChallenge();
+}
+
+// CHALLENGE-PERSONALIZED-CONTENT: navigates to the Tools screen and scrolls
+// to the CBT section. The CBT section already personalises by the user's
+// top disorder via AppGrades, so the relevant exercise will be visible.
+// Direct module-id linking via cbt.js showActionPlanModule could replace
+// this in a follow-up; this version stays minimal.
+function _openCbtForDay(/* cbtRef */){
+  if(typeof showScreen === 'function') showScreen('screen-tools');
+  setTimeout(() => {
+    const el = document.getElementById('cbtSection');
+    if(el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 300);
 }
 
 // ============================================================
