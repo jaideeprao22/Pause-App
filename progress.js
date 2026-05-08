@@ -321,8 +321,7 @@ function _makePersonalizedDisorderDay(disorderId){
     dayKind: 'disorder',
     dayLabel: DISORDER_DAY_LABEL[disorderId] || d.name,
     whyMatters: _whyMattersDisorder(disorderId),
-    todoTask: 'TODO_TASK_' + disorderId + '_DAY',
-    cbtRef: disorderId
+    todoTask: 'TODO_TASK_' + disorderId + '_DAY'
   };
 }
 
@@ -341,8 +340,7 @@ function _makePersonalizedImpactDay(impactId){
     dayKind: 'impact',
     dayLabel: (typeof IMPACT_DAY_LABEL !== 'undefined' && IMPACT_DAY_LABEL[impactId]) || m.name,
     whyMatters: _whyMattersImpact(impactId),
-    todoTask: 'TODO_TASK_' + impactId + '_DAY',
-    cbtRef: impactId
+    todoTask: 'TODO_TASK_' + impactId + '_DAY'
   };
 }
 
@@ -611,8 +609,8 @@ function renderChallenge(){
   // is used. Locked cards still receive clicks (no pointer-events:none) so
   // toggleChallenge can fire the "one per day" toast.
   // CHALLENGE-PERSONALIZED-CONTENT: when `c.dayLabel` is set (metaVersion 2
-  // shape), render the title strip + whyMatters + todoTask + CBT-link button
-  // additively. Legacy days without dayLabel render the original layout.
+  // shape), render the title strip + whyMatters + todoTask additively.
+  // Legacy days without dayLabel render the original layout.
   function _dayCardHtml(c, i, isCompleted, clickable, isLocked){
     const accentColor = c.color || 'var(--accent)';
     const titleStrip = c.dayLabel
@@ -629,9 +627,6 @@ function renderChallenge(){
     const whyHtml = c.whyMatters
       ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic">${c.whyMatters}</div>`
       : '';
-    const cbtBtnHtml = c.cbtRef
-      ? `<button onclick="event.stopPropagation();_openCbtForDay('${c.cbtRef}')" style="margin-top:8px;padding:6px 10px;background:none;border:1px solid ${accentColor}40;color:${accentColor};font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;font-family:inherit">View CBT exercise →</button>`
-      : '';
     const onClick = clickable ? `onclick="toggleChallenge(${i})"` : '';
     const lockStyle = isLocked ? 'opacity:0.5;cursor:not-allowed' : '';
     return `<div class="challenge-day ${isCompleted?'completed':''}" style="${lockStyle}" ${onClick}>
@@ -642,7 +637,6 @@ function renderChallenge(){
         <div class="challenge-text">${c.text}</div>
         ${taskHtml}
         ${whyHtml}
-        ${cbtBtnHtml}
         ${isCompleted?'<div style="font-size:10px;color:var(--teal);margin-top:6px;font-weight:700">Completed ✓</div>':''}
       </div>
       <div class="challenge-day-label">Day ${i+1}</div>
@@ -753,19 +747,6 @@ function _doResetChallenge(){
   localStorage.setItem('weekJustReset', 'manual');
   if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   renderChallenge();
-}
-
-// CHALLENGE-PERSONALIZED-CONTENT: navigates to the Tools screen and scrolls
-// to the CBT section. The CBT section already personalises by the user's
-// top disorder via AppGrades, so the relevant exercise will be visible.
-// Direct module-id linking via cbt.js showActionPlanModule could replace
-// this in a follow-up; this version stays minimal.
-function _openCbtForDay(/* cbtRef */){
-  if(typeof showScreen === 'function') showScreen('screen-tools');
-  setTimeout(() => {
-    const el = document.getElementById('cbtSection');
-    if(el && el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 300);
 }
 
 // ============================================================
