@@ -11,13 +11,13 @@ const CBT_MODULES = {
     mild: [
       { icon:'🛑', title:'Worry Postponement', color:'#0d9488', bg:'#e0f7f5', anim:'bar',
         steps:['Notice the urge to search a symptom online','Tell yourself: "I\'ll think about this at 7pm — not now"','Set a timer for your "worry window" — a fixed daily slot','When the timer goes off, reassess — is it still urgent?','Log each successful delay. The urge usually fades naturally.'] },
-      { icon:'🧠', title:'Probability Reframing', color:'#0284c7', bg:'#e0f2fe', anim:'thought',
+      { icon:'🧠', title:'Probability Reframing', color:'#0284c7', bg:'#e0f2fe', anim:'thought', withChime:true,
         steps:['Write down your feared diagnosis in one line','List 3 other likely explanations for the same symptom','Ask: "What % of people with this symptom actually have the scary diagnosis?"','Replace catastrophic thoughts with realistic alternatives','Notice the anxiety drop when you engage your rational mind'] }
     ],
     moderate: [
       { icon:'📊', title:'Search Budget', color:'#d97706', bg:'#fef3c7', anim:'bar',
         steps:['Set a maximum number of health searches per day — start with 3','Track each search using a tally in your notes app','When budget is reached — close the browser completely','Each week, reduce the budget by 1 search','Celebrate hitting your target. The discipline is the therapy.'] },
-      { icon:'🌊', title:'Urge Surfing', color:'#7c3aed', bg:'#ede9fe', anim:'urge',
+      { icon:'🌊', title:'Urge Surfing', color:'#7c3aed', bg:'#ede9fe', anim:'urge', withChime:true,
         steps:['Notice the search urge arising — do not act on it yet','Rate its intensity 1–10','Breathe slowly and observe the urge like a wave in the ocean','Watch: urges always peak then fall naturally','Rate the urge again after 5 minutes — almost always lower'] }
     ],
     severe: [
@@ -110,11 +110,11 @@ const CBT_MODULES = {
 const GENERAL_MODULES = [
   { icon:'✅', title:'All Clear — Maintain the Gain', color:'#059669', bg:'#d1fae5', anim:'bar',
     steps:['Your digital wellness scores are in a healthy range — excellent','Keep this as a monthly maintenance habit','Share the app with a colleague, student, or family member','Use the exercises below any time to prevent future problems','Returning users show better long-term wellbeing outcomes'] },
-  { icon:'🧘', title:'5-4-3-2-1 Grounding', color:'#0d9488', bg:'#e0f7f5', anim:'breath',
+  { icon:'🧘', title:'5-4-3-2-1 Grounding', color:'#0d9488', bg:'#e0f7f5', anim:'breath', withChime:true,
     steps:['See 5 things around you — name each one silently','Touch 4 surfaces — notice texture and temperature','Listen for 3 sounds — one near, one far, one in between','Smell 2 things — or vividly recall 2 favourite smells','Taste 1 thing — or simply notice what is in your mouth now'] },
-  { icon:'💨', title:'4-7-8 Breathing', color:'#7c3aed', bg:'#ede9fe', anim:'breath',
+  { icon:'💨', title:'4-7-8 Breathing', color:'#7c3aed', bg:'#ede9fe', anim:'breath', withChime:true,
     steps:['Breathe in slowly through your nose for 4 counts','Hold your breath completely for 7 counts','Exhale fully and slowly through your mouth for 8 counts','Complete 4 cycles without rushing — do not skip counts','Use before sleep, when an urge hits, or when overwhelmed'] },
-  { icon:'🌊', title:'Urge Surfing', color:'#0284c7', bg:'#e0f2fe', anim:'urge',
+  { icon:'🌊', title:'Urge Surfing', color:'#0284c7', bg:'#e0f2fe', anim:'urge', withChime:true,
     steps:['Notice any digital urge — don\'t act on it yet','Rate intensity: 1 (barely there) to 10 (overwhelming)','Breathe steadily and watch the urge like a passing wave','Urges ALWAYS peak and fall — they cannot stay at maximum','Rate again at 5 minutes — nearly always lower. You surfed it.'] }
 ];
 
@@ -407,8 +407,11 @@ function _playBreathChime(freq){
   } catch(e) { /* audio unavailable — silent fallback, exercise still works */ }
 }
 
-function _startBreathChime(){
-  if(_cbtChimeInterval) return; // already running
+// Promoted to public-facing names so consumers beyond the CBT walkthrough
+// modal (standalone 4-7-8 card, future surfaces) can reuse this engine.
+// Underscore aliases retained for the existing _closeCbtWalkthrough callsite.
+function startCbtBreathChime(){
+  if(_cbtChimeInterval) return; // already running — idempotent
   _cbtChimeOnContract = false;
   _playBreathChime(523.25); // C5 — inhale starts now
   _cbtChimeInterval = setInterval(() => {
@@ -417,13 +420,16 @@ function _startBreathChime(){
   }, 2000);
 }
 
-function _stopBreathChime(){
+function stopCbtBreathChime(){
   if(_cbtChimeInterval){
     clearInterval(_cbtChimeInterval);
     _cbtChimeInterval = null;
   }
   _cbtChimeOnContract = false;
 }
+
+const _startBreathChime = startCbtBreathChime; // backward-compat alias
+const _stopBreathChime  = stopCbtBreathChime;  // backward-compat alias
 
 // Single tear-down path for closing the walkthrough — used by Done button,
 // outside-click handler, and any future close path. Always stops the chime.
@@ -470,7 +476,9 @@ function startCbtWalkthrough(modIdx){
 
   // Start the bell chime synced to the 4s breathing animation.
   // Chime stops automatically via _closeCbtWalkthrough on Done / outside-tap.
-  if(mod.anim === 'breath') _startBreathChime();
+  // Driven by per-module `withChime` flag, independent of `anim` (so non-breath
+  // animations like 'urge' or 'thought' can also have audio companions).
+  if(mod.withChime) startCbtBreathChime();
 }
 
 function _renderCbtWalkthroughStep(){
@@ -741,6 +749,7 @@ function playBreathTone(freq, durationSec){
 async function startBreathingTimer(containerId){
   if(breathingTimerActive) return;
   breathingTimerActive = true;
+  startCbtBreathChime(); // calming background chime alongside 4-7-8 phase markers
   const el = document.getElementById(containerId);
   if(!el) return;
   // BUG10 FIX: ensure keyframes exist even if renderCBTSection hasn't been called
@@ -789,6 +798,7 @@ async function startBreathingTimer(containerId){
 }
 
 function stopBreathingTimer(containerId){
+  stopCbtBreathChime();
   breathingTimerActive=false;
   if(breathingTimerHandle){ clearTimeout(breathingTimerHandle); breathingTimerHandle=null; }
   const el=document.getElementById(containerId);
@@ -807,6 +817,7 @@ function renderBreathingTimerCard(){
 
 // BUG18 FIX: reset when user navigates away so button works on return
 function resetBreathingTimerState(){
+  stopCbtBreathChime(); // defensive — idempotent if not running
   if(breathingTimerActive){
     breathingTimerActive = false;
     if(breathingTimerHandle){ clearTimeout(breathingTimerHandle); breathingTimerHandle = null; }
@@ -819,3 +830,15 @@ window.startBreathingTimer = startBreathingTimer;
 window.stopBreathingTimer = stopBreathingTimer;
 window.renderBreathingTimerCard = renderBreathingTimerCard;
 window.resetBreathingTimerState = resetBreathingTimerState;
+window.startCbtBreathChime = startCbtBreathChime;
+window.stopCbtBreathChime  = stopCbtBreathChime;
+
+// Stop any active CBT audio when the page is hidden (tab switch, app
+// backgrounded, screen lock). Both engines are idempotent so a no-op
+// stop is harmless.
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    stopCbtBreathChime();
+    if(typeof resetBreathingTimerState === 'function') resetBreathingTimerState();
+  }
+});

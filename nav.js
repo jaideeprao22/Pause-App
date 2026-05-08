@@ -37,6 +37,13 @@ function showScreen(id){
     if(typeof stopRecording === 'function') stopRecording();
   }
 
+  // CBT chime cleanup — stop the breath chime on any screen change so it
+  // doesn't keep playing if the user navigates away with a CBT walkthrough
+  // modal still open. Idempotent.
+  if(currentScreen !== id && typeof stopCbtBreathChime === 'function'){
+    stopCbtBreathChime();
+  }
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.getElementById(id).scrollTop = 0;
