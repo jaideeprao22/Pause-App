@@ -894,7 +894,14 @@ async function loadAllUserDataFromSupabase(userId){
       if(r.weeks_completed != null)     localStorage.setItem('challengeWeeksCompleted',String(r.weeks_completed));
       if(r.max_streak != null)          localStorage.setItem('maxChallengeStreak',     String(r.max_streak));
       if(r.current_pack)                localStorage.setItem('currentChallengePack',   JSON.stringify(r.current_pack));
-      if(Array.isArray(r.completed_indices)) localStorage.setItem('pauseChallenge',    JSON.stringify(r.completed_indices));
+      // CHALLENGE-DAY-LOCK: accept either legacy Array<number> or current
+      // Array<{idx, day}>. Stuff straight into localStorage either way —
+      // _readChallengeTicks in progress.js normalises legacy entries on
+      // first read. Validate every element is one of the two recognised
+      // shapes so a corrupt/foreign value can't slip through.
+      if(Array.isArray(r.completed_indices) && r.completed_indices.every(e =>
+        typeof e === 'number' || (e && typeof e === 'object' && typeof e.idx === 'number')
+      )) localStorage.setItem('pauseChallenge', JSON.stringify(r.completed_indices));
     }
   } catch(e){ console.warn('ChallengeState fetch error:', e); }
 

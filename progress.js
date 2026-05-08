@@ -237,6 +237,17 @@ function renderProgress(){
 const CHALLENGE_PACK_KEY = 'currentChallengePack';
 const _CONCERN_PCT_THRESHOLD = 0.20; // baseline-subtracted % above which a disorder is "concerning"
 
+// CHALLENGE-DAY-LOCK: ticks were Array<number>; now Array<{idx, day}>.
+// Reads localStorage, migrating legacy bare-index entries on first read so
+// the new same-day lock check sees a blank `day` (which never matches
+// today's date — they pass the lock without contention).
+function _readChallengeTicks(){
+  const raw = safeJsonParse('pauseChallenge', []);
+  if(!Array.isArray(raw) || raw.length === 0) return [];
+  if(typeof raw[0] === 'number') return raw.map(idx => ({ idx, day: '' }));
+  return raw;
+}
+
 function _loadActivePack(){
   return safeJsonParse(CHALLENGE_PACK_KEY, null);
 }
@@ -386,7 +397,8 @@ function renderChallenge(){
     // BUG-003 FIX: lenient policy — only auto-reset when the previous week was
     // actually completed. For incomplete weeks, keep the existing pack and
     // weekStart so the user can pick up where they left off. No "expired" banner.
-    const completed = safeJsonParse('pauseChallenge', []);
+    // CHALLENGE-DAY-LOCK: read via helper so legacy/new shapes both work.
+    const completed = _readChallengeTicks();
     if(completed.length === 7){
       const prevWeekNum = parseInt(localStorage.getItem('currentWeekNum')||'1');
       const weeks = parseInt(localStorage.getItem('challengeWeeksCompleted')||'0');
@@ -410,7 +422,16 @@ function renderChallenge(){
     _saveActivePack(pack);
   }
 
-  const completed = safeJsonParse('pauseChallenge', []);
+  const completed = _readChallengeTicks();
+  const today = getLocalDateStr();
+  // CHALLENGE-DAY-LOCK (sequential): the only tickable card is the next
+  // sequential index, AND only if at least one local calendar day has
+  // passed since the previous tick. Day 1 (idx 0) is always available
+  // when no ticks exist yet. Anything else is future-locked.
+  const _nextIdx   = completed.length;
+  const _prevDay   = _nextIdx > 0 ? completed[_nextIdx - 1].day : null;
+  const _dayPassed = _prevDay !== today;
+  const tickableIdx = (_nextIdx < 7 && (_nextIdx === 0 || _dayPassed)) ? _nextIdx : -1;
   const weekNum = localStorage.getItem('currentWeekNum') || '1';
   const weekJustReset = localStorage.getItem('weekJustReset');
 
@@ -453,12 +474,16 @@ function renderChallenge(){
   // Renders a single day card. Wildcard days show a "✨ Bonus" label in
   // the accent color; disorder days show the disorder name in the
   // disorder's color. Layout/structure is otherwise identical.
-  function _dayCardHtml(c, i, isCompleted, clickable){
+  // CHALLENGE-DAY-LOCK: `isLocked` dims un-ticked cards once today's tick
+  // is used. Locked cards still receive clicks (no pointer-events:none) so
+  // toggleChallenge can fire the "one per day" toast.
+  function _dayCardHtml(c, i, isCompleted, clickable, isLocked){
     const labelHtml = c.kind === 'wildcard'
       ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px">✨ Bonus</div>`
       : `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${c.color || 'var(--muted)'};margin-bottom:3px">${c.disorderName || ''}</div>`;
     const onClick = clickable ? `onclick="toggleChallenge(${i})"` : '';
-    return `<div class="challenge-day ${isCompleted?'completed':''}" ${onClick}>
+    const lockStyle = isLocked ? 'opacity:0.5;cursor:not-allowed' : '';
+    return `<div class="challenge-day ${isCompleted?'completed':''}" style="${lockStyle}" ${onClick}>
       <div class="challenge-check ${isCompleted?'done':''}">${isCompleted?'✓':c.icon}</div>
       <div style="flex:1">
         ${labelHtml}
@@ -476,18 +501,56 @@ function renderChallenge(){
       <div class="notice-title">Week ${weekNum} Complete!</div>
       You've finished all 7 challenges. A new challenge week will start automatically in 7 days.
     </div>` +
-    days.map((c,i) => _dayCardHtml(c, i, true, false)).join('');
+    days.map((c,i) => _dayCardHtml(c, i, true, false, false)).join('');
     return;
   }
 
-  // Show active challenge list
-  el.innerHTML = resetBanner + days.map((c,i) => _dayCardHtml(c, i, completed.includes(i), true)).join('');
+  // Show active challenge list. Sequential gate: at most ONE tickable
+  // card at any moment (`tickableIdx`). Already-ticked cards stay
+  // clickable (so toggleChallenge can decide whether to un-tick or fire
+  // the "un-tick most recent first" toast). All other cards are locked.
+  el.innerHTML = resetBanner + days.map((c,i) => {
+    const isCompleted = completed.some(t => t.idx === i);
+    const isLocked = !isCompleted && i !== tickableIdx;
+    return _dayCardHtml(c, i, isCompleted, true, isLocked);
+  }).join('');
 }
 
 function toggleChallenge(idx){
-  const completed = safeJsonParse('pauseChallenge', []);
-  const pos = completed.indexOf(idx);
-  if(pos===-1) completed.push(idx); else completed.splice(pos,1);
+  const completed = _readChallengeTicks();
+  const today = getLocalDateStr();
+  const pos = completed.findIndex(t => t.idx === idx);
+
+  if(pos === -1){
+    // Trying to tick. Sequential gate: only the next-index card is
+    // tickable, AND only if at least one local calendar day has passed
+    // since the previous tick. Day 1 (idx 0) is always available when
+    // no ticks exist yet.
+    const nextIdx   = completed.length;
+    const prevDay   = nextIdx > 0 ? completed[nextIdx - 1].day : null;
+    const dayPassed = prevDay !== today;
+    const isTickable = (idx === nextIdx) && (nextIdx === 0 || dayPassed);
+    if(!isTickable){
+      // Future-locked tap. Per spec: generic "Comes back tomorrow" when
+      // N=0 (Day 1 not yet ticked); otherwise name the next sequential
+      // day that the user is waiting on.
+      const msg = nextIdx === 0
+        ? 'Comes back tomorrow'
+        : `Day ${nextIdx + 1} unlocks tomorrow after midnight`;
+      showToast(msg, 1500);
+      return;
+    }
+    completed.push({ idx, day: today });
+  } else {
+    // Trying to un-tick. Sequential gate: only the most-recent tick can
+    // be removed (un-ticking an earlier day would leave a non-contiguous
+    // gap that breaks the sequential model).
+    if(pos !== completed.length - 1){
+      showToast('Un-tick the most recent day first.', 1500);
+      return;
+    }
+    completed.splice(pos, 1);
+  }
   localStorage.setItem('pauseChallenge', JSON.stringify(completed));
   if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   renderChallenge();
