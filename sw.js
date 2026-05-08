@@ -1,7 +1,7 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v10-aurora';
+const CACHE_NAME = 'pause-app-v11-aurora';
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
@@ -29,6 +29,7 @@ const PRECACHE_ASSETS = [
   BASE + 'screentime.js',
   BASE + 'app.js',
   BASE + 'nav.js',
+  BASE + 'premium-motions.js',
   BASE + 'icons/icon-72.png',
   BASE + 'icons/icon-96.png',
   BASE + 'icons/icon-128.png',
@@ -36,7 +37,8 @@ const PRECACHE_ASSETS = [
   BASE + 'icons/icon-152.png',
   BASE + 'icons/icon-192.png',
   BASE + 'icons/icon-384.png',
-  BASE + 'icons/icon-512.png'
+  BASE + 'icons/icon-512.png',
+  BASE + 'icons/pause_logo.png'
 ];
 
 // ─── INSTALL ────────────────────────────────────────────────────────────────
@@ -110,9 +112,16 @@ self.addEventListener('fetch', event => {
         caches.open(CACHE_NAME).then(c => c.put(req, clone));
         return response;
       }).catch(() => {
-        // Network failed and nothing cached — return index.html (SPA fallback)
-        console.warn('[SW] Offline, serving fallback for:', req.url);
-        return caches.match(BASE + 'index.html');
+        // Network failed and nothing cached. Only do the SPA index.html
+        // fallback for HTML navigation requests — returning an HTML body
+        // for an image / script / font request gives the browser an
+        // unparseable response and renders as a broken asset.
+        if (req.mode === 'navigate' || req.destination === 'document') {
+          console.warn('[SW] Offline, serving index.html fallback for navigation:', req.url);
+          return caches.match(BASE + 'index.html');
+        }
+        console.warn('[SW] Offline, no cached response for:', req.url);
+        return Response.error();
       });
     })
   );

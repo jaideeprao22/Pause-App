@@ -14,7 +14,13 @@ const PERCENTILE_REFS = {
 // (with PERCENTILE_DATA_READY guard). Renaming to private names here so share.js
 // doesn't overwrite the authoritative assessment.js versions for the rest of the app.
 // These private versions use reference data arrays for the canvas share card only.
+// BUG-021 FIX: gate the share-card percentile on PERCENTILE_DATA_READY
+// (defined in assessment.js). The reference arrays here are simulated, not
+// real pilot data, and the rank formula has direction-of-comparison issues
+// for disorder scales. Hide until n>=50 just like the in-app percentile —
+// once real data lands, flip PERCENTILE_DATA_READY and rework the formula.
 function _shareGetPercentile(disorderId, score){
+  if(typeof PERCENTILE_DATA_READY !== 'undefined' && !PERCENTILE_DATA_READY) return null;
   const ref = PERCENTILE_REFS[disorderId];
   if(!ref) return null;
   let rank = 0;
@@ -23,6 +29,7 @@ function _shareGetPercentile(disorderId, score){
 }
 
 function _shareDWSPercentile(dws){
+  if(typeof PERCENTILE_DATA_READY !== 'undefined' && !PERCENTILE_DATA_READY) return null;
   const ref = [20,25,30,35,40,45,50,55,60,62,65,67,69,71,73,75,78,81,85,90,100];
   let rank = 0;
   for(let i=0; i<ref.length; i++){ if(dws > ref[i]) rank = i+1; }
@@ -32,10 +39,15 @@ function _shareDWSPercentile(dws){
 // ============================================================
 // CANVAS SHARE CARD
 // ============================================================
-async function shareResults(){
+// BUG-035 FIX: only mark hasShared (and award the Advocate badge) when the
+// share actually completes — not just when the share dialog is opened. The
+// helper is called from each resolution path below.
+function _markSharedAndAward(){
   localStorage.setItem('hasShared','true');
-  checkAndAwardBadges();
+  if(typeof checkAndAwardBadges === 'function') checkAndAwardBadges();
+}
 
+async function shareResults(){
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
   canvas.height = 1920;
@@ -85,8 +97,9 @@ async function shareResults(){
     ctx.font = 'bold 36px sans-serif';
     ctx.fillStyle = s.color;
     ctx.fillText(s.status, cx, cy + 120);
-    // DWS percentile
-    if(Object.keys(disorderScores).length === 6){
+    // DWS percentile — BUG-021 FIX: also gate on pct !== null so the line is
+    // hidden when PERCENTILE_DATA_READY is false.
+    if(Object.keys(disorderScores).length === 6 && pct !== null){
       ctx.font = '26px sans-serif';
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
       ctx.fillText(`Better than ${pct}% of all users`, cx, cy + 165);
@@ -164,19 +177,28 @@ async function shareResults(){
   // Share the image
   canvas.toBlob(async blob => {
     const file = new File([blob], 'pause-score.png', {type:'image/png'});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:'My PAUSE App Score'});
-    } else if(navigator.share){
-      const score = dwsScore||'--';
-      await navigator.share({
-        title:'My PAUSE App Score',
-        text:`🧠 My Digital Wellness Score: ${score}/100\n\nScreened using PAUSE App — 6 disorder digital wellness platform\n\nDownload PAUSE App on Google Play\n\n#PAUSEApp #DigitalWellness`
-      });
-    } else {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'pause-score.png'; a.click();
-      URL.revokeObjectURL(url);
+    try {
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:'My PAUSE App Score'});
+        _markSharedAndAward();
+      } else if(navigator.share){
+        const score = dwsScore||'--';
+        await navigator.share({
+          title:'My PAUSE App Score',
+          text:`🧠 My Digital Wellness Score: ${score}/100\n\nScreened using PAUSE App — 6 disorder digital wellness platform\n\nDownload PAUSE App on Google Play\n\n#PAUSEApp #DigitalWellness`
+        });
+        _markSharedAndAward();
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'pause-score.png'; a.click();
+        URL.revokeObjectURL(url);
+        _markSharedAndAward(); // download triggered — count as shared
+      }
+    } catch(err){
+      // navigator.share rejects with AbortError when user dismisses the
+      // share sheet — that's not a successful share, so don't award.
+      if(err.name !== 'AbortError') console.error('Share failed:', err);
     }
   }, 'image/png');
 }

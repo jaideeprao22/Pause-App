@@ -130,6 +130,9 @@ function showResumeModal(partial){
       <button onclick="resumePartialAssessment()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit">▶ Resume Check-Up</button>
       <button onclick="discardAndStartFresh()" style="width:100%;padding:12px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Start Fresh Instead</button>
     </div>`;
+  // BUG-026 FIX: click-outside-to-close (these dynamic modals don't use the
+  // .modal-overlay class so the document-level handler in nav.js misses them)
+  modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
   document.body.appendChild(modal);
 }
 
@@ -189,6 +192,8 @@ function startSingleAssessmentWithCheck(dIdx){
         <button onclick="document.getElementById('singleOverPartialModal').remove();startSingleAssessment(${dIdx})" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit">Start Single Check Anyway</button>
         <button onclick="document.getElementById('singleOverPartialModal').remove();showResumeModal(checkResumeAssessment())" style="width:100%;padding:11px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Resume Full Check-Up Instead</button>
       </div>`;
+    // BUG-026 FIX: click-outside-to-close
+    modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
     document.body.appendChild(modal);
     return;
   }
@@ -215,6 +220,8 @@ function startFullAssessment(){
         <button onclick="document.getElementById('guestWarnModal').remove();openLoginFlow()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit">🔐 Sign In First (Recommended)</button>
         <button onclick="localStorage.setItem('guestAssessWarningShown','true');document.getElementById('guestWarnModal').remove();_doStartFullAssessment()" style="width:100%;padding:12px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Continue Without Signing In</button>
       </div>`;
+    // BUG-026 FIX: click-outside-to-close
+    modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
     document.body.appendChild(modal);
     return;
   }

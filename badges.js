@@ -12,7 +12,11 @@ function getBadgeStats(){
     improvedScore: history.length >= 2 && history[0].dws != null && history[1].dws != null && history[0].dws > history[1].dws,
     maxStreak: parseInt(localStorage.getItem('maxChallengeStreak')||'0'),
     shared: localStorage.getItem('hasShared') === 'true',
-    disordersScreened: Object.keys(disorderScores).length
+    // BUG-019 FIX: count the lifetime union of disorders ever screened, not
+    // just whatever is in the in-memory snapshot. A user who screened all 6
+    // across 6 single-disorder sessions used to never earn 'Complete Screener'
+    // because the in-memory state reflected only the latest single session.
+    disordersScreened: new Set(history.flatMap(h => Object.keys(h.disorder || {}))).size
   };
 }
 

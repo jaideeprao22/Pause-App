@@ -132,21 +132,21 @@ Severity legend
 
 ## MEDIUM
 
-### BUG-017 — `0` DWS displayed as `--` in personal summary
+### BUG-017 ✅ FIXED — `0` DWS displayed as `--` in personal summary
 **File:** [progress.js:79](progress.js#L79)
 **Severity:** MEDIUM (cosmetic — extreme score case)
 **Description:** `${latest.dws || '--'}` — falsy 0 renders as `--`. A user with a true DWS of 0 (theoretically possible) sees no number.
 **Proposed fix:** `${latest.dws != null ? latest.dws : '--'}`
 **Files touched:** progress.js
 
-### BUG-018 — `_parseHistoryDate` fallback `new Date(dateStr)` can produce Invalid Date silently
+### BUG-018 ✅ FIXED — `_parseHistoryDate` fallback `new Date(dateStr)` can produce Invalid Date silently
 **File:** [weekly.js:19](weekly.js#L19)
 **Severity:** MEDIUM (filter `weekEntries` includes an Invalid Date row, which makes the comparison return false silently — entry effectively excluded but not for a clear reason)
 **Description:** If a history entry's date string is unrecognised, the fallback returns Invalid Date. `Invalid Date >= weekStart` returns false. The weekly summary silently drops the entry.
 **Proposed fix:** Return null on parse failure and skip those entries explicitly with `.filter(Boolean)`.
 **Files touched:** weekly.js
 
-### BUG-019 — `getBadgeStats.disordersScreened` reads in-memory `disorderScores`, not historical breadth
+### BUG-019 ✅ FIXED — `getBadgeStats.disordersScreened` reads in-memory `disorderScores`, not historical breadth
 **File:** [badges.js:15](badges.js#L15)
 **Severity:** MEDIUM ("Complete Screener" badge counts only the most recent assessment's disorders, not the lifetime union — a user who screened all 6 across 6 single-disorder sessions never earns it because the in-memory state is reloaded from `pauseV2Scores` which gets overwritten)
 **Proposed fix:** `disordersScreened: new Set(history.flatMap(h => Object.keys(h.disorder || {}))).size`
@@ -158,38 +158,37 @@ Severity legend
 **Description:** `_autoAdvanceTimer` is cleared in `nextQuestion()` (line 275) but `nextQuestion` calls `finishAssessment()` immediately when on last question (line 278). Then when the timer fires (already cleared), the callback is gone, so it shouldn't fire. Wait — clearTimeout DOES cancel. Re-reading: `nextQuestion` clears the timer FIRST (line 275), then runs. So if user clicks Next after selectAnswer, the timer is cleared. OK, not a bug. **Downgrade to LOW** — but I'll mark it as "verify" because the same path with a delayed render could double-fire.
 **Update after re-check:** the H3 FIX is correct. NOT A BUG. Removing.
 
-### BUG-021 — `share.js` percentile arrays use raw count, but score `<=` ref[i] returns wrong rank
+### BUG-021 ✅ FIXED (gated on PERCENTILE_DATA_READY; formula direction TBD when real data arrives) — `share.js` percentile arrays use raw count, but score `<=` ref[i] returns wrong rank
 **File:** [share.js:17-30](share.js#L17)
 **Severity:** MEDIUM (off-by-one in shared canvas card percentile)
 **Description:** `_shareGetPercentile`: `for(...){ if(score > ref[i]) rank = i+1; }`. For `cyberchondria` ref `[15,18,21,...,75]` (21 entries), a score of 30 would give rank=5 (because 30 > 27=ref[4], 30 > 30=false at ref[5]). But cyberchondria items=15 so min-floor=15. A min-floor score of 15 gives rank=0 → `Math.round(0/21*100) = 0` percentile. Higher than 0% of users — implies you scored worse than everyone, but you actually scored best (lowest disorder).
 **Proposed fix:** The percentile semantics here are confused — the canvas card says "Better than X% of users" with scores normalised in the wrong direction for disorder scales (lower = healthier for disorder, higher = healthier for DWS). The simplest correct fix is to compute `rank = ref.filter(v => v < score).length` for the disorder-direction (where higher score = worse). Or — given assessment.js already gates real percentiles behind `PERCENTILE_DATA_READY=false` — this share.js path is also non-pilot data and should be hidden similarly until n≥50.
 **Files touched:** share.js
 
-### BUG-022 — `dwsModal modalDWSStatus.style.color` not reset when score becomes null after a previous render
+### BUG-022 ✅ FIXED — `dwsModal modalDWSStatus.style.color` not reset when score becomes null after a previous render
 **File:** [results.js:317-322](results.js#L317)
 **Severity:** MEDIUM (cosmetic — colour from previous session leaks)
 **Description:** When `dwsScore === null`, the else-branch sets text but does NOT reset `modalDWSStatus.style.color`. If a prior render set red/orange, it persists.
 **Proposed fix:** Add `document.getElementById('modalDWSStatus').style.color = '';` to the else branch.
 **Files touched:** results.js
 
-### BUG-023 — `getCorrelationInsights` impact-pair conditions use `> 5` instead of `>= 5` (off-by-one with band boundary)
+### BUG-023 ❌ WITHDRAWN — feature, not bug — `getCorrelationInsights` impact-pair conditions use `> 5` instead of `>= 5` (off-by-one with band boundary)
 **File:** [assessment.js:389-392](assessment.js#L389)
-**Severity:** MEDIUM (impact module score of exactly 5 is the "Mild" boundary in `getImpactLevel` — users on the boundary miss the insight)
-**Proposed fix:** Use `>= 5` to match `getImpactLevel` boundary semantics.
-**Files touched:** assessment.js
+**Reason for withdrawal:** Re-analysis at start of Batch 5 found the audit was wrong about which side of the boundary belonged to which level. `getImpactLevel(5)` returns **Minimal** (the cap is `score <= 5`); **Mild** starts at score 6. The current `> 5` check (i.e. `>= 6`) correctly fires the correlation insight only when both impact scores are Mild or worse — which is the clinically appropriate threshold. Applying `>= 5` would over-flag healthy users at the top of the Minimal range with a "screens before bed fragment both sleep and daytime focus" message they don't warrant. No fix.
+**Files touched:** none
 
 ### BUG-024 — `renderTrendShareButton` not called from `nav.js` for screen-progress when fewer than 2 assessments exist initially
 **File:** [nav.js:43-44](nav.js#L43)
 **Severity:** MEDIUM (the gate text shows correctly the first time, but if user does a 2nd assessment then navigates Home → Progress, `renderTrendShareButton` IS called via `if(typeof renderTrendShareButton === 'function')` so this is OK. **Re-checked: not a bug.**)
 **Status:** Removing — works as designed.
 
-### BUG-025 — `localStorage.setItem('maxChallengeStreak', completed.length)` writes a number not string
+### BUG-025 ✅ FIXED — `localStorage.setItem('maxChallengeStreak', completed.length)` writes a number not string
 **File:** [progress.js:430](progress.js#L430)
 **Severity:** MEDIUM (works due to coercion, but inconsistent with other writes that use `.toString()` — risks future code reading `typeof` checks)
 **Proposed fix:** `.toString()` for consistency.
 **Files touched:** progress.js
 
-### BUG-026 — `nav.js` modal-overlay click-outside handler is bound at script load, missing dynamically-added modals
+### BUG-026 ✅ FIXED — `nav.js` modal-overlay click-outside handler is bound at script load, missing dynamically-added modals
 **File:** [nav.js:89-91](nav.js#L89)
 **Severity:** MEDIUM (the resume / single-over-partial / guest-warn modals built in `assessment.js` have their own non-`.modal-overlay` markup, so clicking their backdrop doesn't dismiss them)
 **Description:** The dynamic modals use `position:fixed;inset:0;background:rgba(0,0,0,0.6)` directly without the `.modal-overlay` class, so the document-level handler doesn't apply. CBT walkthrough and action plan modals already attach their own listener; the assessment modals don't.
@@ -210,13 +209,13 @@ Severity legend
 
 ## LOW
 
-### BUG-029 — `init()` runs unconditionally at script load with no DOMContentLoaded guard
+### BUG-029 ✅ FIXED — `init()` runs unconditionally at script load with no DOMContentLoaded guard
 **File:** [app.js:202](app.js#L202)
 **Severity:** LOW (works because all script tags use `defer`, but fragile if anyone removes `defer` or the script tag order changes)
 **Proposed fix:** Wrap with `if(document.readyState !== 'loading'){ init(); } else { document.addEventListener('DOMContentLoaded', init); }`. Optional polish.
 **Files touched:** app.js
 
-### BUG-030 — `premium-motions.js` is on disk but absent from `index.html` script list and `sw.js` precache
+### BUG-030 ✅ FIXED — `premium-motions.js` is on disk but absent from `index.html` script list and `sw.js` precache
 **File:** [index.html:1504-1518](index.html#L1504), [sw.js:11-40](sw.js#L11), CLAUDE.md note
 **Severity:** LOW (dead file or missing wiring — visual FX never load)
 **Description:** Confirmed via reading both files. Either the FX should be wired in or the file removed.
@@ -234,7 +233,7 @@ Severity legend
 **Proposed fix:** Defensive only — add `/` to escape map.
 **Files touched:** cbt.js
 
-### BUG-033 — `bumpAppOpenStreak` "yesterday" calculation via `Date.now() - 86400000` is technically off during DST transitions
+### BUG-033 ✅ FIXED — `bumpAppOpenStreak` "yesterday" calculation via `Date.now() - 86400000` is technically off during DST transitions
 **File:** [state.js:55](state.js#L55)
 **Severity:** LOW (edge case — user opens app exactly during DST forward day at hour 0–1, may see streak reset incorrectly)
 **Proposed fix:** Use `new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)` instead of subtracting milliseconds.
@@ -245,7 +244,7 @@ Severity legend
 **Severity:** LOW (functionally identical, but inconsistent with other writes that use `JSON.stringify`)
 **Proposed fix:** None — works. Polish only.
 
-### BUG-035 — `share.js shareResults` writes `localStorage.setItem('hasShared','true')` even if user cancels share dialog
+### BUG-035 ✅ FIXED — `share.js shareResults` writes `localStorage.setItem('hasShared','true')` even if user cancels share dialog
 **File:** [share.js:36](share.js#L36)
 **Severity:** LOW (the "Advocate" badge awards if user opened the share dialog, even if they didn't share)
 **Proposed fix:** Move `localStorage.setItem('hasShared','true')` into the `navigator.share` resolution path (and similarly into the clipboard fallback).

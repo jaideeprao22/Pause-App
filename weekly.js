@@ -5,6 +5,10 @@
 // Bug 9+10 FIX: new Date("26 Apr 2026") fails on Safari/WebKit.
 // History dates are stored in en-IN locale format ("26 Apr 2026").
 // Parse them manually to guarantee cross-browser reliability.
+// BUG-018 FIX: return null on parse failure (was: new Date(dateStr) silently
+// produced Invalid Date, which compared as false to every Date and led to
+// rows being dropped from filters/finds for non-obvious reasons). Callers
+// now check explicitly so the parse-fail path is visible.
 function _parseHistoryDate(dateStr){
   const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   const parts = (dateStr || '').trim().split(/\s+/);
@@ -16,7 +20,7 @@ function _parseHistoryDate(dateStr){
       return new Date(year, month, day);
     }
   }
-  return new Date(dateStr); // fallback for unexpected formats
+  return null;
 }
 
 function generateWeeklyReport(){
@@ -24,9 +28,10 @@ function generateWeeklyReport(){
   const challenge = safeJsonParse('pauseChallenge', []);
   const weekStart = getWeekStart();
   // Bug 9 FIX: use _parseHistoryDate instead of new Date(h.date)
-  const weekEntries = history.filter(h => _parseHistoryDate(h.date) >= weekStart);
+  // BUG-018 FIX: skip rows whose date couldn't be parsed (now returns null).
+  const weekEntries = history.filter(h => { const d = _parseHistoryDate(h.date); return d && d >= weekStart; });
   const latest = weekEntries[0];
-  const previous = history.find(h => _parseHistoryDate(h.date) < weekStart);
+  const previous = history.find(h => { const d = _parseHistoryDate(h.date); return d && d < weekStart; });
 
   let dwsChange = null;
   if(latest?.dws != null && previous?.dws != null){
@@ -103,6 +108,7 @@ function checkReassessmentReminder(){
   if(!history.length) return;
   // Bug 10 FIX: use _parseHistoryDate — new Date(locale string) fails on Safari
   const lastDate = _parseHistoryDate(history[0].date);
+  if(!lastDate) return; // BUG-018 FIX: bail if date couldn't be parsed
   const now = new Date();
   const daysSince = Math.floor((now - lastDate) / (1000*60*60*24));
   if(daysSince >= 28){

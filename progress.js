@@ -76,7 +76,7 @@ function renderPersonalSummary(){
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div>
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:4px">Digital Wellness Score</div>
-          <div style="font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:${s?s.color:'var(--muted)'};line-height:1">${latest.dws || '--'}</div>
+          <div style="font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:${s?s.color:'var(--muted)'};line-height:1">${latest.dws != null ? latest.dws : '--'}</div>
           <div style="font-size:12px;font-weight:700;color:${s?s.color:'var(--muted)'};margin-top:2px">${s?s.status:''}</div>
           ${trendHtml}
         </div>
@@ -425,7 +425,10 @@ function renderChallenge(){
   // Track max streak for badges
   const maxStreak = parseInt(localStorage.getItem('maxChallengeStreak')||'0');
   if(completed.length > maxStreak){
-    localStorage.setItem('maxChallengeStreak', completed.length);
+    // BUG-025 FIX: write as string for consistency with all other localStorage
+    // sets in this file. localStorage coerces numbers to strings anyway, but
+    // mixing styles invites future code that does typeof / strict-equal checks.
+    localStorage.setItem('maxChallengeStreak', completed.length.toString());
     if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   }
 
