@@ -323,6 +323,54 @@ const TIPS_BY_DISORDER = {
   ]
 };
 
+// IMPACT_TIPS — lifted from results.js renderActionPlan inline pushes so the
+// personalized 7-day challenge Day 7 (impact-module micro-content) and the
+// Action Plan can share one source. Order is the original results.js order.
+const IMPACT_TIPS = {
+  sleep: [
+    'Keeping your phone charging outside the bedroom can make a surprising difference to your sleep quality.',
+    'A gentle digital wind-down — no screens in the hour before bed — can really help you sleep more deeply.',
+    'Enabling Night Shift or a blue light filter from 8pm onwards is a small change with a big impact.',
+    'Try a 15-minute bedtime routine: dim lights, no phone, something light to read. Your sleep will thank you.'
+  ],
+  attention: [
+    'The Pomodoro technique — 25 minutes of focused work, then a 5-minute break — is a gentle way to rebuild concentration.',
+    'Putting your phone face-down during tasks that need your full attention is simple but genuinely effective.',
+    'Reading a physical book for even 20 minutes daily is a wonderful way to rebuild your focus gradually.',
+    'Reducing notifications — keeping only calls and messages from people who matter — can give you back remarkable amounts of focus.'
+  ],
+  productivity: [
+    'App timers like Forest or Focus Mode during your peak work hours can gently nudge your focus back where it belongs.',
+    'Writing down your 3 most important tasks each morning — before opening social media — is a small habit with a big payoff.',
+    'Batching emails and messages into two fixed daily windows frees up remarkable amounts of mental energy.',
+    'Keeping your phone in another room during your most important 2 hours of the day is one of the most effective things you can do.'
+  ],
+  emotional: [
+    'A 10-minute breathing or mindfulness pause before any screen session can transform how you feel during it.',
+    'Muting or unfollowing content that consistently leaves you feeling less-than is a genuinely kind act of self-care.',
+    'One screen-free social activity per week — a walk, a meal, a phone call — does wonders for your emotional wellbeing.',
+    'A few minutes of journaling before bed about how you felt today is a surprisingly powerful way to build self-awareness.'
+  ]
+};
+
+// Plain-English titles used by the personalized 7-day challenge cards.
+// Format: "Day N: <DISORDER_DAY_LABEL[id]>" or "Day 7: <IMPACT_DAY_LABEL[id]>".
+const DISORDER_DAY_LABEL = {
+  cyberchondria: 'Health Anxiety Reset',
+  socialmedia:   'Social Media Reset',
+  shortform:     'Short-Form Video Reset',
+  gaming:        'Gaming Reset',
+  ai:            'AI Dependency Reset',
+  workaddiction: 'Work Boundaries Reset'
+};
+
+const IMPACT_DAY_LABEL = {
+  sleep:        'Sleep Reset',
+  attention:    'Focus Reset',
+  productivity: 'Productivity Reset',
+  emotional:    'Emotional Reset'
+};
+
 const BADGES = [
   {id:'first_assessment',emoji:'🎯',name:'First Steps',desc:'Completed your first assessment',condition: s => s.totalAssessments >= 1},
   {id:'full_assessment',emoji:'🔬',name:'Scientist',desc:'Completed a Full Assessment',condition: s => s.fullAssessments >= 1},

@@ -893,7 +893,19 @@ async function loadAllUserDataFromSupabase(userId){
       if(r.current_week_num != null)    localStorage.setItem('currentWeekNum',         String(r.current_week_num));
       if(r.weeks_completed != null)     localStorage.setItem('challengeWeeksCompleted',String(r.weeks_completed));
       if(r.max_streak != null)          localStorage.setItem('maxChallengeStreak',     String(r.max_streak));
-      if(r.current_pack)                localStorage.setItem('currentChallengePack',   JSON.stringify(r.current_pack));
+      // CHALLENGE-PERSONALIZED-CONTENT: validate pack shape on Supabase pull.
+      // metaVersion 2 packs require disorderOrder length === 6, optional
+      // string impactModule, and string startedAt. Reject malformed pulls so
+      // a corrupt or manually-edited row doesn't propagate to localStorage.
+      if(r.current_pack && (function(p){
+        if(!p || typeof p !== 'object' || !Array.isArray(p.days)) return false;
+        if(p.metaVersion === 2){
+          if(!Array.isArray(p.disorderOrder) || p.disorderOrder.length !== 6) return false;
+          if(p.impactModule != null && typeof p.impactModule !== 'string') return false;
+          if(typeof p.startedAt !== 'string') return false;
+        }
+        return true;
+      })(r.current_pack)) localStorage.setItem('currentChallengePack', JSON.stringify(r.current_pack));
       // CHALLENGE-DAY-LOCK: accept either legacy Array<number> or current
       // Array<{idx, day}>. Stuff straight into localStorage either way —
       // _readChallengeTicks in progress.js normalises legacy entries on
