@@ -156,30 +156,16 @@ function renderActionPlan(){
       }
     }
   });
-  if(_getImpactScore('sleep') > 5){
-    actions.push({icon:'😴',text:'Keeping your phone charging outside the bedroom can make a surprising difference to your sleep quality.',color:'#7c5cbf'});
-    actions.push({icon:'😴',text:'A gentle digital wind-down — no screens in the hour before bed — can really help you sleep more deeply.',color:'#7c5cbf'});
-    actions.push({icon:'😴',text:'Enabling Night Shift or a blue light filter from 8pm onwards is a small change with a big impact.',color:'#7c5cbf'});
-    actions.push({icon:'😴',text:'Try a 15-minute bedtime routine: dim lights, no phone, something light to read. Your sleep will thank you.',color:'#7c5cbf'});
-  }
-  if(_getImpactScore('attention') > 5){
-    actions.push({icon:'🧠',text:'The Pomodoro technique — 25 minutes of focused work, then a 5-minute break — is a gentle way to rebuild concentration.',color:'#3d6fff'});
-    actions.push({icon:'🧠',text:'Putting your phone face-down during tasks that need your full attention is simple but genuinely effective.',color:'#3d6fff'});
-    actions.push({icon:'🧠',text:'Reading a physical book for even 20 minutes daily is a wonderful way to rebuild your focus gradually.',color:'#3d6fff'});
-    actions.push({icon:'🧠',text:'Reducing notifications — keeping only calls and messages from people who matter — can give you back remarkable amounts of focus.',color:'#3d6fff'});
-  }
-  if(_getImpactScore('productivity') > 5){
-    actions.push({icon:'⚡',text:'App timers like Forest or Focus Mode during your peak work hours can gently nudge your focus back where it belongs.',color:'#f5a623'});
-    actions.push({icon:'⚡',text:'Writing down your 3 most important tasks each morning — before opening social media — is a small habit with a big payoff.',color:'#f5a623'});
-    actions.push({icon:'⚡',text:'Batching emails and messages into two fixed daily windows frees up remarkable amounts of mental energy.',color:'#f5a623'});
-    actions.push({icon:'⚡',text:'Keeping your phone in another room during your most important 2 hours of the day is one of the most effective things you can do.',color:'#f5a623'});
-  }
-  if(_getImpactScore('emotional') > 5){
-    actions.push({icon:'❤️',text:'A 10-minute breathing or mindfulness pause before any screen session can transform how you feel during it.',color:'#ff4757'});
-    actions.push({icon:'❤️',text:'Muting or unfollowing content that consistently leaves you feeling less-than is a genuinely kind act of self-care.',color:'#ff4757'});
-    actions.push({icon:'❤️',text:'One screen-free social activity per week — a walk, a meal, a phone call — does wonders for your emotional wellbeing.',color:'#ff4757'});
-    actions.push({icon:'❤️',text:'A few minutes of journaling before bed about how you felt today is a surprisingly powerful way to build self-awareness.',color:'#ff4757'});
-  }
+  // CHALLENGE-PERSONALIZED-CONTENT: impact tips moved to data.js IMPACT_TIPS
+  // so the 7-day challenge Day 7 can share the same content. Loop replaces
+  // the previous four inline if-blocks. Functionally identical render.
+  ['sleep','attention','productivity','emotional'].forEach(impactId => {
+    if(_getImpactScore(impactId) <= 5) return;
+    const m = IMPACT_MODULES.find(x => x.id === impactId);
+    const tips = (typeof IMPACT_TIPS !== 'undefined' && IMPACT_TIPS[impactId]) || [];
+    if(!m || !tips.length) return;
+    tips.forEach(text => actions.push({ icon: m.icon, text, color: m.color }));
+  });
   actions.push({icon:'📊',text:'Check in with PAUSE App again in 4 weeks — you may be surprised how much can change.',color:'#00c9a7'});
   actions.push({icon:'💧',text:'Try drinking a glass of water every time you feel the urge to check your phone — it works better than you think.',color:'#00c9a7'});
   actions.push({icon:'🌿',text:'Even 20 minutes outdoors without your phone can meaningfully improve your mood and focus.',color:'#2ecc71'});
