@@ -29,7 +29,6 @@ const PRECACHE_ASSETS = [
   BASE + 'screentime.js',
   BASE + 'app.js',
   BASE + 'nav.js',
-  BASE + 'premium-motions.js',
   BASE + 'icons/icon-72.png',
   BASE + 'icons/icon-96.png',
   BASE + 'icons/icon-128.png',

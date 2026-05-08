@@ -215,12 +215,12 @@ Severity legend
 **Proposed fix:** Wrap with `if(document.readyState !== 'loading'){ init(); } else { document.addEventListener('DOMContentLoaded', init); }`. Optional polish.
 **Files touched:** app.js
 
-### BUG-030 ✅ FIXED — `premium-motions.js` is on disk but absent from `index.html` script list and `sw.js` precache
-**File:** [index.html:1504-1518](index.html#L1504), [sw.js:11-40](sw.js#L11), CLAUDE.md note
-**Severity:** LOW (dead file or missing wiring — visual FX never load)
-**Description:** Confirmed via reading both files. Either the FX should be wired in or the file removed.
-**Proposed fix:** Decision required — wire it (`<script src="premium-motions.js" defer></script>` + add to PRECACHE_ASSETS) OR delete the file. Defer to user; flag only.
-**Files touched:** index.html, sw.js (or delete premium-motions.js)
+### BUG-030 🔧 RE-OPENED — `premium-motions.js` is on disk but absent from `index.html` script list and `sw.js` precache
+**File:** [index.html:1504-1518](index.html#L1504), [sw.js:11-40](sw.js#L11), [premium-motions.js:14-17](premium-motions.js#L14)
+**Severity:** HIGH (when wired, freezes app on first navigation)
+**Status:** Wiring reverted post-merge after a freeze report. Root cause: `observeScreens()` MutationObserver watches `class` attribute on each `.screen`, then mutates that same `class` attribute (remove + add `pause-entered`) inside its own callback. Each callback queues 2 new mutations on the same observer; the queue grows geometrically until the main thread is jammed. Latent for the period the script was unwired; surfaced the moment BUG-030 re-wired it.
+**Proposed fix:** Either (a) `obs.disconnect()` before the self-mutation and `obs.observe(...)` after, (b) use a re-entry flag to early-out the callback when it's running its own mutation, or (c) move the `pause-entered` class to a child element so the watched element's attributes are never mutated. Re-wire only after patched and verified.
+**Files touched:** premium-motions.js (when fixed); index.html + sw.js (when re-wired)
 
 ### BUG-031 — `_logbookClearOnRender` flag toggled true→false synchronously around `renderLogbookScreen` 
 **File:** [logbook.js:133-135](logbook.js#L133)
