@@ -244,7 +244,7 @@ Severity legend
 **Severity:** LOW (functionally identical, but inconsistent with other writes that use `JSON.stringify`)
 **Proposed fix:** None — works. Polish only.
 
-### BUG-035 — `share.js shareResults` writes `localStorage.setItem('hasShared','true')` even if user cancels share dialog
+### BUG-035 ✅ FIXED — `share.js shareResults` writes `localStorage.setItem('hasShared','true')` even if user cancels share dialog
 **File:** [share.js:36](share.js#L36)
 **Severity:** LOW (the "Advocate" badge awards if user opened the share dialog, even if they didn't share)
 **Proposed fix:** Move `localStorage.setItem('hasShared','true')` into the `navigator.share` resolution path (and similarly into the clipboard fallback).
