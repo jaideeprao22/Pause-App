@@ -215,7 +215,7 @@ Severity legend
 **Proposed fix:** Wrap with `if(document.readyState !== 'loading'){ init(); } else { document.addEventListener('DOMContentLoaded', init); }`. Optional polish.
 **Files touched:** app.js
 
-### BUG-030 — `premium-motions.js` is on disk but absent from `index.html` script list and `sw.js` precache
+### BUG-030 ✅ FIXED — `premium-motions.js` is on disk but absent from `index.html` script list and `sw.js` precache
 **File:** [index.html:1504-1518](index.html#L1504), [sw.js:11-40](sw.js#L11), CLAUDE.md note
 **Severity:** LOW (dead file or missing wiring — visual FX never load)
 **Description:** Confirmed via reading both files. Either the FX should be wired in or the file removed.
