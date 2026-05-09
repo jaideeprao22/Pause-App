@@ -323,6 +323,54 @@ const TIPS_BY_DISORDER = {
   ]
 };
 
+// IMPACT_TIPS — per-impact-module tip pools. Lifted from the inline blocks
+// previously in results.js renderActionPlan so the personalized challenge
+// (progress.js Day 7) and the action plan share the same content. 4 tips
+// per module, 16 total. Order matters for the action plan, which appends
+// in order; Day 7 of the challenge picks index 0 by default.
+const IMPACT_TIPS = {
+  sleep: [
+    {text:"Keeping your phone charging outside the bedroom can make a surprising difference to your sleep quality.", color:"#7c5cbf", icon:"😴"},
+    {text:"A gentle digital wind-down — no screens in the hour before bed — can really help you sleep more deeply.", color:"#7c5cbf", icon:"😴"},
+    {text:"Enabling Night Shift or a blue light filter from 8pm onwards is a small change with a big impact.", color:"#7c5cbf", icon:"😴"},
+    {text:"Try a 15-minute bedtime routine: dim lights, no phone, something light to read. Your sleep will thank you.", color:"#7c5cbf", icon:"😴"}
+  ],
+  attention: [
+    {text:"The Pomodoro technique — 25 minutes of focused work, then a 5-minute break — is a gentle way to rebuild concentration.", color:"#3d6fff", icon:"🧠"},
+    {text:"Putting your phone face-down during tasks that need your full attention is simple but genuinely effective.", color:"#3d6fff", icon:"🧠"},
+    {text:"Reading a physical book for even 20 minutes daily is a wonderful way to rebuild your focus gradually.", color:"#3d6fff", icon:"🧠"},
+    {text:"Reducing notifications — keeping only calls and messages from people who matter — can give you back remarkable amounts of focus.", color:"#3d6fff", icon:"🧠"}
+  ],
+  productivity: [
+    {text:"App timers like Forest or Focus Mode during your peak work hours can gently nudge your focus back where it belongs.", color:"#f5a623", icon:"⚡"},
+    {text:"Writing down your 3 most important tasks each morning — before opening social media — is a small habit with a big payoff.", color:"#f5a623", icon:"⚡"},
+    {text:"Batching emails and messages into two fixed daily windows frees up remarkable amounts of mental energy.", color:"#f5a623", icon:"⚡"},
+    {text:"Keeping your phone in another room during your most important 2 hours of the day is one of the most effective things you can do.", color:"#f5a623", icon:"⚡"}
+  ],
+  emotional: [
+    {text:"A 10-minute breathing or mindfulness pause before any screen session can transform how you feel during it.", color:"#ff4757", icon:"❤️"},
+    {text:"Muting or unfollowing content that consistently leaves you feeling less-than is a genuinely kind act of self-care.", color:"#ff4757", icon:"❤️"},
+    {text:"One screen-free social activity per week — a walk, a meal, a phone call — does wonders for your emotional wellbeing.", color:"#ff4757", icon:"❤️"},
+    {text:"A few minutes of journaling before bed about how you felt today is a surprisingly powerful way to build self-awareness.", color:"#ff4757", icon:"❤️"}
+  ]
+};
+
+// Plain-English challenge-day labels for personalized packs.
+const DISORDER_DAY_LABEL = {
+  cyberchondria:'Health Anxiety Reset',
+  socialmedia:  'Social Media Reset',
+  shortform:    'Short-Form Video Reset',
+  gaming:       'Gaming Reset',
+  ai:           'AI Dependency Reset',
+  workaddiction:'Work Boundaries Reset'
+};
+const IMPACT_DAY_LABEL = {
+  sleep:       'Sleep Reset',
+  attention:   'Focus Reset',
+  productivity:'Productivity Reset',
+  emotional:   'Emotional Reset'
+};
+
 const BADGES = [
   {id:'first_assessment',emoji:'🎯',name:'First Steps',desc:'Completed your first assessment',condition: s => s.totalAssessments >= 1},
   {id:'full_assessment',emoji:'🔬',name:'Scientist',desc:'Completed a Full Assessment',condition: s => s.fullAssessments >= 1},

@@ -313,25 +313,151 @@ function _pickWildcards(count, excludeSet){
   return chosen.map(_wildcardTipObj).filter(Boolean);
 }
 
-// Pack ordering is intentional, not shuffled: top-disorder tips first,
-// second-disorder tips next, wildcard(s) last — Day 7 reads as a "bonus".
-function _personalizedPack(topIds, excludeSet){
-  const days = [];
-  if(topIds.length >= 2){
-    days.push(..._pickTips(topIds[0], 4, excludeSet));
-    days.push(..._pickTips(topIds[1], 2, excludeSet));
-    days.push(..._pickWildcards(1, excludeSet));
-  } else {
-    // Only one concerning disorder — 5 from it + 2 wildcards
-    days.push(..._pickTips(topIds[0], 5, excludeSet));
-    days.push(..._pickWildcards(2, excludeSet));
-  }
-  return { sourceDisorders: topIds.slice(0, 2), fallback: false, days };
+// ============================================================
+// PERSONALIZED PACK V2 — DISORDER-SEVERITY RANKING
+// ============================================================
+// Day N maps to the user's Nth-most-severe disorder. Day 7 maps to the
+// user's most-affected health-impact module. Frozen at challenge start
+// AND auto-regenerates when the user's assessment scores change AND no
+// ticks exist yet (so re-assessment fluidly updates the pack until the
+// week is in progress). Mid-challenge re-assessment shows a banner with
+// a manual reset CTA instead of forcing a regen.
+// ============================================================
+
+// Tie-break order (stable). Used both as the secondary sort for disorder
+// ranking and as the fallback ordering for the impact module pick.
+const _TIE_BREAK_ORDER = [
+  'cyberchondria',  // #1
+  'gaming',         // #2
+  'socialmedia',    // #3
+  'shortform',      // #4
+  'workaddiction',  // #5
+  'ai'              // #6
+];
+
+// Normalized severity (0..1) using baseline-subtracted percentage so
+// scales with different ranges (CSS-15 / BSMAS / SVAS-6 / IGDS9-SF /
+// PCGUS / BWAS) compare fairly. Returns null for unscored disorders.
+function _normDisorderScore(d){
+  if(!d || disorderScores[d.id] === undefined) return null;
+  const span = d.maxScore - d.questions.length;
+  if(span <= 0) return 0;
+  return (disorderScores[d.id] - d.questions.length) / span;
 }
 
-// Generic mixed pack — used when no assessment exists or all scores are
-// below the concern threshold. Rotates by week number so consecutive
-// "default" weeks differ instead of repeating the same disorder pair.
+// Returns ALL 6 disorder IDs ranked highest-norm-first. Ties broken by
+// _TIE_BREAK_ORDER. Returns null if any disorder is unscored (caller
+// falls back to generic + CTA — strict gate per spec).
+function _rankDisorders(){
+  const ranked = [];
+  for(const d of DISORDERS){
+    const n = _normDisorderScore(d);
+    if(n === null) return null; // strict: any unscored → bail
+    ranked.push({ id: d.id, n, t: _TIE_BREAK_ORDER.indexOf(d.id) });
+  }
+  ranked.sort((a, b) => (b.n - a.n) || (a.t - b.t));
+  return ranked.map(x => x.id);
+}
+
+// Pick the user's highest-scoring impact module. Each module is 5
+// questions × 4 = 20 max. Ties broken by IMPACT_MODULES order. Returns
+// null if no module is scored.
+function _rankImpactModule(){
+  let bestId = null, bestNorm = -1;
+  for(const m of IMPACT_MODULES){
+    if(impactScores[m.id] === undefined) continue;
+    const norm = impactScores[m.id] / (m.questions.length * 4);
+    if(norm > bestNorm){ bestNorm = norm; bestId = m.id; }
+  }
+  return bestId;
+}
+
+// Plain-English band labels for whyMatters lines. Disorders use their
+// own configured `levels` (CSS-15 etc. each have their own thresholds).
+function _disorderBandLabel(disorderId){
+  const d = DISORDERS.find(x => x.id === disorderId);
+  if(!d || disorderScores[d.id] === undefined) return '';
+  const score = disorderScores[d.id];
+  const lvl = (d.levels || []).find(l => score >= l.min && score <= l.max);
+  return lvl ? lvl.label.toLowerCase() : '';
+}
+
+// Impact bands derived from raw score (5 items × 4 = 20 max).
+function _impactBandLabel(impactId){
+  const s = impactScores[impactId];
+  if(s === undefined || s === null) return '';
+  if(s <= 5)  return 'low';
+  if(s <= 10) return 'moderate';
+  if(s <= 15) return 'high';
+  return 'very high';
+}
+
+// Per-disorder one-line micro-task. Concrete, on-brand with TIPS_BY_DISORDER.
+const _DISORDER_TASKS = {
+  cyberchondria:'Today: pause for 30 seconds before any health-related search. Notice the urge — let it pass.',
+  socialmedia:  'Today: open social media only with a specific purpose in mind. Close it when that purpose is met.',
+  shortform:    'Today: replace one short-video session with a 10-minute walk, stretch, or breath break.',
+  gaming:       'Today: set a hard stop time for gaming. End when it hits — even if you\'re mid-match.',
+  ai:           'Today: try solving one small problem yourself before reaching for an AI assistant.',
+  workaddiction:'Today: end work at a fixed hour. No email, no Slack, no laptop past that line.'
+};
+const _IMPACT_TASKS = {
+  sleep:       'Tonight: charge your phone outside the bedroom. Notice how falling asleep feels.',
+  attention:   'Today: 25 focused minutes on one task with phone face-down or in another room.',
+  productivity:'Today: write your top 3 priorities on paper, off-phone, before opening any app.',
+  emotional:   'Today: 10 minutes outdoors with no phone. Notice how your mood shifts.'
+};
+
+// Build a single disorder day. `excludeSet` is consulted so weeks rotate
+// through different tips when the user repeatedly resets.
+function _buildDisorderDay(disorderId, dayNum, excludeSet){
+  const d = DISORDERS.find(x => x.id === disorderId);
+  if(!d) return null;
+  const picked = _pickTips(disorderId, 1, excludeSet)[0];
+  if(!picked) return null;
+  const band = _disorderBandLabel(disorderId);
+  return {
+    kind:'disorder',
+    disorder: disorderId,
+    disorderName: d.name,
+    color: d.color,
+    icon: d.icon,
+    tipId: picked.tipId,
+    text: picked.text,
+    // V2 personalized fields
+    dayKind: 'disorder',
+    dayLabel: DISORDER_DAY_LABEL[disorderId] || d.name,
+    whyMatters: band ? `Your ${d.name.toLowerCase()} score came back in the ${band} range.` : '',
+    todoTask: _DISORDER_TASKS[disorderId] || ''
+  };
+}
+
+// Build the Day 7 impact module card.
+function _buildImpactDay(impactId){
+  const m = IMPACT_MODULES.find(x => x.id === impactId);
+  const pool = (typeof IMPACT_TIPS !== 'undefined') ? IMPACT_TIPS[impactId] : null;
+  if(!m || !pool || !pool.length) return null;
+  const tip = pool[0]; // index 0 — deterministic; varies across modules, not weeks
+  const band = _impactBandLabel(impactId);
+  return {
+    kind:'impact',
+    impactModuleId: impactId,
+    impactModuleName: m.name,
+    color: m.color,
+    icon: m.icon,
+    tipId: 'impact:' + impactId + ':0',
+    text: tip.text,
+    // V2 personalized fields
+    dayKind: 'impact',
+    dayLabel: IMPACT_DAY_LABEL[impactId] || m.name,
+    whyMatters: band ? `Your ${m.name.toLowerCase()} score is in the ${band} range.` : '',
+    todoTask: _IMPACT_TASKS[impactId] || ''
+  };
+}
+
+// Generic fallback pack — used when assessment is missing/incomplete.
+// Same shape as legacy: 4 from rotation #1 + 2 from rotation #2 + 1 wildcard.
+// No metaVersion — the renderer treats unmarked packs as legacy-style.
 function _genericMixedPack(weekNum){
   const ids = DISORDERS.map(d => d.id);
   const safeWeek = Math.max(1, weekNum || 1);
@@ -345,23 +471,55 @@ function _genericMixedPack(weekNum){
   return { sourceDisorders: rotated.slice(0, 2), fallback: true, days };
 }
 
+// Fingerprint of the user's current scores. Used to detect when the user
+// has retaken an assessment so renderChallenge can decide whether to
+// silently regen (no ticks yet) or surface a banner (mid-challenge).
+function _currentScoresHash(){
+  const ds = {};
+  DISORDERS.forEach(d => { if(disorderScores[d.id] !== undefined) ds[d.id] = disorderScores[d.id]; });
+  const is = {};
+  IMPACT_MODULES.forEach(m => { if(impactScores[m.id] !== undefined) is[m.id] = impactScores[m.id]; });
+  return JSON.stringify({ds, is});
+}
+
 function _generateChallengePack(prevPack){
   const weekNum = parseInt(localStorage.getItem('currentWeekNum') || '1');
-  const allTops = (typeof getTopDisordersByPct === 'function') ? getTopDisordersByPct(6) : [];
-  const concerning = allTops.filter(id => {
-    const d = DISORDERS.find(x => x.id === id);
-    if(!d || disorderScores[d.id] === undefined) return false;
-    const pct = (disorderScores[d.id] - d.questions.length) / (d.maxScore - d.questions.length);
-    return pct > _CONCERN_PCT_THRESHOLD;
-  });
   const excludeSet = new Set((prevPack && Array.isArray(prevPack.usedTipIds)) ? prevPack.usedTipIds : []);
 
-  let pack = (concerning.length === 0)
-    ? _genericMixedPack(weekNum)
-    : _personalizedPack(concerning.slice(0, 2), excludeSet);
+  // Strict gate: ALL 6 disorders must be scored to personalize. Anything
+  // less → generic fallback. CTA in renderChallenge nudges the user to
+  // complete the assessment so the next regen personalizes.
+  const ranked = _rankDisorders();
+  const impactId = _rankImpactModule();
+  const canPersonalize = ranked && impactId;
 
-  // Top up to exactly 7 days using wildcards (defensive: only fires if a tip
-  // pool was unexpectedly empty). CHALLENGES has 7 entries, so this terminates.
+  let pack;
+  if(!canPersonalize){
+    pack = _genericMixedPack(weekNum);
+  } else {
+    const days = [];
+    for(let i = 0; i < 6; i++){
+      const dd = _buildDisorderDay(ranked[i], i + 1, excludeSet);
+      if(dd) days.push(dd);
+    }
+    const impDay = _buildImpactDay(impactId);
+    if(impDay) days.push(impDay);
+    pack = {
+      days,
+      sourceDisorders: ranked.slice(0, 2),
+      fallback: false,
+      // V2 metadata — frozen at generation time
+      metaVersion: 2,
+      disorderOrder: ranked,
+      impactModule: impactId,
+      startedAt: new Date().toISOString(),
+      isPersonalized: true
+    };
+  }
+
+  // Top up to exactly 7 days using wildcards (defensive — only fires if a
+  // tip pool was unexpectedly empty). CHALLENGES has 7 entries, so this
+  // terminates.
   while(pack.days.length < 7){
     const used = new Set(pack.days.map(d => d.tipId));
     const wIdxAvail = CHALLENGES.map((_,i)=>i).filter(i => !used.has('wildcard:'+i));
@@ -375,6 +533,7 @@ function _generateChallengePack(prevPack){
   pack.generatedAt = Date.now();
   pack.weekNum = weekNum;
   pack.usedTipIds = pack.days.map(d => d.tipId);
+  pack.scoresHash = _currentScoresHash();
   return pack;
 }
 
@@ -422,7 +581,26 @@ function renderChallenge(){
     _saveActivePack(pack);
   }
 
+  // Read ticks early so the score-change branch below can decide whether
+  // to silently regen (zero ticks) or surface a banner (mid-challenge).
   const completed = _readChallengeTicks();
+
+  // SCORES-CHANGED HANDLING — fixes the legacy "Day 1 stuck on cyberchondria
+  // after re-assessment" bug. If the user has retaken any assessment since
+  // the pack was generated AND no day has been ticked yet, regenerate
+  // silently so the cards reflect their current ranking. If they have
+  // ticks already, leave the pack alone but flag a banner so renderChallenge
+  // surfaces a reset CTA — wiping ticks behind a user's back is worse UX.
+  let scoresChangedBanner = false;
+  const _curHash = _currentScoresHash();
+  if(pack && pack.scoresHash && pack.scoresHash !== _curHash){
+    if(completed.length === 0){
+      pack = _generateChallengePack(pack);
+      _saveActivePack(pack);
+    } else {
+      scoresChangedBanner = true;
+    }
+  }
   const today = getLocalDateStr();
   // CHALLENGE-DAY-LOCK (sequential): the only tickable card is the next
   // sequential index, AND only if at least one local calendar day has
@@ -471,37 +649,102 @@ function renderChallenge(){
 
   const days = (pack && Array.isArray(pack.days)) ? pack.days : [];
 
-  // Renders a single day card. Wildcard days show a "✨ Bonus" label in
-  // the accent color; disorder days show the disorder name in the
-  // disorder's color. Layout/structure is otherwise identical.
+  // Renders a single day card. Handles three pack shapes via field
+  // presence (no version branch): legacy disorder days have only
+  // `disorderName`; V2 disorder/impact days have `dayLabel`, `whyMatters`,
+  // and `todoTask`; wildcard days have neither and show "✨ Bonus".
   // CHALLENGE-DAY-LOCK: `isLocked` dims un-ticked cards once today's tick
   // is used. Locked cards still receive clicks (no pointer-events:none) so
   // toggleChallenge can fire the "one per day" toast.
   function _dayCardHtml(c, i, isCompleted, clickable, isLocked){
-    const labelHtml = c.kind === 'wildcard'
-      ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px">✨ Bonus</div>`
-      : `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${c.color || 'var(--muted)'};margin-bottom:3px">${c.disorderName || ''}</div>`;
     const onClick = clickable ? `onclick="toggleChallenge(${i})"` : '';
     const lockStyle = isLocked ? 'opacity:0.5;cursor:not-allowed' : '';
+    const cardColor = c.color || 'var(--accent)';
+
+    // V2 title strip: "Day N: <plain-English label>"
+    const titleStrip = c.dayLabel
+      ? `<div style="font-size:13px;font-weight:800;color:${cardColor};margin-bottom:6px">Day ${i+1}: ${c.dayLabel}</div>`
+      : '';
+
+    // V2 why-matters line (band reference). Only renders when present —
+    // generic packs and wildcard days skip it.
+    const whyHtml = c.whyMatters
+      ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic">${c.whyMatters}</div>`
+      : '';
+
+    // V2 todo task block. Subtle colored panel with the day's micro-task.
+    const taskHtml = c.todoTask
+      ? `<div style="font-size:12px;color:var(--text);margin-top:8px;padding:8px 10px;background:${cardColor}1A;border-radius:8px;border-left:3px solid ${cardColor};line-height:1.45">📝 ${c.todoTask}</div>`
+      : '';
+
+    // Legacy/wildcard tag — only render when V2 titleStrip is absent
+    // so we don't double up.
+    const labelHtml = (!c.dayLabel)
+      ? (c.kind === 'wildcard'
+          ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px">✨ Bonus</div>`
+          : `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${c.color || 'var(--muted)'};margin-bottom:3px">${c.disorderName || ''}</div>`)
+      : '';
+
     return `<div class="challenge-day ${isCompleted?'completed':''}" style="${lockStyle}" ${onClick}>
       <div class="challenge-check ${isCompleted?'done':''}">${isCompleted?'✓':c.icon}</div>
       <div style="flex:1">
+        ${titleStrip}
         ${labelHtml}
         <div class="challenge-text">${c.text}</div>
-        ${isCompleted?'<div style="font-size:10px;color:var(--teal);margin-top:2px;font-weight:700">Completed ✓</div>':''}
+        ${taskHtml}
+        ${whyHtml}
+        ${isCompleted?'<div style="font-size:10px;color:var(--teal);margin-top:6px;font-weight:700">Completed ✓</div>':''}
       </div>
       <div class="challenge-day-label">Day ${i+1}</div>
     </div>`;
   }
 
+  // PERSONALIZATION CTA — shown when the active pack is the generic
+  // fallback. Appears at the top of the tab and links the user to the
+  // Quick Scan / Full Assessment flow so the next regen personalizes.
+  let personalizationCta = '';
+  const _isGenericPack = !pack || !pack.metaVersion || pack.metaVersion < 2;
+  if(_isGenericPack){
+    personalizationCta = `<div class="card" style="margin-bottom:10px;background:linear-gradient(135deg, rgba(61,111,255,0.08), rgba(124,92,191,0.08));border:1px solid rgba(61,111,255,0.2)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="font-size:22px;flex-shrink:0">✨</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px">Personalize your 7-day plan</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">Take the Full Assessment so each day targets your most pressing concerns first.</div>
+          <button onclick="showScreen('screen-assess-menu')" style="background:var(--accent);color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Take Assessment →</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // SCORES-CHANGED BANNER — surfaced when the user re-took an assessment
+  // mid-challenge. We don't auto-regen because that would wipe their day
+  // ticks; the user gets to choose via the reset button below.
+  let scoresChangedHtml = '';
+  if(scoresChangedBanner){
+    scoresChangedHtml = `<div class="notice blue" style="margin-bottom:8px">
+      <div class="notice-title">📊 Your assessment has updated</div>
+      <div style="font-size:12px;line-height:1.5;margin-top:4px">Your current 7-day plan is based on earlier scores. Tap "Start a new 7-day challenge" below to re-personalize with your latest results.</div>
+    </div>`;
+  }
+
+  // BOTTOM RESET LINK — small, modest. Lets the user start a fresh week
+  // at any time (manual override of the auto-reset that fires at week
+  // completion). Confirm modal prevents accidental taps.
+  const resetLinkHtml = `<div style="text-align:center;margin-top:14px;padding:8px 0">
+    <button onclick="confirmResetChallenge()" style="background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 12px">Start a new 7-day challenge</button>
+  </div>`;
+
   // Show completion state
   if(completed.length === 7){
-    el.innerHTML = resetBanner + `<div class="notice green" style="text-align:center;padding:20px">
+    el.innerHTML = personalizationCta + scoresChangedHtml + resetBanner +
+      `<div class="notice green" style="text-align:center;padding:20px">
       <div style="font-size:36px;margin-bottom:8px">🏆</div>
       <div class="notice-title">Week ${weekNum} Complete!</div>
       You've finished all 7 challenges. A new challenge week will start automatically in 7 days.
     </div>` +
-    days.map((c,i) => _dayCardHtml(c, i, true, false, false)).join('');
+    days.map((c,i) => _dayCardHtml(c, i, true, false, false)).join('') +
+    resetLinkHtml;
     return;
   }
 
@@ -509,11 +752,13 @@ function renderChallenge(){
   // card at any moment (`tickableIdx`). Already-ticked cards stay
   // clickable (so toggleChallenge can decide whether to un-tick or fire
   // the "un-tick most recent first" toast). All other cards are locked.
-  el.innerHTML = resetBanner + days.map((c,i) => {
-    const isCompleted = completed.some(t => t.idx === i);
-    const isLocked = !isCompleted && i !== tickableIdx;
-    return _dayCardHtml(c, i, isCompleted, true, isLocked);
-  }).join('');
+  el.innerHTML = personalizationCta + scoresChangedHtml + resetBanner +
+    days.map((c,i) => {
+      const isCompleted = completed.some(t => t.idx === i);
+      const isLocked = !isCompleted && i !== tickableIdx;
+      return _dayCardHtml(c, i, isCompleted, true, isLocked);
+    }).join('') +
+    resetLinkHtml;
 }
 
 function toggleChallenge(idx){
@@ -555,6 +800,48 @@ function toggleChallenge(idx){
   if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
   renderChallenge();
   checkAndAwardBadges();
+}
+
+// Manual reset entry point (top-level so inline onclick handlers can
+// reach it through the global window scope, matching toggleChallenge).
+function confirmResetChallenge(){
+  // Inline confirm modal — avoids depending on whatever modal infra
+  // happens to exist elsewhere in the app. Renders into <body> as a
+  // fixed overlay, removes itself on dismiss.
+  const overlay = document.createElement('div');
+  overlay.id = '_resetChallengeOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:var(--bg, #fff);max-width:340px;width:100%;border-radius:14px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.2)">
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px;color:var(--text)">Start a new 7-day challenge?</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px">This resets your current week's progress and generates a fresh personalized plan based on your latest assessment.</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="document.getElementById('_resetChallengeOverlay').remove()" style="background:transparent;border:1px solid var(--muted);color:var(--text);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
+        <button onclick="_doResetChallenge()" style="background:var(--accent);border:none;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Reset</button>
+      </div>
+    </div>`;
+  // Close on background tap
+  overlay.addEventListener('click', e => {
+    if(e.target === overlay) overlay.remove();
+  });
+  document.body.appendChild(overlay);
+}
+
+function _doResetChallenge(){
+  // Clear ticks, reset week-start to now, regenerate pack from current
+  // scores. Preserves currentWeekNum and challengeWeeksCompleted —
+  // resetting mid-week shouldn't fabricate a "completion" that wasn't
+  // earned.
+  localStorage.setItem('pauseChallenge','[]');
+  localStorage.setItem('challengeWeekStart', Date.now().toString());
+  const prev = _loadActivePack();
+  const fresh = _generateChallengePack(prev);
+  _saveActivePack(fresh);
+  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+  const modal = document.getElementById('_resetChallengeOverlay');
+  if(modal) modal.remove();
+  renderChallenge();
+  if(typeof showToast === 'function') showToast('Fresh 7-day challenge started', 1500);
 }
 
 // ============================================================

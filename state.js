@@ -773,6 +773,22 @@ function _profileFromSupabaseRow(row){
   };
 }
 
+// PERSONALIZATION-V2: defensive validator for incoming Supabase packs.
+// Any pack that claims metaVersion 2 must have a 6-element disorderOrder
+// array, a string startedAt, and (if present) a string impactModule.
+// Legacy packs with no metaVersion field are accepted unconditionally
+// (the renderer handles them via legacy code path).
+function _isValidPack(p){
+  if(!p || typeof p !== 'object') return false;
+  if(!Array.isArray(p.days)) return false;
+  if(p.metaVersion === 2){
+    if(!Array.isArray(p.disorderOrder) || p.disorderOrder.length !== 6) return false;
+    if(p.impactModule != null && typeof p.impactModule !== 'string') return false;
+    if(typeof p.startedAt !== 'string') return false;
+  }
+  return true;
+}
+
 async function loadAllUserDataFromSupabase(userId){
   if(!userId) return;
 
@@ -893,7 +909,14 @@ async function loadAllUserDataFromSupabase(userId){
       if(r.current_week_num != null)    localStorage.setItem('currentWeekNum',         String(r.current_week_num));
       if(r.weeks_completed != null)     localStorage.setItem('challengeWeeksCompleted',String(r.weeks_completed));
       if(r.max_streak != null)          localStorage.setItem('maxChallengeStreak',     String(r.max_streak));
-      if(r.current_pack)                localStorage.setItem('currentChallengePack',   JSON.stringify(r.current_pack));
+      // PERSONALIZATION-V2: validate shape before persisting. V2 packs
+      // require disorderOrder to be a 6-element array; malformed packs
+      // are rejected so progress.js doesn't have to defend against them
+      // mid-render. Legacy packs without metaVersion are accepted as-is
+      // (they render via the legacy path in _dayCardHtml).
+      if(r.current_pack && _isValidPack(r.current_pack)){
+        localStorage.setItem('currentChallengePack', JSON.stringify(r.current_pack));
+      }
       // CHALLENGE-DAY-LOCK: accept either legacy Array<number> or current
       // Array<{idx, day}>. Stuff straight into localStorage either way —
       // _readChallengeTicks in progress.js normalises legacy entries on
