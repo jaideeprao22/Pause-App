@@ -89,7 +89,6 @@
       <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
       <div class="dws-stack">
         <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
-        <div class="streak-pill" id="streakPill" style="display:none" onclick="showStreakModal()" role="button" tabindex="0" aria-label="View your wellness streak details" aria-live="polite"></div>
       </div>
       <div class="user-avatar" id="userAvatar" onclick="showUserModal()" style="display:none">?</div>
     </div>
@@ -222,19 +221,15 @@
     </div>
   </div>
   <div id="challengeList"></div>
-  <!-- Notification Settings -->
-  <div class="card" style="margin-top:4px">
-    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px">🔔 Daily Reminder</div>
-    <div class="notif-row">
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text)">Gentle daily nudge</div>
-        <div style="font-size:11px;color:var(--muted)">A friendly reminder to keep your streak going</div>
+  <!-- Daily Streak Card (moved from header) -->
+  <div class="card" id="streakCard" style="margin-top:4px;display:none;cursor:pointer" onclick="showStreakModal()" role="button" tabindex="0" aria-label="View your wellness streak details">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:34px;line-height:1;flex-shrink:0">🔥</div>
+      <div style="flex:1;min-width:0">
+        <div id="streakCardCount" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);line-height:1.15">0 day streak</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Days you've shown up in a row — tap for details</div>
       </div>
-      <button class="toggle" id="notifToggle" onclick="toggleNotification()"></button>
-    </div>
-    <div class="notif-row" id="notifTimeRow" style="display:none">
-      <div style="font-size:13px;font-weight:600;color:var(--text)">Reminder time</div>
-      <input type="time" id="notifTime" value="09:00" style="border:2px solid var(--border);border-radius:10px;padding:6px 10px;font-family:inherit;font-size:13px;color:var(--text)" onchange="saveNotifTime()"/>
+      <div style="font-size:20px;color:var(--muted);flex-shrink:0">›</div>
     </div>
   </div>
   <!-- Score Trend -->
@@ -696,14 +691,14 @@
 </script>
 
 <script>
-  // Streak modal opener — reads current count from the header pill
+  // Streak modal opener — reads current count from the progress page streak card
   function showStreakModal(){
     try {
-      var pill = document.getElementById('streakPill');
+      var src = document.getElementById('streakCardCount');
       var countEl = document.getElementById('streakModalCount');
       var labelEl = document.getElementById('streakModalLabel');
-      var pillText = (pill && pill.textContent) ? pill.textContent : '';
-      var match = pillText.match(/\d+/);
+      var srcText = (src && src.textContent) ? src.textContent : '';
+      var match = srcText.match(/\d+/);
       var n = match ? parseInt(match[0], 10) : 0;
       if (countEl) countEl.textContent = String(n);
       if (labelEl) labelEl.textContent = (n === 1) ? 'day in a row' : 'days in a row';

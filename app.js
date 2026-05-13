@@ -24,21 +24,22 @@ function init(){
   checkReassessmentReminder();
 }
 
-// Bumps the app-open streak (state.js) and renders the header pill.
-// count >= 2 → "🔥 N day streak"; count === 1 → "🔥 Day 1"; count === 0 → hidden.
+// Bumps the app-open streak (state.js) and renders the Progress-page streak card.
+// count >= 2 → "N day streak"; count === 1 → "Day 1"; count === 0 → hidden.
 function renderStreakPill(){
-  const el = document.getElementById('streakPill');
-  if(!el) return;
+  const card = document.getElementById('streakCard');
+  const countEl = document.getElementById('streakCardCount');
+  if(!card || !countEl) return;
   let count = 0;
   try {
     count = (typeof bumpAppOpenStreak === 'function') ? bumpAppOpenStreak() : 0;
   } catch(e){ count = 0; }
   if(count <= 0){
-    el.style.display = 'none';
+    card.style.display = 'none';
     return;
   }
-  el.style.display = '';
-  el.textContent = count >= 2 ? ('🔥 ' + count + ' day streak') : '🔥 Day 1';
+  card.style.display = '';
+  countEl.textContent = count >= 2 ? (count + ' day streak') : 'Day 1';
 }
 
 function loadSavedScores(){
