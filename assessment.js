@@ -13,14 +13,6 @@ function buildFullAssessment(){
   }));
 }
 
-function buildQuickAssessment(){
-  allQuestions=[]; questionMeta=[];
-  IMPACT_MODULES.forEach((m,mi) => m.questions.forEach((q,qi) => {
-    allQuestions.push({text:q, options:IMPACT_OPTIONS, values:IMPACT_OPTION_VALUES, scaleInfo:`Health Impact · ${m.name}`, impactIdx:mi});
-    questionMeta.push({type:'impact', mIdx:mi, qIdx:qi});
-  }));
-}
-
 function buildSingleAssessment(dIdx){
   allQuestions=[]; questionMeta=[];
   const d = DISORDERS[dIdx];
@@ -235,7 +227,6 @@ function _doStartFullAssessment(){
   showScreen('screen-assessment'); renderQuestion();
 }
 
-function startQuickScan(){ assessMode='quick'; buildQuickAssessment(); allAnswers=new Array(allQuestions.length).fill(null); currentQIdx=0; showScreen('screen-assessment'); renderQuestion(); }
 function startSingleAssessment(dIdx){ assessMode='single'; singleDisorderIdx=dIdx; buildSingleAssessment(dIdx); allAnswers=new Array(allQuestions.length).fill(null); currentQIdx=0; showScreen('screen-assessment'); renderQuestion(); }
 
 // H3 FIX: track pending auto-advance so manual Next tap cancels it, preventing double-fire
@@ -302,49 +293,29 @@ function finishAssessment(){
       stampDisorderTime(m.id);
     });
     dwsScore=calculateDWS();
-    localStorage.removeItem('pause_dws_is_impact_only');
-  } else if(assessMode==='quick'){
-    IMPACT_MODULES.forEach((m,mi)=>{
-      const qs=questionMeta.filter(meta=>meta.type==='impact'&&meta.mIdx===mi);
-      impactScores[m.id]=qs.reduce((sum,meta)=>sum+(allAnswers[questionMeta.indexOf(meta)]||0),0);
-      stampDisorderTime(m.id);
-    });
-    // M1 FIX: impact-only DWS for Quick Scan — don't blend stale disorder scores.
-    // BUG-001 FIX: flag this DWS so display surfaces can label it "(Impact)".
-    dwsScore=calculateDWS(true);
-    localStorage.setItem('pause_dws_is_impact_only', 'true');
   } else if(assessMode==='single'){
     const d=DISORDERS[singleDisorderIdx];
     disorderScores[d.id]=allAnswers.reduce((a,b)=>a+(b||0),0);
     stampDisorderTime(d.id);
     dwsScore=calculateDWS();
-    localStorage.removeItem('pause_dws_is_impact_only');
   }
   saveScores();
   clearPartialProgress();
   updateDWSDisplay();
   renderResults();
   checkAndAwardBadges();
-  if(assessMode==='quick') switchResultTab('impact');
   showScreen('screen-results');
 }
 
-// M1 FIX: impactOnly=true for Quick Scan so stale disorderScores from a previous
-// full assessment don't contaminate the Quick Scan DWS.
-function calculateDWS(impactOnly=false){
+// DWS = composite of validated disorder scales only.
+// Impact modules are custom/exploratory measures — they remain visible as
+// descriptive scores in the Health Impact tab but do NOT contribute to DWS.
+function calculateDWS(){
   let totalRisk=0,totalMax=0;
-  if(!impactOnly){
-    DISORDERS.forEach(d=>{
-      if(disorderScores[d.id]!==undefined){
-        totalRisk+=(disorderScores[d.id]-d.questions.length)/(d.maxScore-d.questions.length);
-        totalMax++;
-      }
-    });
-  }
-  IMPACT_MODULES.forEach(m=>{
-    if(impactScores[m.id]!==undefined){
-      totalRisk+=impactScores[m.id]/(m.questions.length*4)*0.5;
-      totalMax+=0.5;
+  DISORDERS.forEach(d=>{
+    if(disorderScores[d.id]!==undefined){
+      totalRisk+=(disorderScores[d.id]-d.questions.length)/(d.maxScore-d.questions.length);
+      totalMax++;
     }
   });
   if(totalMax===0) return null;
@@ -361,14 +332,12 @@ function getDWSStatus(score){ if(score>=80)return{status:'Excellent',color:'#2ec
 function updateDWSDisplay(){
   if(dwsScore!==null){
     const s=getDWSStatus(dwsScore);
-    // BUG-001 FIX: append "(Impact)" suffix when latest assessment was impact-only Quick Scan.
-    const _suffix = localStorage.getItem('pause_dws_is_impact_only') === 'true' ? ' (Impact)' : '';
     const pill=document.getElementById('dwsPill');
     const num=document.getElementById('home-dws-num');
     const stat=document.getElementById('home-dws-status');
-    if(pill){pill.textContent=`DWS: ${dwsScore}${_suffix}`;pill.style.color=s.color;}
+    if(pill){pill.textContent=`DWS: ${dwsScore}`;pill.style.color=s.color;}
     if(num){num.textContent=dwsScore;num.style.color=s.color;}
-    if(stat) stat.textContent=s.status + _suffix;
+    if(stat) stat.textContent=s.status;
   }
 }
 

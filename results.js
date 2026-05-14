@@ -4,10 +4,8 @@
 function renderResults(){
   if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
-    // BUG-001 FIX: label impact-only DWS so users know Quick Scan didn't include disorder data.
-    const _suffix = localStorage.getItem('pause_dws_is_impact_only') === 'true' ? ' (Impact)' : '';
     document.getElementById('resultDWSNum').textContent = dwsScore;
-    document.getElementById('resultDWSStatus').textContent = s.status + _suffix;
+    document.getElementById('resultDWSStatus').textContent = s.status;
   }
   const tags = document.getElementById('shareTags');
   const topDisorder = Object.entries(disorderScores).sort((a,b) => {
@@ -267,10 +265,8 @@ function showExplain(disorderId){
 function showDWSModal(){
   if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
-    // BUG-001 FIX: label impact-only DWS in the modal status as well.
-    const _suffix = localStorage.getItem('pause_dws_is_impact_only') === 'true' ? ' (Impact)' : '';
     document.getElementById('modalDWSNum').textContent = dwsScore;
-    document.getElementById('modalDWSStatus').textContent = s.status + _suffix;
+    document.getElementById('modalDWSStatus').textContent = s.status;
     document.getElementById('modalDWSStatus').style.color = s.color;
 
     const screened = Object.keys(disorderScores).length;
@@ -336,9 +332,6 @@ function showDWSModal(){
 // Shows once per calendar day regardless of how many tests are taken
 // ============================================================
 function renderPostAssessmentPrompt(){
-  // Quick Scan = impact modules only — no disorder scores, so no post-disorder questions
-  if(assessMode === 'quick') return;
-
   if(Object.keys(disorderScores).length === 0) return;
 
   // ── DAILY GATE: show at most once per calendar day ──

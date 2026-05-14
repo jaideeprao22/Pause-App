@@ -7,7 +7,6 @@ function init(){
   renderStreakPill(); // FIX 14: app-open streak — bumps once per calendar day, idempotent within a session
   renderHomeDisorders();
   renderAssessMenu();
-  renderQuickScan();
   renderAboutScales();
   renderProgress();
   renderChallenge();
@@ -179,18 +178,6 @@ function showImpactInfo(moduleId, idx){
     ${scoreHtml}
     <div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.6">Custom validated-style module developed for PAUSE App · GMC Maheshwaram</div>`;
   openModal('explainModal');
-}
-
-function renderQuickScan(){
-  document.getElementById('quick-impact-list').innerHTML = IMPACT_MODULES.map((m,i) => `
-    <div class="assess-impact-card" onclick="showImpactInfo('${m.id}', ${i})">
-      <div style="font-size:22px;flex-shrink:0">${m.icon}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${m.name} Impact</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:1px">5 questions</div>
-      </div>
-      <div class="assess-card-chevron">›</div>
-    </div>`).join('');
 }
 
 function renderAboutScales(){

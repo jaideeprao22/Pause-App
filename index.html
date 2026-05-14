@@ -104,7 +104,6 @@
     <div class="hero-title">How is your digital life affecting your health?</div>
     <div class="hero-sub">Take a science-backed check-up across 6 areas of digital wellbeing — and get personalised guidance to feel better.</div>
     <button class="btn-primary" onclick="showScreen('screen-assess-menu')">Begin My Wellness Check →</button>
-    <button class="btn-secondary" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#fff;margin-top:10px" onclick="showScreen('screen-quick')">⚡ Quick Check (5 min)</button>
   </div>
   <div class="section-label">Check a Specific Area</div>
   <div id="home-disorder-list"></div>
@@ -128,16 +127,6 @@
   <div class="section-label" style="margin-top:4px">4 Health Impact Areas</div>
   <div id="assess-impact-list"></div>
   <button class="btn-primary" style="margin-top:8px" onclick="startFullAssessment()">Begin Full Check-up →</button>
-</div>
-</div>
-
-<!-- QUICK SCAN -->
-<div class="screen" id="screen-quick">
-<div class="screen-content">
-  <div class="notice blue"><div class="notice-title">⚡ Quick Wellness Check</div>20 questions about how your digital habits are affecting daily life. Takes just 5 minutes.</div>
-  <div class="section-label">4 Areas We'll Check</div>
-  <div id="quick-impact-list"></div>
-  <button class="btn-primary" style="margin-top:8px" onclick="startQuickScan()">Let's Begin →</button>
 </div>
 </div>
 
@@ -280,7 +269,7 @@
     <div style="font-size:48px;margin-bottom:10px">🧠</div>
     <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px">PAUSE App</div>
     <div style="font-size:10px;opacity:0.55;letter-spacing:0.18em;font-weight:600;margin-bottom:6px">PREVENTIVE APPROACH TO UNHEALTHY SCREEN EXPOSURE</div>
-    <div style="font-size:14px;opacity:0.9;margin-bottom:16px;line-height:1.6;font-weight:500">Built by doctors, for the community</div>
+    <div style="font-size:14px;opacity:0.9;margin-bottom:16px;line-height:1.6;font-weight:500">Helping you understand and improve your digital wellbeing</div>
     <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
       <div style="background:rgba(255,255,255,0.15);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700">🔬 6 Validated Scales</div>
       <div style="background:rgba(255,255,255,0.15);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700">🆓 Free Forever</div>
@@ -295,38 +284,6 @@
     <div style="background:var(--surface);border-radius:12px;padding:16px;display:flex;gap:14px;align-items:center">
       <div style="font-size:32px;flex-shrink:0">🏥</div>
       <div style="font-size:13px;color:var(--muted);line-height:1.7"><strong style="color:var(--text)">Not a tech company.</strong> A community medicine department that got tired of watching a problem go unmeasured — and decided to do something about it.</div>
-    </div>
-  </div>
-
-  <!-- The people -->
-  <div class="card" style="margin-bottom:12px">
-    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">👨‍⚕️ The People Behind It</div>
-    <div style="font-size:12px;color:var(--accent);margin-bottom:16px">Department of Community Medicine · Govt. Medical College, Maheshwaram</div>
-    <div style="display:flex;flex-direction:column;gap:0">
-      <div style="padding:14px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px">Principal Investigator</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">Dr. Jaideep Rao M.</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">MBBS, MD Community Medicine · Senior Resident</div>
-      </div>
-      <div style="padding:14px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px">Co-Investigator</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">Dr. Sridhar D.</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">MBBS, MD Community Medicine · Associate Professor</div>
-      </div>
-      <div style="padding:14px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px">Guide & Head of Department</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">Dr. Kiranmai B.</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">MBBS, MD Community Medicine · Professor & H.O.D</div>
-      </div>
-      <div style="padding:14px 0">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px">🙏 With Heartfelt Gratitude</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">Dr. B. Triveni</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">MBBS, MD Pathology · Professor & Principal · GMC Maheshwaram</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.65;font-style:italic">Whose vision and steady institutional support gave this work the space and freedom to take shape. PAUSE exists because of leadership that believed young researchers deserved room to build, and that digital wellbeing deserved a place in community medicine.</div>
-      </div>
-    </div>
-    <div style="margin-top:4px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.6">
-      📍 Rangareddy District, Telangana – 501510, India · <span style="color:var(--accent)">Digital health interventions for NCDs</span>
     </div>
   </div>
 
@@ -532,7 +489,7 @@
           <div style="font-size:12px;color:var(--text)"><strong>0 – 34</strong> &nbsp;Critical — significant patterns detected</div>
         </div>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6">A higher score means healthier digital habits. The score is calculated from your disorder screening results and health impact modules — a Full Check-up gives the most accurate picture.</div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6">A higher score means healthier digital habits. The score is calculated from your six disorder screening scales — a Full Check-up gives the most accurate picture.</div>
     </div>
     <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Got it</button>
   </div>

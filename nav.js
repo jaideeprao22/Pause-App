@@ -9,14 +9,14 @@ const MAIN_TABS = new Set(['screen-home','screen-tools','screen-progress','scree
 function showScreen(id){
   const navMap={
     'screen-home':0,
-    'screen-assess-menu':0,'screen-quick':0,'screen-assessment':0,'screen-results':0,
+    'screen-assess-menu':0,'screen-assessment':0,'screen-results':0,
     'screen-tools':1,
     'screen-progress':2,
     'screen-logbook':3,
     'screen-about':4
   };
   document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===navMap[id]));
-  const showBack = ['screen-assess-menu','screen-quick','screen-assessment','screen-results'].includes(id);
+  const showBack = ['screen-assess-menu','screen-assessment','screen-results'].includes(id);
   document.getElementById('backBtn').style.display = showBack ? 'block' : 'none';
 
   // BUG11 FIX: clear history when navigating to a main tab so goBack() stays logical
