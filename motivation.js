@@ -227,23 +227,7 @@ function completeOnboarding(){
 }
 
 // ============================================================
-// NOTIFICATION PROMPT — After first assessment
+// (Notification prompt removed — daily reminders are not reliably
+// supported in TWA/PWA environment; setTimeout-based scheduling
+// only fires while the app is open. Don't offer features we can't deliver.)
 // ============================================================
-
-function showNotifPrompt(){
-  openModal('notifPromptModal');
-}
-
-async function acceptNotifPrompt(){
-  closeModal('notifPromptModal');
-  if('Notification' in window){
-    const perm = await Notification.requestPermission();
-    if(perm === 'granted'){
-      localStorage.setItem('notifEnabled','true');
-      localStorage.setItem('motivNotifEnabled','true');
-      scheduleMotivationNotification();
-      const toggle = document.getElementById('notifToggle');
-      if(toggle) toggle.classList.add('on');
-    }
-  }
-}

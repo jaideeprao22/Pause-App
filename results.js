@@ -83,7 +83,6 @@ function renderResults(){
 
   if(!localStorage.getItem('notifPromptShown')){
     localStorage.setItem('notifPromptShown', 'true');
-    setTimeout(() => showNotifPrompt(), 1500);
     setTimeout(() => renderPostAssessmentPrompt(), 5000);
   } else {
     renderPostAssessmentPrompt();

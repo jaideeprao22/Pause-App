@@ -176,7 +176,7 @@ function showImpactInfo(moduleId, idx){
   document.getElementById('explainBody').innerHTML = `
     <p style="margin-bottom:10px;font-size:13px;line-height:1.6">Assesses how digital device use is affecting your ${m.name.toLowerCase()} health. 5 questions on a 5-point Likert scale.</p>
     ${scoreHtml}
-    <div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.6">Custom validated-style module developed for PAUSE App · GMC Maheshwaram</div>`;
+    <div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.6">Custom validated-style module developed for PAUSE App</div>`;
   openModal('explainModal');
 }
 
