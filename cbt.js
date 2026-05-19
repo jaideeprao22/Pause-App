@@ -476,9 +476,11 @@ function startCbtWalkthrough(modIdx){
 
   // Start the bell chime synced to the 4s breathing animation.
   // Chime stops automatically via _closeCbtWalkthrough on Done / outside-tap.
-  // Driven by per-module `withChime` flag, independent of `anim` (so non-breath
-  // animations like 'urge' or 'thought' can also have audio companions).
-  if(mod.withChime) startCbtBreathChime();
+  // FIX (May 2026): chime now plays for EVERY CBT module on Start this Exercise,
+  // not just those flagged with `withChime`. Provides consistent audio feedback
+  // across all 26 modules. The `withChime` flag is retained on existing modules
+  // for backwards compatibility but is no longer consulted.
+  startCbtBreathChime();
 }
 
 function _renderCbtWalkthroughStep(){
