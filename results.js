@@ -23,14 +23,19 @@ function renderResults(){
     dList.innerHTML = DISORDERS.filter(d => disorderScores[d.id] !== undefined).map(d => {
       const score = disorderScores[d.id], level = getLevel(d, score);
       const pct = ((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100;
+      // Wellness % for display = 100 - severity %
+      const wellnessPct = Math.round(100 - pct);
       return `<div class="result-disorder-row">
         <div class="result-disorder-header">
           <div class="result-disorder-name">${d.icon} ${d.name}</div>
-          <div class="result-level" style="background:${level.bg};color:${level.color}">${level.label}</div>
+          <div class="result-level" style="background:${level.bg};color:${level.color};font-weight:700;padding:6px 12px;font-size:13px">${level.label}</div>
         </div>
-        <div class="result-bar-bg"><div class="result-bar-fill" style="width:${pct}%;background:${level.color}"></div></div>
-        <div class="result-score-text">${score} / ${d.maxScore} — ${d.scale}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="pct-${d.id}"></div>
+        <div class="result-bar-bg"><div class="result-bar-fill" style="width:${wellnessPct}%;background:${level.color}"></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">Wellness in this area: <strong style="color:${level.color}">${wellnessPct}/100</strong></div>
+        <details style="margin-top:6px">
+          <summary style="font-size:11px;color:var(--muted);cursor:pointer;list-style:none">Raw scale score</summary>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;padding-left:8px">${score} / ${d.maxScore} on the ${d.scale} scale</div>
+        </details>
         <button class="explain-btn" onclick="showExplain('${d.id}')">💡 What does this mean?</button>
       </div>`;
     }).join('');
@@ -51,11 +56,13 @@ function renderResults(){
   if(Object.keys(impactScores).length > 0){
     iCard.innerHTML = IMPACT_MODULES.map(m => {
       const score = impactScores[m.id] || 0, level = getImpactLevel(score);
-      const pct = (score / (m.questions.length * 4)) * 100;
+      const moduleMax = m.questions.length * 4; // 20
+      const impactPct = (score / moduleMax) * 100;
+      const wellnessPct = Math.round(100 - impactPct);
       return `<div class="impact-row">
         <div class="impact-label">${m.icon} ${m.name}</div>
-        <div class="impact-bar-bg"><div class="impact-bar-fill" style="width:${pct}%;background:${level.color}"></div></div>
-        <div class="impact-value" style="color:${level.color}">${level.label}</div>
+        <div class="impact-bar-bg"><div class="impact-bar-fill" style="width:${wellnessPct}%;background:${level.color}"></div></div>
+        <div class="impact-value" style="color:${level.color};font-weight:700">${level.label}</div>
       </div>`;
     }).join('');
   } else {
@@ -324,6 +331,69 @@ function showDWSModal(){
     document.getElementById('modalDWSBreakdown').innerHTML = '';
   }
   openModal('dwsModal');
+}
+
+// ============================================================
+// HWS MODAL
+// ============================================================
+function showHWSModal(){
+  if(hwsScore !== null){
+    const s = getHWSStatus(hwsScore);
+    document.getElementById('modalHWSNum').textContent = hwsScore;
+    document.getElementById('modalHWSStatus').textContent = s.status;
+    document.getElementById('modalHWSStatus').style.color = s.color;
+
+    const screened = Object.keys(impactScores).length;
+    const totalModules = IMPACT_MODULES.length; // 4
+
+    if(screened < totalModules){
+      document.getElementById('modalHWSSub').textContent =
+        `Based on ${screened} of ${totalModules} health areas — complete the Full Check-up for your most accurate score.`;
+      document.getElementById('modalHWSSub').style.color = '#d97706';
+    } else {
+      document.getElementById('modalHWSSub').textContent = s.sub;
+      document.getElementById('modalHWSSub').style.color = '';
+    }
+
+    // Module breakdown
+    let breakdown = '';
+    if(screened > 0){
+      breakdown = '<div style="margin-top:8px"><div class="section-label">Score Breakdown</div>';
+
+      IMPACT_MODULES.filter(m => impactScores[m.id] !== undefined).forEach(m => {
+        const level = getImpactLevel(impactScores[m.id]);
+        breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span>${m.icon} ${m.name}</span>
+          <span style="font-weight:700;color:${level.color}">${level.label}</span>
+        </div>`;
+      });
+
+      const unscreened = IMPACT_MODULES.filter(m => impactScores[m.id] === undefined);
+      if(unscreened.length > 0){
+        unscreened.forEach(m => {
+          breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);opacity:0.4">
+            <span>${m.icon} ${m.name}</span>
+            <span style="font-style:italic;color:var(--muted)">Not checked</span>
+          </div>`;
+        });
+        breakdown += `<div style="font-size:11px;color:#d97706;margin-top:8px;padding:6px 10px;background:#fff8e1;border-radius:8px;">
+          ⚠️ ${unscreened.length} health area${unscreened.length > 1 ? 's' : ''} not yet checked — your HWS may improve or change after a Full Check-up.
+        </div>`;
+      }
+
+      breakdown += '</div>';
+    }
+    document.getElementById('modalHWSBreakdown').innerHTML = breakdown;
+
+  } else {
+    document.getElementById('modalHWSNum').textContent = '--';
+    document.getElementById('modalHWSStatus').textContent = 'Not checked yet';
+    document.getElementById('modalHWSStatus').style.color = '';
+    document.getElementById('modalHWSSub').textContent = 'Complete a check-up to see your Health Wellness Score.';
+    document.getElementById('modalHWSSub').style.color = '';
+    document.getElementById('modalHWSBreakdown').innerHTML = '';
+  }
+  openModal('hwsModal');
 }
 
 // ============================================================

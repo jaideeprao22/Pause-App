@@ -15,46 +15,43 @@ const DISORDERS = [
     icon:'🔍',
     color:'#3d6fff',
     bg:'rgba(61,111,255,0.1)',
-    scale:'CSS-15',
-    scaleRef:'McElroy & Shevlin, 2014; Barke et al., 2016 · Cyberchondria Severity Scale – Short Form',
-    items:15,
-    maxScore:75,
+    scale:'CSS-12',
+    scaleRef:'McElroy, Kearney, Touhey, Evans, Cooke & Shevlin, 2019 · Cyberchondria Severity Scale – Short Form (CSS-12)',
+    items:12,
+    maxScore:60,
     questions:[
-      // --- EXCESSIVENESS subscale (items 1, 2, 13) ---
-      {t:"If I notice an unexplained bodily symptom, I search for it on the internet again and again.", hint:"e.g. a rash, lump, or pain somewhere"},
-      {t:"I end up spending hours searching for health information online."},
-      // --- COMPULSION subscale (items 3, 4, 7) ---
-      {t:"I feel a strong urge to search for health information online, even when I don't need to."},
-      {t:"I find it very hard to stop searching for health information online, even when I try."},
-      // --- MISTRUST subscale (items 5, 12, 15) ---
-      {t:"I disagree with my doctor's advice after finding different information online."},
-      // --- DISTRESS subscale (items 6, 9, 14) ---
-      {t:"I feel worried or anxious after searching for health information online."},
-      // --- COMPULSION subscale continued ---
-      {t:"Searching for health information online takes up a lot of my time."},
-      // --- REASSURANCE subscale (items 8, 10, 11) ---
-      {t:"After searching for health information online, I go to see a doctor."},
-      // --- DISTRESS subscale continued ---
-      {t:"I feel scared after reading health information online."},
-      // --- REASSURANCE subscale continued ---
-      {t:"After searching for symptoms online, I call or message a doctor or nurse."},
-      {t:"After searching for symptoms online, I ask a family member or friend for their opinion."},
-      // --- MISTRUST subscale continued ---
-      {t:"I start doubting my doctor's diagnosis after reading about it online."},
+      // --- EXCESSIVENESS subscale (items 1, 3, 6) ---
+      {t:"If I notice an unusual sensation in my body, I search for it on the internet.", hint:"Please answer all questions in this section thinking about conditions you think you might have — not conditions a doctor has already diagnosed."},
+      // --- COMPULSION subscale (items 2, 7, 10) ---
+      {t:"Searching for symptoms online distracts me from reading news, sports, or entertainment online."},
       // --- EXCESSIVENESS subscale continued ---
-      {t:"Even after finding an answer, I keep searching for more health information online."},
+      {t:"I read many different websites about the same possible illness."},
+      // --- DISTRESS subscale (items 4, 8, 9) ---
+      {t:"I start to panic when I read online that my symptom is linked to a rare or serious illness."},
+      // --- REASSURANCE subscale (items 5, 11, 12) ---
+      {t:"After searching for symptoms online, I go to consult my doctor."},
+      // --- EXCESSIVENESS subscale continued ---
+      {t:"I search for the same symptoms online more than once."},
+      // --- COMPULSION subscale continued ---
+      {t:"Searching for symptoms online interrupts my work (like emails or office work)."},
       // --- DISTRESS subscale continued ---
-      {t:"After searching for health information online, I feel more worried than before I started."},
-      // --- MISTRUST subscale continued ---
-      {t:"I trust health information I find online more than what my doctor tells me."}
+      {t:"I think I am fine — until I read about a serious illness online."},
+      // --- DISTRESS subscale continued ---
+      {t:"I feel more worried or anxious after searching about my symptoms online."},
+      // --- COMPULSION subscale continued ---
+      {t:"Searching for symptoms online reduces my time with family or friends."},
+      // --- REASSURANCE subscale continued ---
+      {t:"I ask my doctor for a specific test that I read about online (like a blood test or a scan)."},
+      // --- REASSURANCE subscale continued ---
+      {t:"After searching symptoms online, I also go to other specialist doctors."}
     ],
     options:["Never","Rarely","Sometimes","Often","Always"],
     optionValues:[1,2,3,4,5],
     levels:[
-      {min:15,max:30,label:'Minimal',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your health searching behaviour is within normal limits.'},
-      {min:31,max:45,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of excessive health searching. Monitor your habits.'},
-      {min:46,max:60,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Significant cyberchondria. Your online health searching is causing distress.'},
-      {min:61,max:75,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe cyberchondria. Please consider speaking with a mental health professional.'}
+      {min:12,max:24,label:'Minimal',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your online health searching is within normal limits.'},
+      {min:25,max:36,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of excessive online health searching. Monitor your habits.'},
+      {min:37,max:48,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Significant cyberchondria. Your online health searching may be causing distress.'},
+      {min:49,max:60,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe cyberchondria. Please consider speaking with a mental health professional.'}
     ]
   },
   {

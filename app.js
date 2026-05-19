@@ -47,7 +47,9 @@ function loadSavedScores(){
     disorderScores = saved.disorder || {};
     impactScores   = saved.impact  || {};
     dwsScore       = saved.dws     || null;
+    hwsScore       = saved.hws     || null;
     updateDWSDisplay();
+    updateHWSDisplay();
     // FIX 3: Also refresh home disorder badges from saved scores on every app open
     renderHomeDisorders();
   }
@@ -57,7 +59,7 @@ function loadSavedScores(){
 // saveScoresLocal() — localStorage + AppGrades only. Safe to call on every answer (partial progress).
 // saveScores()      — also adds a history entry + syncs to Supabase. Called ONLY when assessment is fully complete.
 function saveScoresLocal(){
-  localStorage.setItem('pauseV2Scores', JSON.stringify({disorder:disorderScores, impact:impactScores, dws:dwsScore}));
+  localStorage.setItem('pauseV2Scores', JSON.stringify({disorder:disorderScores, impact:impactScores, dws:dwsScore, hws:hwsScore}));
   if(window.AppGrades){
     const grades = {};
     DISORDERS.forEach(d => {
@@ -74,7 +76,7 @@ function saveScores(){
   saveScoresLocal();
   // History entry + Supabase sync — only runs when a full assessment is finished
   const history = safeJsonParse('pauseV2History', []);
-  history.unshift({dws:dwsScore, disorder:{...disorderScores}, impact:{...impactScores}, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
+  history.unshift({dws:dwsScore, hws:hwsScore, disorder:{...disorderScores}, impact:{...impactScores}, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
   if(history.length > 20) history.splice(20);
   localStorage.setItem('pauseV2History', JSON.stringify(history));
   saveToSupabase();

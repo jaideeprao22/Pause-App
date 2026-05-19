@@ -70,6 +70,9 @@ function savePartialProgress(){
   const partialDWS = calculateDWS();
   if(partialDWS!==null){ dwsScore=partialDWS; updateDWSDisplay(); }
 
+  const partialHWS = calculateHWS();
+  if(partialHWS!==null){ hwsScore=partialHWS; updateHWSDisplay(); }
+
   if(Object.keys(disorderScores).length>0 || Object.keys(impactScores).length>0){
     saveScoresLocal();
     if(typeof renderHomeDisorders==='function') renderHomeDisorders();
@@ -77,7 +80,7 @@ function savePartialProgress(){
 
   localStorage.setItem(PARTIAL_KEY, JSON.stringify({
     answers:allAnswers, currentQ:currentQIdx,
-    disorderScores, impactScores, dwsScore, timestamp:Date.now()
+    disorderScores, impactScores, dwsScore, hwsScore, timestamp:Date.now()
   }));
 }
 
@@ -140,6 +143,7 @@ function resumePartialAssessment(){
     Object.assign(disorderScores, partial.disorderScores||{});
     Object.assign(impactScores, partial.impactScores||{});
     if(partial.dwsScore!=null){ dwsScore=partial.dwsScore; updateDWSDisplay(); }
+    if(partial.hwsScore!=null){ hwsScore=partial.hwsScore; updateHWSDisplay(); }
     showScreen('screen-assessment'); renderQuestion();
   }catch(e){
     clearPartialProgress();
@@ -293,6 +297,7 @@ function finishAssessment(){
       stampDisorderTime(m.id);
     });
     dwsScore=calculateDWS();
+    hwsScore=calculateHWS();
   } else if(assessMode==='single'){
     const d=DISORDERS[singleDisorderIdx];
     disorderScores[d.id]=allAnswers.reduce((a,b)=>a+(b||0),0);
@@ -302,14 +307,14 @@ function finishAssessment(){
   saveScores();
   clearPartialProgress();
   updateDWSDisplay();
+  updateHWSDisplay();
   renderResults();
   checkAndAwardBadges();
   showScreen('screen-results');
 }
 
 // DWS = composite of validated disorder scales only.
-// Impact modules are custom/exploratory measures — they remain visible as
-// descriptive scores in the Health Impact tab but do NOT contribute to DWS.
+// Impact modules feed into HWS (below), not DWS.
 function calculateDWS(){
   let totalRisk=0,totalMax=0;
   DISORDERS.forEach(d=>{
@@ -322,12 +327,31 @@ function calculateDWS(){
   return Math.round((1-totalRisk/totalMax)*100);
 }
 
+// HWS = Health Wellness Score. Composite of the 4 health-impact modules.
+// Each module is scored 0–20 raw (5 items × 0–4); we average the impact
+// proportion across all completed modules and invert it to a wellness score
+// where higher = better health (less digital impact on sleep, attention,
+// productivity, emotional health).
+function calculateHWS(){
+  let totalImpact=0,totalMax=0;
+  IMPACT_MODULES.forEach(m=>{
+    if(impactScores[m.id]!==undefined){
+      const moduleMax = m.questions.length * 4; // 5 items × 4 max = 20
+      totalImpact += impactScores[m.id] / moduleMax;
+      totalMax++;
+    }
+  });
+  if(totalMax===0) return null;
+  return Math.round((1-totalImpact/totalMax)*100);
+}
+
 // BUG17 FIX: fallback to first (Minimal) level not last (Severe)
 function getLevel(disorder,score){
   return disorder.levels.find(l=>score>=l.min&&score<=l.max) || disorder.levels[0];
 }
 function getImpactLevel(score){ if(score<=5)return{label:'Minimal',color:'#2ecc71'}; if(score<=10)return{label:'Mild',color:'#f5a623'}; if(score<=15)return{label:'Moderate',color:'#ff6b35'}; return{label:'High',color:'#ff4757'}; }
 function getDWSStatus(score){ if(score>=80)return{status:'Excellent',color:'#2ecc71',sub:'Your digital habits are very healthy.'}; if(score>=65)return{status:'Good',color:'#00c9a7',sub:'Mostly healthy with minor concerns.'}; if(score>=50)return{status:'Moderate Risk',color:'#f5a623',sub:'Some digital behaviors need attention.'}; if(score>=35)return{status:'High Risk',color:'#ff6b35',sub:'Multiple digital behaviors causing harm.'}; return{status:'Critical',color:'#ff4757',sub:'Significant digital addiction patterns detected.'}; }
+function getHWSStatus(score){ if(score>=80)return{status:'Excellent',color:'#2ecc71',sub:'Your sleep, focus, productivity and mood are largely unaffected by digital habits.'}; if(score>=65)return{status:'Good',color:'#00c9a7',sub:'Mostly healthy with some minor effects from digital habits.'}; if(score>=50)return{status:'Moderate',color:'#f5a623',sub:'Digital habits are noticeably affecting parts of your daily life.'}; if(score>=35)return{status:'Concerning',color:'#ff6b35',sub:'Digital habits are clearly affecting your sleep, focus, work or mood.'}; return{status:'Significant',color:'#ff4757',sub:'Digital habits are significantly impacting your day-to-day health.'}; }
 
 function updateDWSDisplay(){
   if(dwsScore!==null){
@@ -337,6 +361,18 @@ function updateDWSDisplay(){
     const stat=document.getElementById('home-dws-status');
     if(pill){pill.textContent=`DWS: ${dwsScore}`;pill.style.color=s.color;}
     if(num){num.textContent=dwsScore;num.style.color=s.color;}
+    if(stat) stat.textContent=s.status;
+  }
+}
+
+function updateHWSDisplay(){
+  if(hwsScore!==null){
+    const s=getHWSStatus(hwsScore);
+    const pill=document.getElementById('hwsPill');
+    const num=document.getElementById('home-hws-num');
+    const stat=document.getElementById('home-hws-status');
+    if(pill){pill.textContent=`HWS: ${hwsScore}`;pill.style.color=s.color;}
+    if(num){num.textContent=hwsScore;num.style.color=s.color;}
     if(stat) stat.textContent=s.status;
   }
 }

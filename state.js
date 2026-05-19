@@ -6,7 +6,7 @@ let screenHistory = [];
 let assessMode = 'full';
 let singleDisorderIdx = -1;
 let allQuestions = [], allAnswers = [], currentQIdx = 0, questionMeta = [];
-let disorderScores = {}, impactScores = {}, dwsScore = null;
+let disorderScores = {}, impactScores = {}, dwsScore = null, hwsScore = null;
 let currentUser = null;
 let userProfile = {};
 let profileSelections = {
@@ -824,6 +824,7 @@ async function loadAllUserDataFromSupabase(userId){
       const rows = assessR.value.data;
       const history = rows.map(r => ({
         dws:      r.dws_score,
+        hws:      r.hws_score,
         disorder: r.disorder_scores || {},
         impact:   r.impact_scores   || {},
         date:     new Date(r.created_at || Date.now()).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
@@ -834,6 +835,7 @@ async function loadAllUserDataFromSupabase(userId){
         if(typeof disorderScores !== 'undefined') disorderScores = latest.disorder || {};
         if(typeof impactScores   !== 'undefined') impactScores   = latest.impact   || {};
         if(typeof dwsScore       !== 'undefined') dwsScore       = (latest.dws ?? null);
+        if(typeof hwsScore       !== 'undefined') hwsScore       = (latest.hws ?? null);
         if(typeof saveScoresLocal === 'function') saveScoresLocal();
       }
     } else if(assessR.status === 'fulfilled' && assessR.value && assessR.value.error){
@@ -990,6 +992,7 @@ async function saveToSupabase(){
       disorder_scores:    disorderScores,
       impact_scores:      impactScores,
       dws_score:          dwsScore,
+      hws_score:          hwsScore,
       research_consent:   true,
       terms_version:      '1.0',
       // Demographics

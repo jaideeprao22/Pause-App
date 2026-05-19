@@ -89,6 +89,7 @@
       <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
       <div class="dws-stack">
         <div class="dws-pill" id="dwsPill" onclick="showDWSModal()">DWS: --</div>
+        <div class="dws-pill" id="hwsPill" onclick="showHWSModal()" style="margin-top:4px">HWS: --</div>
       </div>
       <div class="user-avatar" id="userAvatar" onclick="showUserModal()" style="display:none">?</div>
     </div>
@@ -111,6 +112,11 @@
   <div class="card" style="text-align:center;padding:20px" id="home-dws-card">
     <div style="font-size:32px;font-weight:800;font-family:'Syne',sans-serif;color:var(--muted)" id="home-dws-num">--</div>
     <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-dws-status">Complete a check-up to see your score</div>
+  </div>
+  <div class="section-label" style="margin-top:4px">Your Health Wellness Score</div>
+  <div class="card" style="text-align:center;padding:20px;cursor:pointer" id="home-hws-card" onclick="showHWSModal()">
+    <div style="font-size:32px;font-weight:800;font-family:'Syne',sans-serif;color:var(--muted)" id="home-hws-num">--</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-hws-status">Complete a check-up to see your score</div>
   </div>
   <div class="card" id="moodCheckCard" style="margin-bottom:12px"></div>
   <div class="section-label" style="margin-top:4px">🏆 Your Badges</div>
@@ -491,6 +497,64 @@
       <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6">A higher score means healthier digital habits. The score is calculated from your six disorder screening scales — a Full Check-up gives the most accurate picture.</div>
     </div>
     <button class="btn-primary" style="margin-top:16px" onclick="closeModal('dwsModal')">Got it</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="hwsModal">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Health Wellness Score</div>
+    <div class="dws-container">
+      <div class="dws-circle">
+        <div class="dws-number" id="modalHWSNum">--</div>
+        <div class="dws-label">out of 100</div>
+      </div>
+      <div class="dws-status" id="modalHWSStatus">Not checked yet</div>
+      <div class="dws-sub" id="modalHWSSub">Complete a check-up to see your Health Wellness Score.</div>
+    </div>
+
+    <!-- Warm plain-English explanation -->
+    <div style="margin-top:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:14px 16px">
+      <div style="font-size:13px;line-height:1.7;color:var(--text)">
+        <strong>What is the Health Wellness Score?</strong><br>
+        Your phone and screen habits don't just affect what you do online — they touch the rest of your life too. The HWS is a gentle, single number from 0 to 100 that captures how well your <strong>sleep, focus, productivity, and emotional health</strong> are holding up alongside your digital habits.
+        <br><br>
+        <strong>A higher number means better real-life wellness.</strong> 100 means your digital life and your daily life are in good harmony. A lower number is the app's way of saying, "Hey, some part of your offline health — maybe sleep, maybe mood, maybe focus — is feeling the weight of your screen time. Let's gently work on it."
+        <br><br>
+        It's not a grade. It's a friendly check-in. Use it as a starting point, not a verdict.
+      </div>
+    </div>
+
+    <div style="margin-top:12px" id="modalHWSBreakdown"></div>
+
+    <!-- Score band legend -->
+    <div style="margin-top:14px;background:var(--bg);border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:10px">What the score means</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#2ecc71;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>80 – 100</strong> &nbsp;Excellent — daily life largely unaffected</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#00c9a7;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>65 – 79</strong> &nbsp;Good — some minor effects worth noticing</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f5a623;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>50 – 64</strong> &nbsp;Moderate — parts of your daily life feeling the strain</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ff6b35;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>35 – 49</strong> &nbsp;Concerning — several areas clearly affected</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ff4757;flex-shrink:0"></div>
+          <div style="font-size:12px;color:var(--text)"><strong>0 – 34</strong> &nbsp;Significant — daily life is heavily impacted</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6">A higher score means healthier real-life wellness. The HWS is calculated from your four Health Impact modules — sleep, attention &amp; focus, productivity, and emotional health.</div>
+    </div>
+    <button class="btn-primary" style="margin-top:16px" onclick="closeModal('hwsModal')">Got it</button>
   </div>
 </div>
 
