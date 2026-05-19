@@ -7,6 +7,7 @@ let assessMode = 'full';
 let singleDisorderIdx = -1;
 let allQuestions = [], allAnswers = [], currentQIdx = 0, questionMeta = [];
 let disorderScores = {}, impactScores = {}, dwsScore = null, hwsScore = null;
+let skippedModules = new Set(); // disorder IDs the user said they don't engage in
 let currentUser = null;
 let userProfile = {};
 let profileSelections = {

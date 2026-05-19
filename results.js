@@ -21,7 +21,18 @@ function renderResults(){
   const dList = document.getElementById('resultDisorderList');
   if(Object.keys(disorderScores).length > 0){
     dList.innerHTML = DISORDERS.filter(d => disorderScores[d.id] !== undefined).map(d => {
-      const score = disorderScores[d.id], level = getLevel(d, score);
+      const score = disorderScores[d.id];
+      // Skipped modules: show "Not applicable" — user said they don't engage in this behavior
+      if(typeof skippedModules !== 'undefined' && skippedModules.has(d.id)){
+        return `<div class="result-disorder-row" style="opacity:0.7">
+          <div class="result-disorder-header">
+            <div class="result-disorder-name">${d.icon} ${d.name}</div>
+            <div class="result-level" style="background:rgba(150,150,150,0.15);color:var(--muted);font-weight:600;padding:6px 12px;font-size:12px;font-style:italic">Not applicable</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">You told us you don't engage in this behavior, so this area didn't need checking. Your overall DWS counts this as full wellness.</div>
+        </div>`;
+      }
+      const level = getLevel(d, score);
       const pct = ((score - d.questions.length) / (d.maxScore - d.questions.length)) * 100;
       // Wellness % for display = 100 - severity %
       const wellnessPct = Math.round(100 - pct);
@@ -295,6 +306,13 @@ function showDWSModal(){
 
       // Screened disorders
       DISORDERS.filter(d => disorderScores[d.id] !== undefined).forEach(d => {
+        if(typeof skippedModules !== 'undefined' && skippedModules.has(d.id)){
+          breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);opacity:0.7">
+            <span>${d.icon} ${d.name}</span>
+            <span style="font-style:italic;color:var(--muted)">Not applicable</span>
+          </div>`;
+          return;
+        }
         const level = getLevel(d, disorderScores[d.id]);
         breakdown += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)">
           <span>${d.icon} ${d.name}</span>

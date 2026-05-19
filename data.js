@@ -114,28 +114,23 @@ const DISORDERS = [
     icon:'🎮',
     color:'#2ecc71',
     bg:'rgba(46,204,113,0.1)',
-    scale:'IGDS9-SF',
-    scaleRef:'Pontes & Griffiths, 2015 · Internet Gaming Disorder Scale – Short Form · WHO ICD-11 aligned',
-    items:9,
-    maxScore:45,
+    scale:'GDT',
+    scaleRef:'Pontes, Schivinski, Sindermann, Li, Becker, Zhou & Montag, 2021 · Gaming Disorder Test · WHO ICD-11 aligned',
+    items:4,
+    maxScore:20,
     questions:[
-      {t:"I think about gaming most of the time — even when I am not playing."},
-      {t:"I feel sad, anxious, or irritable when I try to reduce or stop gaming."},
-      {t:"I feel the need to spend increasing amounts of time playing games."},
-      {t:"I have unsuccessfully tried to control, cut back, or stop gaming."},
-      {t:"I have lost interest in hobbies or other activities because of gaming."},
-      {t:"I continue gaming despite knowing it is causing problems in my life."},
-      {t:"I deceive family members or others about how much I game."},
-      {t:"I game to escape negative moods or relieve stress."},
-      {t:"I have jeopardized or lost a relationship, job, or opportunity because of gaming."}
+      {t:"I had real trouble controlling how much I played video games.", hint:"Please answer thinking about your gaming activity over the past 12 months."},
+      {t:"I gave gaming more priority than other things in life — like work, study, family or hobbies."},
+      {t:"I kept playing video games even when it was causing problems in my life."},
+      {t:"I lost or damaged something important because of gaming — a relationship, a job, my studies, or an opportunity."}
     ],
     options:["Never","Rarely","Sometimes","Often","Very Often"],
     optionValues:[1,2,3,4,5],
     levels:[
-      {min:9,max:18,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your gaming habits appear healthy.'},
-      {min:19,max:27,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some gaming disorder symptoms present.'},
-      {min:28,max:36,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate gaming disorder. Gaming is interfering with daily life.'},
-      {min:37,max:45,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe gaming disorder. Professional support recommended.'}
+      {min:4,max:8,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your gaming habits appear healthy.'},
+      {min:9,max:12,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some gaming disorder symptoms present.'},
+      {min:13,max:16,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate gaming disorder. Gaming is interfering with daily life.'},
+      {min:17,max:20,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe gaming disorder. Professional support recommended.'}
     ]
   },
   {
@@ -202,30 +197,22 @@ const IMPACT_MODULES = [
   {id:'sleep',name:'Sleep Disruption',icon:'😴',color:'#7c5cbf',questions:[
     "I use my phone or device immediately before sleeping.",
     "My bedtime is delayed because of digital activities.",
-    "I wake up during the night to check my phone or notifications.",
-    "I feel tired during the day because of late-night device use.",
-    "Notifications or digital activity disturb my sleep quality."
+    "I feel tired during the day because of late-night device use."
   ]},
   {id:'attention',name:'Attention & Focus',icon:'🧠',color:'#3d6fff',questions:[
     "I find it difficult to concentrate on long tasks without checking my phone.",
-    "I frequently switch between apps or digital tasks.",
     "Notifications interrupt my focus and concentration.",
-    "I lose concentration easily after checking my phone or social media.",
     "I struggle to read long articles or books without getting distracted."
   ]},
   {id:'productivity',name:'Productivity',icon:'⚡',color:'#f5a623',questions:[
     "Digital distractions interrupt my work or study regularly.",
-    "I check my phone while working or studying.",
     "I postpone important tasks because of online activities.",
-    "My overall productivity has decreased due to digital distractions.",
-    "I struggle to complete tasks without checking my phone or apps."
+    "My overall productivity has decreased due to digital distractions."
   ]},
   {id:'emotional',name:'Emotional Health',icon:'❤️',color:'#ff4757',questions:[
     "I feel anxious or unsettled when I cannot access my phone.",
-    "I feel stressed by constant notifications and digital demands.",
     "My mood is affected by social media activity or online interactions.",
-    "I feel mentally exhausted after prolonged screen use.",
-    "Digital activity sometimes makes me feel overwhelmed or hopeless."
+    "I feel mentally exhausted after prolonged screen use."
   ]}
 ];
 

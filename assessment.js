@@ -3,10 +3,13 @@
 // ============================================================
 function buildFullAssessment(){
   allQuestions=[]; questionMeta=[];
-  DISORDERS.forEach((d,di) => d.questions.forEach((q,qi) => {
-    allQuestions.push({text:q.t, hint:q.hint||null, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:di});
-    questionMeta.push({type:'disorder', dIdx:di, qIdx:qi});
-  }));
+  DISORDERS.forEach((d,di) => {
+    if(skippedModules.has(d.id)) return; // skip-logic: user said they don't engage in this behavior
+    d.questions.forEach((q,qi) => {
+      allQuestions.push({text:q.t, hint:q.hint||null, options:d.options, values:d.optionValues, scaleInfo:`${d.name} · ${d.scale}`, disorderIdx:di});
+      questionMeta.push({type:'disorder', dIdx:di, qIdx:qi});
+    });
+  });
   IMPACT_MODULES.forEach((m,mi) => m.questions.forEach((q,qi) => {
     allQuestions.push({text:q, options:IMPACT_OPTIONS, values:IMPACT_OPTION_VALUES, scaleInfo:`Health Impact · ${m.name}`, impactIdx:mi});
     questionMeta.push({type:'impact', mIdx:mi, qIdx:qi});
@@ -80,7 +83,7 @@ function savePartialProgress(){
 
   localStorage.setItem(PARTIAL_KEY, JSON.stringify({
     answers:allAnswers, currentQ:currentQIdx,
-    disorderScores, impactScores, dwsScore, hwsScore, timestamp:Date.now()
+    disorderScores, impactScores, dwsScore, hwsScore, skippedModules:Array.from(skippedModules), timestamp:Date.now()
   }));
 }
 
@@ -138,6 +141,7 @@ function resumePartialAssessment(){
   try{
     const partial = JSON.parse(raw);
     document.getElementById('resumeAssessModal')?.remove();
+    skippedModules = new Set(partial.skippedModules || []); // restore skip-logic FIRST
     assessMode='full'; buildFullAssessment();
     allAnswers=partial.answers; currentQIdx=partial.currentQ;
     Object.assign(disorderScores, partial.disorderScores||{});
@@ -148,6 +152,7 @@ function resumePartialAssessment(){
   }catch(e){
     clearPartialProgress();
     document.getElementById('resumeAssessModal')?.remove();
+    skippedModules = new Set();
     assessMode='full'; buildFullAssessment(); allAnswers=new Array(allQuestions.length).fill(null); currentQIdx=0;
     showScreen('screen-assessment'); renderQuestion();
   }
@@ -227,6 +232,66 @@ function startFullAssessment(){
 function _doStartFullAssessment(){
   const partial = checkResumeAssessment();
   if(partial){ showResumeModal(partial); return; }
+  // Skip-logic screener: ask which optional behaviors user engages in
+  showSkipLogicScreener();
+}
+
+// Show the skip-logic screener modal. User unchecks behaviors they don't do.
+// Continues to _proceedToFullAssessment() with skippedModules set.
+function showSkipLogicScreener(){
+  const existing = document.getElementById('skipLogicModal');
+  if(existing) existing.remove();
+  skippedModules = new Set(); // reset on every fresh start
+  const modal = document.createElement('div');
+  modal.id = 'skipLogicModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--card);border-radius:20px;padding:24px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto">
+      <div style="font-size:32px;text-align:center;margin-bottom:8px">🎯</div>
+      <div style="font-size:18px;font-weight:800;color:var(--text);text-align:center;margin-bottom:8px;font-family:'Syne',sans-serif">Quick set-up</div>
+      <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:18px;line-height:1.6">
+        We'll make your check-up shorter by skipping questions about activities you don't do.<br><br>
+        <strong style="color:var(--text)">Which of these apply to you?</strong>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+        <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
+          <input type="checkbox" id="skip_gaming" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">🎮 I play video games</div>
+            <div style="font-size:11px;color:var(--muted)">Mobile games, PC, console — any platform</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
+          <input type="checkbox" id="skip_ai" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">🤖 I use AI chatbots</div>
+            <div style="font-size:11px;color:var(--muted)">ChatGPT, Gemini, Claude, etc.</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
+          <input type="checkbox" id="skip_workaddiction" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">💻 I work or study using digital devices</div>
+            <div style="font-size:11px;color:var(--muted)">Regular phone/laptop use for work or studies</div>
+          </div>
+        </label>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.5">
+        Uncheck what you don't do. Skipped areas will show as <em>"Not applicable"</em> in your results.
+      </div>
+      <button class="btn-primary" style="width:100%" onclick="_proceedToFullAssessment()">Continue to Check-up →</button>
+    </div>`;
+  modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function _proceedToFullAssessment(){
+  // Collect unchecked modules → skip them
+  ['gaming','ai','workaddiction'].forEach(id => {
+    const cb = document.getElementById('skip_' + id);
+    if(cb && !cb.checked) skippedModules.add(id);
+  });
+  document.getElementById('skipLogicModal')?.remove();
   assessMode='full'; buildFullAssessment(); allAnswers=new Array(allQuestions.length).fill(null); currentQIdx=0;
   showScreen('screen-assessment'); renderQuestion();
 }
@@ -287,6 +352,13 @@ function prevQuestion(){ if(currentQIdx>0){currentQIdx--;renderQuestion();} }
 function finishAssessment(){
   if(assessMode==='full'){
     DISORDERS.forEach((d,di)=>{
+      if(skippedModules.has(d.id)){
+        // Auto-fill: user said they don't engage in this behavior → zero severity
+        // → contributes max wellness (100) to DWS. ICD-11 defensible: no behavior, no disorder.
+        disorderScores[d.id] = d.questions.length; // minimum possible score
+        stampDisorderTime(d.id);
+        return;
+      }
       const qs=questionMeta.filter(m=>m.type==='disorder'&&m.dIdx===di);
       disorderScores[d.id]=qs.reduce((sum,m)=>sum+(allAnswers[questionMeta.indexOf(m)]||0),0);
       stampDisorderTime(d.id);
@@ -423,7 +495,7 @@ const PERCENTILE_LOOKUP = {
   cyberchondria:[{max:25,pct:20},{max:35,pct:40},{max:45,pct:60},{max:55,pct:75},{max:65,pct:90},{max:75,pct:99}],
   socialmedia:  [{max:12,pct:25},{max:16,pct:50},{max:20,pct:70},{max:24,pct:85},{max:30,pct:99}],
   shortform:    [{max:12,pct:25},{max:16,pct:50},{max:20,pct:70},{max:24,pct:85},{max:30,pct:99}],
-  gaming:       [{max:15,pct:30},{max:22,pct:55},{max:30,pct:75},{max:38,pct:90},{max:45,pct:99}],
+  gaming:       [{max:8,pct:30},{max:12,pct:55},{max:16,pct:75},{max:18,pct:90},{max:20,pct:99}],
   ai:           [{max:15,pct:30},{max:22,pct:55},{max:30,pct:75},{max:38,pct:90},{max:45,pct:99}],
   workaddiction:[{max:14,pct:25},{max:18,pct:50},{max:23,pct:70},{max:28,pct:88},{max:35,pct:99}]
 };
