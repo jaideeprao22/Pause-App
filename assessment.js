@@ -633,7 +633,7 @@ function renderHomeDisorders(){
               </div>
             </div>
             <div style="font-size:10px;margin-top:4px;color:${staleness?staleness.color:'var(--muted)'}">
-              ${staleness?staleness.text+' · ':''}${d.scale} · Tap to recheck
+              ${staleness?staleness.text+' · ':''}${d.scale}
             </div>
           </div>
         </div>`;
