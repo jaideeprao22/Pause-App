@@ -139,6 +139,9 @@ function showScaleInfo(disorderId, idx){
 
   const score = disorderScores[d.id];
   const level = score !== undefined ? getLevel(d, score) : null;
+  // ONCE-PER-DAY LOCK: check if this disorder was already assessed today.
+  // If so, the button becomes a disabled visual cue instead of a starter.
+  const lockedToday = (typeof _wasCheckedToday === 'function') && _wasCheckedToday(d.id);
   const scoreHtml = level
     ? `<div style="background:${level.bg};border-radius:10px;padding:10px 14px;margin:12px 0;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:13px;color:var(--text)">Your last result</span>
@@ -155,9 +158,12 @@ function showScaleInfo(disorderId, idx){
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:4px">About this scale</div>
       <div style="font-size:12px;color:var(--text);line-height:1.6">${d.scale} · ${d.items} questions · Validated psychometric instrument</div>
     </div>
-    <button class="btn-primary" style="margin-top:8px" onclick="closeModal('explainModal');startSingleAssessment(${idx});">
-      ${score !== undefined ? '🔄 Re-screen for ' + d.name : '▶ Start ' + d.name + ' Assessment'}
-    </button>`;
+    ${lockedToday
+      ? `<button class="btn-primary" style="margin-top:8px;opacity:0.55;cursor:not-allowed;background:var(--muted)" disabled>✓ Already Checked Today</button>
+         <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5">Next check available after midnight</div>`
+      : `<button class="btn-primary" style="margin-top:8px" onclick="closeModal('explainModal');startSingleAssessment(${idx});">
+          ${score !== undefined ? '🔄 Re-screen for ' + d.name : '▶ Start ' + d.name + ' Assessment'}
+        </button>`}`;
   openModal('explainModal');
 }
 

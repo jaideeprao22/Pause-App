@@ -42,6 +42,63 @@ function getDisorderTimestamps(){
 }
 
 // ============================================================
+// ONCE-PER-DAY LOCK (May 2026)
+// Prevents users from taking the same disorder/impact assessment more than
+// once per day. Protects longitudinal research data integrity — repeated
+// same-day assessments (especially after CBT module exposure) would
+// contaminate the score trajectory.
+//
+// Locks are per-item using the existing pause_disorder_timestamps store.
+// The Full Check-Up is locked if ANY disorder or impact was already
+// assessed today, because completing it would overwrite today's data.
+// Resets at local midnight.
+// ============================================================
+
+function _wasCheckedToday(id){
+  const ts = getDisorderTimestamps()[id];
+  if(!ts) return false;
+  const checkedDate = new Date(ts);
+  const today = new Date();
+  return checkedDate.getFullYear() === today.getFullYear()
+      && checkedDate.getMonth()    === today.getMonth()
+      && checkedDate.getDate()     === today.getDate();
+}
+
+function _anyCheckedToday(){
+  const allIds = [...DISORDERS.map(d=>d.id), ...IMPACT_MODULES.map(m=>m.id)];
+  return allIds.some(id => _wasCheckedToday(id));
+}
+
+function _showAlreadyCheckedTodayModal(itemName){
+  const existing = document.getElementById('alreadyCheckedTodayModal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'alreadyCheckedTodayModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  const headline = itemName
+    ? `<strong style="color:var(--text)">${itemName}</strong> was already assessed today.`
+    : `You\'ve already completed an assessment today.`;
+  modal.innerHTML = `
+    <div style="background:var(--card);border-radius:20px;padding:28px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+      <div style="font-size:34px;text-align:center;margin-bottom:8px">✓</div>
+      <div style="font-size:18px;font-weight:800;color:var(--text);text-align:center;margin-bottom:10px;font-family:'Syne',sans-serif">Already Checked Today</div>
+      <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:18px;line-height:1.65">
+        ${headline}<br><br>
+        To keep your results meaningful and protect the integrity of your tracking data, each check is locked once per day. Your next check will be available after midnight.
+      </div>
+      <button onclick="document.getElementById('alreadyCheckedTodayModal').remove()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Got it</button>
+    </div>`;
+  modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// Expose lock helpers globally so app.js (and any future caller) can use them
+// without needing to import. Matches the pattern used elsewhere in the codebase.
+window._wasCheckedToday              = _wasCheckedToday;
+window._anyCheckedToday              = _anyCheckedToday;
+window._showAlreadyCheckedTodayModal = _showAlreadyCheckedTodayModal;
+
+// ============================================================
 // PARTIAL PROGRESS
 // ============================================================
 const PARTIAL_KEY = 'pause_partial_full_assessment';
@@ -174,6 +231,12 @@ function saveAndExitAssessment(){
 
 // BUG5 FIX: warn if partial full assessment exists when starting single
 function startSingleAssessmentWithCheck(dIdx){
+  // ONCE-PER-DAY LOCK: block if this disorder was already assessed today.
+  const d = DISORDERS[dIdx];
+  if(d && _wasCheckedToday(d.id)){
+    _showAlreadyCheckedTodayModal(d.name);
+    return;
+  }
   const partial = checkResumeAssessment();
   if(partial){
     const completedDisorders = DISORDERS.filter(d=>partial.disorderScores&&partial.disorderScores[d.id]!==undefined);
@@ -203,6 +266,15 @@ function startSingleAssessmentWithCheck(dIdx){
 
 // FEATURE5: Guest mode warning before full assessment
 function startFullAssessment(){
+  // ONCE-PER-DAY LOCK: block the full check-up if any disorder/impact
+  // was already assessed today. Running it would overwrite today's data
+  // and contaminate the longitudinal record. Note: a partial assessment
+  // in progress does NOT trigger this lock (only fully completed items
+  // get a timestamp), so resume flow is unaffected.
+  if(_anyCheckedToday()){
+    _showAlreadyCheckedTodayModal(null);
+    return;
+  }
   // Guest warning
   if(!currentUser && !localStorage.getItem('guestAssessWarningShown')){
     const existing = document.getElementById('guestWarnModal');
