@@ -99,6 +99,79 @@ window._anyCheckedToday              = _anyCheckedToday;
 window._showAlreadyCheckedTodayModal = _showAlreadyCheckedTodayModal;
 
 // ============================================================
+// LAST-ASSESSED TIMESTAMPS (May 2026)
+// Surface when each composite score (DWS, HWS) was last computed, so users
+// can see at a glance whether their score is fresh or stale. Both composites
+// derive their freshness from the newest per-item stamp in the existing
+// pause_disorder_timestamps store — no schema change needed.
+// ============================================================
+
+function _getLatestTimestamp(idsList){
+  const ts = getDisorderTimestamps();
+  let latest = 0;
+  idsList.forEach(id => {
+    const t = ts[id];
+    if(t && t > latest) latest = t;
+  });
+  return latest > 0 ? new Date(latest) : null;
+}
+
+function getLastDWSDate(){
+  return _getLatestTimestamp(DISORDERS.map(d => d.id));
+}
+
+function getLastHWSDate(){
+  return _getLatestTimestamp(IMPACT_MODULES.map(m => m.id));
+}
+
+// Format a Date as a human-readable relative string. Falls back to a short
+// absolute date for anything older than a year.
+function formatRelativeTime(date){
+  if(!date) return '';
+  const now = new Date();
+  const diffMs = now - date;
+  if(diffMs < 0) return 'just now'; // clock skew safety net
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr  = Math.floor(diffMs / 3600000);
+  const diffDay = Math.floor(diffMs / 86400000);
+
+  if(diffMin < 1) return 'just now';
+  if(diffMin < 60) return `${diffMin} min ago`;
+
+  const sameCalDay = now.toDateString() === date.toDateString();
+  if(sameCalDay){
+    const h    = date.getHours();
+    const m    = date.getMinutes().toString().padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h % 12 || 12;
+    return `today at ${h12}:${m} ${ampm}`;
+  }
+
+  // Yesterday: account for calendar boundary rather than 24h strict
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if(yesterday.toDateString() === date.toDateString()) return 'yesterday';
+
+  if(diffDay < 7)   return `${diffDay} days ago`;
+  if(diffDay < 30){ const w = Math.floor(diffDay/7);  return `${w} week${w>1?'s':''} ago`; }
+  if(diffDay < 365){const mo= Math.floor(diffDay/30); return `${mo} month${mo>1?'s':''} ago`; }
+  const yr = Math.floor(diffDay/365);
+  return `${yr} year${yr>1?'s':''} ago`;
+}
+
+// Returns true if the date is older than 7 days (used for amber staleness
+// hint). Returns false for null/undefined inputs (no timestamp ≠ stale).
+function isAssessmentStale(date){
+  if(!date) return false;
+  return (new Date() - date) > 7 * 86400000;
+}
+
+window.getLastDWSDate     = getLastDWSDate;
+window.getLastHWSDate     = getLastHWSDate;
+window.formatRelativeTime = formatRelativeTime;
+window.isAssessmentStale  = isAssessmentStale;
+
+// ============================================================
 // PARTIAL PROGRESS
 // ============================================================
 const PARTIAL_KEY = 'pause_partial_full_assessment';
@@ -516,9 +589,20 @@ function updateDWSDisplay(){
     const pill=document.getElementById('dwsPill');
     const num=document.getElementById('home-dws-num');
     const stat=document.getElementById('home-dws-status');
+    const ts=document.getElementById('home-dws-ts');
     if(pill){pill.textContent=`DWS: ${dwsScore}`;pill.style.color=s.color;}
     if(num){num.textContent=dwsScore;num.style.color=s.color;}
     if(stat) stat.textContent=s.status;
+    if(ts){
+      const d = getLastDWSDate();
+      if(d){
+        const stale = isAssessmentStale(d);
+        ts.textContent = `Last assessed ${formatRelativeTime(d)}`;
+        ts.style.color = stale ? '#d97706' : 'var(--muted)';
+      } else {
+        ts.textContent = '';
+      }
+    }
   }
 }
 
@@ -528,9 +612,20 @@ function updateHWSDisplay(){
     const pill=document.getElementById('hwsPill');
     const num=document.getElementById('home-hws-num');
     const stat=document.getElementById('home-hws-status');
+    const ts=document.getElementById('home-hws-ts');
     if(pill){pill.textContent=`HWS: ${hwsScore}`;pill.style.color=s.color;}
     if(num){num.textContent=hwsScore;num.style.color=s.color;}
     if(stat) stat.textContent=s.status;
+    if(ts){
+      const d = getLastHWSDate();
+      if(d){
+        const stale = isAssessmentStale(d);
+        ts.textContent = `Last assessed ${formatRelativeTime(d)}`;
+        ts.style.color = stale ? '#d97706' : 'var(--muted)';
+      } else {
+        ts.textContent = '';
+      }
+    }
   }
 }
 

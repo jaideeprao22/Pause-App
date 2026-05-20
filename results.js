@@ -338,6 +338,20 @@ function showDWSModal(){
     }
     document.getElementById('modalDWSBreakdown').innerHTML = breakdown;
 
+    // Last-assessed timestamp on the DWS modal — helps the user see at a
+    // glance whether their score is fresh or stale. Amber if >7 days old.
+    const dwsTsEl = document.getElementById('modalDWSTimestamp');
+    if(dwsTsEl){
+      const dwsDate = (typeof getLastDWSDate === 'function') ? getLastDWSDate() : null;
+      if(dwsDate){
+        const stale = (typeof isAssessmentStale === 'function') && isAssessmentStale(dwsDate);
+        dwsTsEl.textContent = `Last assessed ${formatRelativeTime(dwsDate)}`;
+        dwsTsEl.style.color = stale ? '#d97706' : 'var(--muted)';
+      } else {
+        dwsTsEl.textContent = '';
+      }
+    }
+
   } else {
     document.getElementById('modalDWSNum').textContent = '--';
     document.getElementById('modalDWSStatus').textContent = 'Not checked yet';
@@ -347,6 +361,8 @@ function showDWSModal(){
     document.getElementById('modalDWSSub').textContent = 'Complete a check-up to see your Digital Wellness Score.';
     document.getElementById('modalDWSSub').style.color = '';
     document.getElementById('modalDWSBreakdown').innerHTML = '';
+    const dwsTsEl = document.getElementById('modalDWSTimestamp');
+    if(dwsTsEl) dwsTsEl.textContent = '';
   }
   openModal('dwsModal');
 }
@@ -403,6 +419,21 @@ function showHWSModal(){
     }
     document.getElementById('modalHWSBreakdown').innerHTML = breakdown;
 
+    // Last-assessed timestamp on the HWS modal — directly addresses the
+    // staleness concern (impact data persists across sessions and can be
+    // many days old). Amber if >7 days old.
+    const hwsTsEl = document.getElementById('modalHWSTimestamp');
+    if(hwsTsEl){
+      const hwsDate = (typeof getLastHWSDate === 'function') ? getLastHWSDate() : null;
+      if(hwsDate){
+        const stale = (typeof isAssessmentStale === 'function') && isAssessmentStale(hwsDate);
+        hwsTsEl.textContent = `Last assessed ${formatRelativeTime(hwsDate)}`;
+        hwsTsEl.style.color = stale ? '#d97706' : 'var(--muted)';
+      } else {
+        hwsTsEl.textContent = '';
+      }
+    }
+
   } else {
     document.getElementById('modalHWSNum').textContent = '--';
     document.getElementById('modalHWSStatus').textContent = 'Not checked yet';
@@ -410,6 +441,8 @@ function showHWSModal(){
     document.getElementById('modalHWSSub').textContent = 'Complete a check-up to see your Health Wellness Score.';
     document.getElementById('modalHWSSub').style.color = '';
     document.getElementById('modalHWSBreakdown').innerHTML = '';
+    const hwsTsEl = document.getElementById('modalHWSTimestamp');
+    if(hwsTsEl) hwsTsEl.textContent = '';
   }
   openModal('hwsModal');
 }

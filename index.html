@@ -112,11 +112,13 @@
   <div class="card" style="text-align:center;padding:20px;cursor:pointer" id="home-dws-card" onclick="showDWSModal()">
     <div style="font-size:32px;font-weight:800;font-family:'Syne',sans-serif;color:var(--muted)" id="home-dws-num">--</div>
     <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-dws-status">Complete a check-up to see your score</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;font-style:italic" id="home-dws-ts"></div>
   </div>
   <div class="section-label" style="margin-top:4px">Your Health Wellness Score</div>
   <div class="card" style="text-align:center;padding:20px;cursor:pointer" id="home-hws-card" onclick="showHWSModal()">
     <div style="font-size:32px;font-weight:800;font-family:'Syne',sans-serif;color:var(--muted)" id="home-hws-num">--</div>
     <div style="font-size:12px;color:var(--muted);margin-top:4px" id="home-hws-status">Complete a check-up to see your score</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;font-style:italic" id="home-hws-ts"></div>
   </div>
   <div class="card" id="moodCheckCard" style="margin-bottom:12px"></div>
   <div class="section-label" style="margin-top:4px">🏆 Your Badges</div>
@@ -467,6 +469,7 @@
       </div>
       <div class="dws-status" id="modalDWSStatus">Not checked yet</div>
       <div class="dws-sub" id="modalDWSSub">Complete a check-up to see your Digital Wellness Score.</div>
+      <div id="modalDWSTimestamp" style="font-size:11px;color:var(--muted);margin-top:8px;font-style:italic"></div>
     </div>
     <div style="margin-top:12px" id="modalDWSBreakdown"></div>
     <!-- Score band legend -->
@@ -511,6 +514,7 @@
       </div>
       <div class="dws-status" id="modalHWSStatus">Not checked yet</div>
       <div class="dws-sub" id="modalHWSSub">Complete a check-up to see your Health Wellness Score.</div>
+      <div id="modalHWSTimestamp" style="font-size:11px;color:var(--muted);margin-top:8px;font-style:italic"></div>
     </div>
 
     <!-- Warm plain-English explanation -->
