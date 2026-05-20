@@ -45,8 +45,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:var(--
    align-items:flex-start makes both pills share the same LEFT edge so the streak
    pill sits directly under (not right-aligned with) the DWS pill. */
 .header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.dws-stack{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
-.dws-stack .streak-pill{align-self:flex-start}
+.dws-stack{display:flex;flex-direction:row;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.dws-stack .streak-pill{align-self:center}
 
 /* Subtitle has its row to itself now (streak pill moved to right side) */
 @media (max-width: 460px){

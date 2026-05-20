@@ -266,12 +266,20 @@ function startSingleAssessmentWithCheck(dIdx){
 
 // FEATURE5: Guest mode warning before full assessment
 function startFullAssessment(){
-  // ONCE-PER-DAY LOCK: block the full check-up if any disorder/impact
-  // was already assessed today. Running it would overwrite today's data
-  // and contaminate the longitudinal record. Note: a partial assessment
-  // in progress does NOT trigger this lock (only fully completed items
-  // get a timestamp), so resume flow is unaffected.
-  if(_anyCheckedToday()){
+  // Check for partial assessment first — resuming an in-progress check-up
+  // must always be allowed, regardless of today's lock state. The lock only
+  // blocks STARTING a fresh new full assessment.
+  // FIX (May 2026 v2): previously the lock fired even when a partial existed,
+  // wrongly blocking users who completed 1 disorder, saved, and came back to
+  // resume. They got the "already checked today" modal instead of the resume
+  // option.
+  const partial = checkResumeAssessment();
+
+  // ONCE-PER-DAY LOCK: block the full check-up only if no partial exists
+  // AND any disorder/impact was already assessed today. Running a fresh
+  // full would overwrite today's data and contaminate the longitudinal
+  // record.
+  if(!partial && _anyCheckedToday()){
     _showAlreadyCheckedTodayModal(null);
     return;
   }
@@ -472,7 +480,7 @@ function calculateDWS(){
 }
 
 // HWS = Health Wellness Score. Composite of the 4 health-impact modules.
-// Each module is scored 0–20 raw (5 items × 0–4); we average the impact
+// Each module is scored 0–12 raw (3 items × 0–4); we average the impact
 // proportion across all completed modules and invert it to a wellness score
 // where higher = better health (less digital impact on sleep, attention,
 // productivity, emotional health).
@@ -480,7 +488,7 @@ function calculateHWS(){
   let totalImpact=0,totalMax=0;
   IMPACT_MODULES.forEach(m=>{
     if(impactScores[m.id]!==undefined){
-      const moduleMax = m.questions.length * 4; // 5 items × 4 max = 20
+      const moduleMax = m.questions.length * 4; // 3 items × 4 max = 12 (dynamic)
       totalImpact += impactScores[m.id] / moduleMax;
       totalMax++;
     }
@@ -493,7 +501,12 @@ function calculateHWS(){
 function getLevel(disorder,score){
   return disorder.levels.find(l=>score>=l.min&&score<=l.max) || disorder.levels[0];
 }
-function getImpactLevel(score){ if(score<=5)return{label:'Minimal',color:'#2ecc71'}; if(score<=10)return{label:'Mild',color:'#f5a623'}; if(score<=15)return{label:'Moderate',color:'#ff6b35'}; return{label:'High',color:'#ff4757'}; }
+// Impact severity bands.
+// Calibrated for the current 3-question impact modules (max raw score = 3 × 4 = 12).
+// Roughly quartile-aligned: 0-3 = bottom 25%, 4-6 = up to 50%, 7-9 = up to 75%,
+// 10-12 = top 25%. Fixed May 2026 — previous bands (≤5/≤10/≤15) were left over
+// from an earlier 5-question version, making the "High" band unreachable.
+function getImpactLevel(score){ if(score<=3)return{label:'Minimal',color:'#2ecc71'}; if(score<=6)return{label:'Mild',color:'#f5a623'}; if(score<=9)return{label:'Moderate',color:'#ff6b35'}; return{label:'High',color:'#ff4757'}; }
 function getDWSStatus(score){ if(score>=80)return{status:'Excellent',color:'#2ecc71',sub:'Your digital habits are very healthy.'}; if(score>=65)return{status:'Good',color:'#00c9a7',sub:'Mostly healthy with minor concerns.'}; if(score>=50)return{status:'Moderate Risk',color:'#f5a623',sub:'Some digital behaviors need attention.'}; if(score>=35)return{status:'High Risk',color:'#ff6b35',sub:'Multiple digital behaviors causing harm.'}; return{status:'Critical',color:'#ff4757',sub:'Significant digital addiction patterns detected.'}; }
 function getHWSStatus(score){ if(score>=80)return{status:'Excellent',color:'#2ecc71',sub:'Your sleep, focus, productivity and mood are largely unaffected by digital habits.'}; if(score>=65)return{status:'Good',color:'#00c9a7',sub:'Mostly healthy with some minor effects from digital habits.'}; if(score>=50)return{status:'Moderate',color:'#f5a623',sub:'Digital habits are noticeably affecting parts of your daily life.'}; if(score>=35)return{status:'Concerning',color:'#ff6b35',sub:'Digital habits are clearly affecting your sleep, focus, work or mood.'}; return{status:'Significant',color:'#ff4757',sub:'Digital habits are significantly impacting your day-to-day health.'}; }
 

@@ -412,6 +412,7 @@ function _playBreathChime(freq){
 // Underscore aliases retained for the existing _closeCbtWalkthrough callsite.
 function startCbtBreathChime(){
   if(_cbtChimeInterval) return; // already running — idempotent
+  if(_isCbtChimeMuted()) return; // respect user's mute preference
   _cbtChimeOnContract = false;
   _playBreathChime(523.25); // C5 — inhale starts now
   _cbtChimeInterval = setInterval(() => {
@@ -431,6 +432,43 @@ function stopCbtBreathChime(){
 const _startBreathChime = startCbtBreathChime; // backward-compat alias
 const _stopBreathChime  = stopCbtBreathChime;  // backward-compat alias
 
+// ============================================================
+// CBT CHIME MUTE TOGGLE (May 2026)
+// Persistent mute preference for the walkthrough exercise bell chime.
+// Stored in localStorage so it survives across sessions and modules.
+// Default: unmuted (sound on). Affects only the walkthrough chime —
+// the standalone 4-7-8 timer has its own Stop button.
+// ============================================================
+const CBT_CHIME_MUTED_KEY = 'pause_cbt_chime_muted';
+
+function _isCbtChimeMuted(){
+  return localStorage.getItem(CBT_CHIME_MUTED_KEY) === '1';
+}
+
+function _updateCbtMuteIcon(){
+  const iconEl = document.getElementById('cbtChimeMuteIcon');
+  if(iconEl) iconEl.textContent = _isCbtChimeMuted() ? '🔇' : '🔊';
+}
+
+function toggleCbtChime(){
+  const wasMuted = _isCbtChimeMuted();
+  if(wasMuted){
+    // User wants sound back on
+    localStorage.removeItem(CBT_CHIME_MUTED_KEY);
+    // If walkthrough is open, start the chime immediately
+    if(_cbtCurrentModule && !_cbtChimeInterval){
+      startCbtBreathChime();
+    }
+  } else {
+    // User wants to mute
+    localStorage.setItem(CBT_CHIME_MUTED_KEY, '1');
+    // Stop currently playing chime immediately
+    stopCbtBreathChime();
+  }
+  _updateCbtMuteIcon();
+}
+window.toggleCbtChime = toggleCbtChime;
+
 // Single tear-down path for closing the walkthrough — used by Done button,
 // outside-click handler, and any future close path. Always stops the chime.
 function _closeCbtWalkthrough(){
@@ -445,8 +483,14 @@ function _ensureCbtWalkthroughModal(){
   const div = document.createElement('div');
   div.className = 'modal-overlay';
   div.id = 'cbtWalkthroughModal';
-  div.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto">
+  div.innerHTML = `<div class="modal-sheet" style="max-height:88vh;overflow-y:auto;position:relative">
     <div class="modal-handle"></div>
+    <button id="cbtChimeMuteBtn" onclick="event.stopPropagation();toggleCbtChime()"
+      title="Mute or unmute the exercise sound"
+      aria-label="Toggle exercise sound"
+      style="position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid var(--border);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;font-family:inherit;padding:0;line-height:1">
+      <span id="cbtChimeMuteIcon">🔊</span>
+    </button>
     <div id="cbtWalkthroughContent"></div>
   </div>`;
   // Click outside to close (matches behaviour of other modals via nav.js).
@@ -473,6 +517,7 @@ function startCbtWalkthrough(modIdx){
   _ensureCbtWalkthroughModal();
   _renderCbtWalkthroughStep();
   openModal('cbtWalkthroughModal');
+  _updateCbtMuteIcon(); // sync icon to current mute preference
 
   // Start the bell chime synced to the 4s breathing animation.
   // Chime stops automatically via _closeCbtWalkthrough on Done / outside-tap.
@@ -480,6 +525,8 @@ function startCbtWalkthrough(modIdx){
   // not just those flagged with `withChime`. Provides consistent audio feedback
   // across all 26 modules. The `withChime` flag is retained on existing modules
   // for backwards compatibility but is no longer consulted.
+  // FIX (May 2026 v2): startCbtBreathChime now self-checks the mute preference,
+  // so this call is a no-op if the user has muted the chime.
   startCbtBreathChime();
 }
 

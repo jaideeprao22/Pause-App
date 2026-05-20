@@ -382,13 +382,16 @@ function _disorderBandLabel(disorderId){
   return lvl ? lvl.label.toLowerCase() : '';
 }
 
-// Impact bands derived from raw score (5 items × 4 = 20 max).
+// Impact bands derived from raw score (3 items × 4 = 12 max).
+// Recalibrated May 2026 — previous bands (≤5/≤10/≤15) were left over from
+// an earlier 5-question version, making the "very high" band unreachable.
+// Bands match getImpactLevel in assessment.js (Minimal/Mild/Moderate/High).
 function _impactBandLabel(impactId){
   const s = impactScores[impactId];
   if(s === undefined || s === null) return '';
-  if(s <= 5)  return 'low';
-  if(s <= 10) return 'moderate';
-  if(s <= 15) return 'high';
+  if(s <= 3) return 'low';
+  if(s <= 6) return 'moderate';
+  if(s <= 9) return 'high';
   return 'very high';
 }
 
