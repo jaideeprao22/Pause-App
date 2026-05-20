@@ -838,6 +838,14 @@ async function loadAllUserDataFromSupabase(userId){
         if(typeof dwsScore       !== 'undefined') dwsScore       = (latest.dws ?? null);
         if(typeof hwsScore       !== 'undefined') hwsScore       = (latest.hws ?? null);
         if(typeof saveScoresLocal === 'function') saveScoresLocal();
+        // FIX (May 2026): refresh UI after async Supabase sync. Without this,
+        // the home pills stayed stuck at the initial "--" placeholder while
+        // the modal (which reads the live globals at click-time) showed the
+        // actual loaded score — causing a confusing desync where the pill
+        // and the modal disagreed about the user's current HWS/DWS.
+        if(typeof updateDWSDisplay      === 'function') updateDWSDisplay();
+        if(typeof updateHWSDisplay      === 'function') updateHWSDisplay();
+        if(typeof renderHomeDisorders   === 'function') renderHomeDisorders();
       }
     } else if(assessR.status === 'fulfilled' && assessR.value && assessR.value.error){
       console.warn('Assessments fetch error:', assessR.value.error); _showSyncErrorToast();
