@@ -139,28 +139,55 @@ const DISORDERS = [
     icon:'🤖',
     color:'#00c9a7',
     bg:'rgba(0,201,167,0.1)',
-    scale:'PCGUS',
-    scaleRef:'Problematic ChatGPT Use Scale, 2025 · ⚠️ Turkish sample only — interpret with caution',
-    items:9,
-    maxScore:45,
+    scale:'PCUS',
+    scaleRef:'Yu, Chen & Yang, 2024 · Current Psychology · Problematic ChatGPT Use Scale (PCUS), adapted to AI chatbots with permission from Sen-Chi Yu, PhD',
+    items:11,
+    maxScore:44,
+    // ============================================================
+    // PCUS — Problematic ChatGPT Use Scale (Yu, Chen & Yang, 2024)
+    // DOI: 10.1007/s12144-024-06259-z · Current Psychology, 43(31), 26080–26092
+    // Validated on 1,040 Taiwanese adults. Single-factor structure.
+    // 4-point Likert (1=Never, 2=Sometimes, 3=Often, 4=Always)
+    // Recall window: the past 2 weeks. Score range: 11–44.
+    //
+    // Adapted for the PAUSE App with written permission from the original
+    // author (Sen-Chi Yu, PhD) granted May 2026. Adaptations made:
+    //   (a) "ChatGPT" replaced with "AI chatbots" (his suggestion, covering
+    //        ChatGPT, Gemini, Claude, etc.)
+    //   (b) Plain-English refinement for general-public readability in India,
+    //        replacing clinical terms (e.g. "alleviate", "deceived",
+    //        "sleep deprivation") with everyday language; grammar corrected
+    //        in items 6 and 10.
+    // The original theoretical construct and addiction-framework basis are
+    // preserved. The plain-language adaptation is being sent to the scale
+    // author for review.
+    // ============================================================
     questions:[
-      {t:"I think about using AI chatbots (ChatGPT, Gemini, etc.) even when I am not using them."},
-      {t:"I feel anxious or restless when I cannot access AI chatbots."},
-      {t:"I find myself using AI chatbots for longer than I originally planned."},
-      {t:"I use AI chatbots to cope with stress, anxiety, or loneliness."},
-      {t:"I have tried to reduce my AI chatbot use but found it difficult."},
-      {t:"My use of AI chatbots has negatively affected my ability to think independently."},
-      {t:"I prefer asking AI chatbots over consulting people or books."},
-      {t:"I feel more comfortable sharing problems with AI chatbots than with people."},
-      {t:"My reliance on AI chatbots has affected my relationships or work performance."}
+      {t:"I thought about AI chatbots (ChatGPT, Gemini, Claude, etc.) even when I wasn't using them.",
+       hint:"The next 11 questions ask about how often you've used AI chatbots over the past 2 weeks."},
+      {t:"I opened AI chatbots even when I hadn't planned to use them."},
+      {t:"I felt anxious or irritated when I couldn't use AI chatbots."},
+      {t:"I spent more and more time on AI chatbots."},
+      {t:"I tried to cut down on my AI chatbot use but couldn't."},
+      {t:"I lost interest in things I used to enjoy because of AI chatbots."},
+      {t:"Using AI chatbots made me put off important tasks."},
+      {t:"I spent too much time on AI chatbots even though it caused problems."},
+      {t:"I lost sleep because I used AI chatbots too much."},
+      {t:"I hid how much I use AI chatbots from family, friends, or my doctor."},
+      {t:"I used AI chatbots to deal with feelings of helplessness or anxiety."}
     ],
-    options:["Never","Rarely","Sometimes","Often","Very Often"],
-    optionValues:[1,2,3,4,5],
+    options:["Never","Sometimes","Often","Always"],
+    optionValues:[1,2,3,4],
+    // Severity bands — quartile partition of the 11–44 score range.
+    // Yu's 2024 validation paper did not establish published clinical
+    // cut-offs; these are pragmatic in-app feedback bands, clearly labelled
+    // as such in the methods. To be refined empirically once PAUSE has
+    // collected a sufficient Indian sample.
     levels:[
-      {min:9,max:18,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your AI tool use appears balanced and healthy.'},
-      {min:19,max:27,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some signs of over-reliance on AI tools.'},
-      {min:28,max:36,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Moderate AI dependency affecting independent thinking.'},
-      {min:37,max:45,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Severe AI dependency. Consider reducing reliance on AI tools.'}
+      {min:11,max:19,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your AI chatbot use looks balanced and healthy.'},
+      {min:20,max:27,label:'Mild',color:'#f5a623',bg:'rgba(245,166,35,0.1)',desc:'Some early signs of over-reliance on AI chatbots.'},
+      {min:28,max:35,label:'Moderate',color:'#ff6b35',bg:'rgba(255,107,53,0.1)',desc:'Your AI chatbot use is starting to affect your daily life.'},
+      {min:36,max:44,label:'Severe',color:'#ff4757',bg:'rgba(255,71,87,0.1)',desc:'Significant signs of AI chatbot dependency. Consider talking to someone you trust about cutting down.'}
     ]
   },
   {
