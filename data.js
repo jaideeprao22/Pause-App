@@ -21,7 +21,7 @@ const DISORDERS = [
     maxScore:60,
     questions:[
       // --- EXCESSIVENESS subscale (items 1, 3, 6) ---
-      {t:"If I notice an unusual sensation in my body, I search for it on the internet.", hint:"Please answer all questions in this section thinking about conditions you think you might have — not conditions a doctor has already diagnosed."},
+      {t:"If I notice an unusual sensation in my body, I search for it on the internet.", hint:"Examples of an unusual sensation: a rash, a new lump anywhere in your body, an unexpected pain, or a strange feeling. Answer all questions in this section about conditions you think you might have — not conditions a doctor has already diagnosed."},
       // --- COMPULSION subscale (items 2, 7, 10) ---
       {t:"Searching for symptoms online distracts me from reading news, sports, or entertainment online."},
       // --- EXCESSIVENESS subscale continued ---
