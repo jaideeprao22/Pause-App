@@ -114,7 +114,7 @@ const DISORDERS = [
     icon:'🎮',
     color:'#2ecc71',
     bg:'rgba(46,204,113,0.1)',
-    scale:'GDT',
+    scale:'GDT-4',
     scaleRef:'Pontes, Schivinski, Sindermann, Li, Becker, Zhou & Montag, 2021 · Gaming Disorder Test · WHO ICD-11 aligned',
     items:4,
     maxScore:20,

@@ -272,7 +272,7 @@ function showExplain(disorderId){
     <p><strong>Your score:</strong> ${score} out of ${d.maxScore}</p>
     <p style="margin-top:8px">${level.desc}</p>
     <p style="margin-top:12px"><strong>Scale used:</strong> ${d.scaleRef}</p>
-    ${d.id==='ai'?'<p style="margin-top:8px;font-size:12px;color:var(--muted)">⚠️ Note: This scale is validated in a Turkish sample only. Interpret with caution.</p>':''}`;
+    ${d.id==='ai'?'<p style="margin-top:8px;font-size:12px;color:var(--muted)">⚠️ Note: PCUS-11 (Yu et al., 2024) is an emerging instrument originally validated in an East Asian sample. Cross-cultural validation in the Indian population is in progress under the PAUSE Study. Interpret your score as a screening indicator only.</p>':''}`;
   openModal('explainModal');
 }
 

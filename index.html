@@ -188,6 +188,22 @@
     <div id="actionPlanRecommendations"></div>
   </div>
   <div id="trajectoryBadgesRow"></div>
+
+  <!-- IEC §13: Per-module clinical disclaimer + safety helplines (shown after every assessment) -->
+  <div style="margin-top:18px;padding:14px;background:#fff8e1;border-left:3px solid #d97706;border-radius:0 10px 10px 0">
+    <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px">⚠️ This is a screening tool, not a diagnosis</div>
+    <p style="font-size:11.5px;line-height:1.6;color:#92400e;margin:0">PAUSE is for education and self-screening only. It does NOT provide a clinical diagnosis, prescribe treatment, deliver psychotherapy, or replace consultation with a qualified medical professional. It is NOT an emergency service. If any score concerns you, please speak with a doctor or mental-health professional.</p>
+  </div>
+  <div style="margin-top:10px;padding:14px;background:rgba(15,45,94,0.06);border-radius:10px">
+    <div style="font-size:12px;font-weight:700;color:#0f2d5e;margin-bottom:8px">🛟 If you'd like to talk to someone — free, confidential helplines (India)</div>
+    <div style="font-size:11.5px;line-height:1.75;color:var(--text)">
+      <strong>Tele-MANAS</strong> (Government of India, 24×7): <a href="tel:14416" style="color:#0f2d5e;font-weight:700">14416</a><br>
+      <strong>iCall</strong> (TISS): <a href="tel:+919152987821" style="color:#0f2d5e;font-weight:700">+91 9152987821</a> · Mon–Sat, 8 AM–10 PM<br>
+      <strong>Vandrevala Foundation</strong> (24×7): <a href="tel:+918602662345" style="color:#0f2d5e;font-weight:700">1860-2662-345</a><br>
+      <strong>AASRA</strong> (24×7): <a href="tel:+919820466726" style="color:#0f2d5e;font-weight:700">+91 9820466726</a>
+    </div>
+  </div>
+
   <button class="btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px">← Back to Home</button>
   <button class="btn-ghost" onclick="shareResults()">📤 Share My Score</button>
 </div>
@@ -765,7 +781,11 @@
   })();
 </script>
 
-<!-- TERMS & CONDITIONS MODAL — Step 1 of sign-in flow -->
+<!-- TERMS & CONDITIONS + RESEARCH CONSENT MODAL — Step 1 of sign-in flow
+     IEC §13 architecture: Two LOGICALLY SEPARATE ticks on this screen.
+     1) T&C tick is MANDATORY (gates app use).
+     2) Research-consent tick is OPTIONAL, never pre-filled. If unticked,
+        the user can still use the app — no research data is written. -->
 <div class="modal-overlay" id="termsModal">
   <div class="modal-sheet" style="max-height:92vh;display:flex;flex-direction:column">
     <div class="modal-handle"></div>
@@ -774,20 +794,38 @@
     <div style="overflow-y:auto;flex:1;margin-bottom:14px">
       <div style="background:#fff8e1;border-left:3px solid #d97706;border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:12px">
         <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px">⚠️ Clinical Disclaimer</div>
-        <p style="font-size:12px;line-height:1.7;color:#92400e;margin:0">PAUSE App is a <strong>screening tool for educational purposes only</strong>. It does not constitute a clinical diagnosis or treatment.</p>
+        <p style="font-size:12px;line-height:1.7;color:#92400e;margin:0">PAUSE App is a <strong>screening and education tool only</strong>. It does NOT provide a clinical diagnosis, prescribe treatment, or replace consultation with a qualified medical professional. It is NOT an emergency service.</p>
       </div>
-      <a href="terms.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:#0f2d5e;text-decoration:none;padding:10px;background:rgba(15,45,94,0.06);border-radius:8px">📄 Read Full Terms &amp; Conditions →</a>
+      <a href="terms.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:#0f2d5e;text-decoration:none;padding:10px;background:rgba(15,45,94,0.06);border-radius:8px;margin-bottom:10px">📄 Read Full Terms &amp; Conditions →</a>
+      <a href="privacy-policy.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:#0f2d5e;text-decoration:none;padding:10px;background:rgba(15,45,94,0.06);border-radius:8px">🔒 Read Privacy Policy →</a>
+
+      <!-- IEC §13 / DPDP §5 transparency notice: explicitly explain what happens to the Google email -->
+      <div style="background:rgba(46,116,181,0.07);border-left:3px solid #2e74b5;border-radius:0 10px 10px 0;padding:12px 14px;margin-top:12px">
+        <div style="font-size:11.5px;font-weight:700;color:#0f2d5e;margin-bottom:5px">📧 What happens to your Google email?</div>
+        <p style="font-size:11.5px;line-height:1.65;color:var(--text);margin:0">If you sign in with Google, your <strong>email is stored only in our authentication system</strong> — its sole purpose is to let you keep your progress across devices. Your email is <strong>NEVER linked to your assessment scores</strong>. Research data, if you consent below, is identified only by an anonymous ID generated for you at sign-up.</p>
+      </div>
     </div>
 
     <div style="flex-shrink:0">
+      <!-- TICK 1 of 2: TERMS & CONDITIONS — MANDATORY -->
       <div class="terms-box" style="margin-top:0">
         <input type="checkbox" id="termsCheckbox"/>
         <label for="termsCheckbox">
-          I have read and understood the Terms &amp; Conditions. I am 18 or older, and I <strong>consent to my anonymised data being stored and used for academic research</strong> on digital health.
+          <strong>Required.</strong> I have read and accept the Terms &amp; Conditions and the Privacy Policy of the PAUSE App.
         </label>
       </div>
-      <div class="terms-error" id="termsError">⚠️ You must tick the checkbox above to continue.</div>
-      <button class="btn-primary" onclick="acceptTermsAndLogin()" style="margin-top:8px">Accept &amp; Sign In →</button>
+
+      <!-- TICK 2 of 2: RESEARCH CONSENT — OPTIONAL, NEVER PRE-FILLED -->
+      <div class="terms-box" style="margin-top:8px;background:rgba(15,45,94,0.04);border-left:3px solid #0f2d5e;padding:10px 12px;border-radius:0 10px 10px 0">
+        <input type="checkbox" id="researchConsentCheckbox"/>
+        <label for="researchConsentCheckbox">
+          <strong>Optional — contribute to research.</strong> I confirm that I am 18 years of age or older; I have read and understood the participant information above; I understand that PAUSE is a screening and education tool and is NOT diagnosis, treatment, or emergency care; I voluntarily agree that my de-identified PAUSE responses may be used for research and publications during the 24-month IEC approval period; and I understand that I may withdraw future research use at any time by contacting the study team or using the in-app "Delete my research data" button.
+        </label>
+      </div>
+      <p style="font-size:10.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0;font-style:italic">If you do not tick the research box, you can still use all educational and self-screening features of the app — no research data will be stored.</p>
+
+      <div class="terms-error" id="termsError">⚠️ You must accept the Terms &amp; Conditions to continue.</div>
+      <button class="btn-primary" onclick="acceptTermsAndLogin()" style="margin-top:8px">Continue →</button>
       <button class="btn-ghost" onclick="closeModal('termsModal')" style="margin-top:6px">Cancel</button>
     </div>
   </div>
@@ -821,7 +859,7 @@
 
     <div class="form-group">
       <label class="form-label">Age</label>
-      <input type="number" class="form-input" id="profileAge" placeholder="Enter your age" min="13" max="100"/>
+      <input type="number" class="form-input" id="profileAge" placeholder="Enter your age (must be 18+)" min="18" max="100"/>
     </div>
     <div class="form-group">
       <label class="form-label">Gender</label>
@@ -1132,7 +1170,7 @@
     <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Update your personal details below.</p>
     <div class="edit-profile-row">
       <label>Age</label>
-      <input type="number" id="editAge" placeholder="Your age" min="13" max="100"/>
+      <input type="number" id="editAge" placeholder="Your age (must be 18+)" min="18" max="100"/>
     </div>
     <div class="edit-profile-row">
       <label>Gender</label>

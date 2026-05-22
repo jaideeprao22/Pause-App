@@ -1,7 +1,7 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v14-gdt-skiplogic';
+const CACHE_NAME = 'pause-app-v15-iec-consent-split';
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
@@ -12,6 +12,7 @@ const PRECACHE_ASSETS = [
   BASE,
   BASE + 'index.html',
   BASE + 'terms.html',
+  BASE + 'privacy-policy.html',
   BASE + 'style.css',
   BASE + 'manifest.json',
   BASE + 'data.js',

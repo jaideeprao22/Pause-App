@@ -252,6 +252,7 @@ function renderLoginBanner(){
 function renderAccountSection(){
   const el = document.getElementById('accountSection');
   if(currentUser){
+    const withdrawn = !!localStorage.getItem('pause_research_withdrawn');
     el.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div style="width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff">${currentUser.email.charAt(0).toUpperCase()}</div>
@@ -261,7 +262,18 @@ function renderAccountSection(){
         </div>
       </div>
       <button class="btn-secondary" style="margin-top:0;margin-bottom:8px" onclick="openEditProfile()">✏️ Edit My Details</button>
-      <button class="btn-secondary" style="margin-top:0" onclick="logoutUser()">Sign Out</button>`;
+      <button class="btn-secondary" style="margin-top:0;margin-bottom:8px" onclick="logoutUser()">Sign Out</button>
+
+      <!-- IEC §13: Data-Principal Rights (DPDP Act §6 erasure right + grievance contact) -->
+      <div style="margin-top:18px;padding:14px;background:rgba(192,57,43,0.06);border-left:3px solid #c0392b;border-radius:0 10px 10px 0">
+        <div style="font-size:12px;font-weight:700;color:#c0392b;margin-bottom:6px">🔒 Your Data Rights</div>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.6;margin:0 0 10px">Under the DPDP Act, 2023 you may withdraw research consent and request permanent deletion of your research data at any time. Deletion is processed within 30 days. Already-published aggregate results cannot identify you and cannot be retracted.</p>
+        ${withdrawn
+          ? '<p style="font-size:11px;color:#c0392b;font-weight:700;margin:0 0 8px">Status: Research participation withdrawn.</p>'
+          : ''}
+        <button class="btn-ghost" style="color:#c0392b;font-weight:700;font-size:12px;width:100%;padding:10px;border:1px solid #c0392b;border-radius:8px" onclick="deleteMyResearchData()">🗑️ Delete my research data</button>
+        <p style="font-size:10.5px;color:var(--muted);margin:10px 0 0;line-height:1.55">For privacy queries, grievance, or to contact the Principal Investigator: <a href="mailto:jaideeprao22@gmail.com" style="color:#0f2d5e;font-weight:700">jaideeprao22@gmail.com</a></p>
+      </div>`;
   } else {
     el.innerHTML = `
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Sign in to keep your progress safe and sync across your devices.</p>
@@ -351,8 +363,8 @@ function saveProfile(){
   // ── FIX A: every required field validated; first miss scrolls + highlights + toasts ──
   const ageRaw = document.getElementById('profileAge').value;
   const age    = parseInt(ageRaw, 10);
-  if(!ageRaw || isNaN(age) || age < 13 || age > 100){
-    _highlightProfileField('profileAge', 'Age (13–100)');
+  if(!ageRaw || isNaN(age) || age < 18 || age > 100){
+    _highlightProfileField('profileAge', 'Age (must be 18 or older)');
     return;
   }
   if(!profileSelections.gender){            _highlightProfileField('genderOptions', 'Gender'); return; }
@@ -515,7 +527,7 @@ function saveEditProfile(){
   // --- Common validation ---
   const ageRaw = document.getElementById('editAge').value;
   const age    = parseInt(ageRaw, 10);
-  if(!ageRaw || isNaN(age) || age < 13 || age > 100){ _highlightEdit('editAge', 'Age (13–100)'); return; }
+  if(!ageRaw || isNaN(age) || age < 18 || age > 100){ _highlightEdit('editAge', 'Age (must be 18 or older)'); return; }
   if(!_val('editGender')){     _highlightEdit('editGender',     'Gender');                return; }
   const occupation = _val('editOccupation');
   if(!occupation){             _highlightEdit('editOccupation', 'Occupation');            return; }
@@ -994,16 +1006,37 @@ function showUserModal(){
 async function saveToSupabase(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return; // BUG19 FIX: respect withdrawal
+
+  // Read the active research-consent value recorded at signup (never pre-filled, never assumed)
+  let researchConsented = false;
+  let consentVersion = '2.3';
+  let consentTimestamp = null;
+  try {
+    const rc = JSON.parse(localStorage.getItem('pause_research_consent') || 'null');
+    if(rc && rc.consented === true){
+      researchConsented = true;
+      consentVersion = rc.consent_version || '2.3';
+      consentTimestamp = rc.timestamp || null;
+    }
+  } catch(e){}
+  // Defensive: if for any reason research was not actively consented, do not write a row.
+  if(!researchConsented) return;
+
   try {
     const { data, error } = await sb.from('Assessments').insert({
       user_id:            currentUser.id,
-      email:              currentUser.email,
+      // email REMOVED — IEC §13 identifier separation: name/email/phone not in research export.
       disorder_scores:    disorderScores,
       impact_scores:      impactScores,
       dws_score:          dwsScore,
       hws_score:          hwsScore,
-      research_consent:   true,
+      research_consent:   true,                   // user actively consented (guarded above)
+      consent_version:    consentVersion,         // IEC §13 version control
+      consent_timestamp:  consentTimestamp,
       terms_version:      '1.0',
+      app_version:        '5.0.1',                // IEC §13 version control — bump on each release
+      scale_version:      'CSS-12 v2019 · BSMAS v2016 · SVAS-6 v2022 · GDT-4 v2021 · PCUS-11 v2024 · BWAS v2012',
+      created_at:         new Date().toISOString(),
       // Demographics
       age:                userProfile.age || null,
       gender:             userProfile.gender || null,
@@ -1113,7 +1146,7 @@ async function submitFeedback(){
     message:   msg,
     contact_email: (document.getElementById('feedbackEmail')?.value || '').trim() || null,
     user_id:   currentUser?.id || null,
-    app_version: '1.0',
+    app_version: '5.0.1',
     created_at: new Date().toISOString()
   };
 
@@ -1161,17 +1194,42 @@ function openLoginFlow(){
 }
 
 function acceptTermsAndLogin(){
-  const cb  = document.getElementById('termsCheckbox');
+  const cbTerms = document.getElementById('termsCheckbox');
+  const cbResearch = document.getElementById('researchConsentCheckbox');
   const err = document.getElementById('termsError');
-  if(!cb || !cb.checked){
-    if(err) err.style.display = 'block';
-    if(cb){ cb.style.outline = '3px solid #c0392b'; setTimeout(() => { if(cb) cb.style.outline = ''; }, 2000); }
+
+  // T&C tick is MANDATORY (gates app use)
+  if(!cbTerms || !cbTerms.checked){
+    if(err){ err.textContent = '⚠️ You must accept the Terms & Conditions to continue.'; err.style.display = 'block'; }
+    if(cbTerms){ cbTerms.style.outline = '3px solid #c0392b'; setTimeout(() => { if(cbTerms) cbTerms.style.outline = ''; }, 2000); }
     return;
   }
   if(err) err.style.display = 'none';
+
+  // Store T&C acceptance
   localStorage.setItem('pause_terms_accepted', JSON.stringify({
     accepted: true, timestamp: new Date().toISOString(), version: '1.0'
   }));
+
+  // Research consent is SEPARATE and OPTIONAL — record true OR false based on active selection
+  // Never pre-filled, never default. If unticked, research_consent stays false and the app
+  // is still fully usable (no Supabase Assessments rows are written).
+  const researchConsented = !!(cbResearch && cbResearch.checked);
+  localStorage.setItem('pause_research_consent', JSON.stringify({
+    consented: researchConsented,
+    timestamp: new Date().toISOString(),
+    consent_version: '2.3'
+  }));
+
+  // If user actively declined research, set the withdrawal flag so existing
+  // localStorage-based withdrawal checks in saveToSupabase, saveUrgeLog, etc. all respect this.
+  if(!researchConsented){
+    localStorage.setItem('pause_research_withdrawn', JSON.stringify({timestamp:new Date().toISOString(), reason:'declined_at_signup'}));
+  } else {
+    // If a previous decline existed but user is now consenting fresh, clear it
+    localStorage.removeItem('pause_research_withdrawn');
+  }
+
   closeModal('termsModal');
   setTimeout(() => openModal('loginModal'), 250);
 }
@@ -1188,10 +1246,12 @@ function openModal(id){
   const sheet = el.querySelector('.modal-sheet, .modal-card');
   if(sheet) sheet.scrollTop = 0;
 
-  // Reset T&C checkbox every time terms modal opens
+  // Reset T&C and Research-Consent checkboxes every time terms modal opens
   if(id === 'termsModal'){
     const cb = document.getElementById('termsCheckbox');
     if(cb) cb.checked = false;
+    const cbR = document.getElementById('researchConsentCheckbox');
+    if(cbR) cbR.checked = false;
     const err = document.getElementById('termsError');
     if(err) err.style.display = 'none';
   }
@@ -1239,7 +1299,7 @@ function checkReConsentNeeded(){
 
 function acceptReConsent(){
   localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({
-    timestamp: new Date().toISOString(), version:'1.0'
+    timestamp: new Date().toISOString(), consent_version:'2.3'
   }));
   closeModal('reConsentModal'); // BUG16 FIX: close first so toast appears above, not under overlay
   showToast('Thank you for confirming — your research participation continues. 🙏');
@@ -1249,9 +1309,63 @@ function declineReConsent(){
   // User withdraws — clear research data flag, keep app usable
   localStorage.setItem('pause_research_withdrawn', JSON.stringify({timestamp:new Date().toISOString()}));
   // BUG14 FIX: reset re-consent clock so modal doesn't re-fire every session after withdrawal
-  localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), version:'1.0'}));
+  localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), consent_version:'2.3'}));
   closeModal('reConsentModal'); // BUG16 FIX: close modal BEFORE showToast so toast isn't hidden under overlay
   showToast('Understood. Your data will no longer be shared for research.');
+}
+
+// ============================================================
+// IEC §13: Delete-My-Research-Data (DPDP Act §6 erasure right)
+// Permanently removes the user's research records from Supabase
+// and locks future writes. Confirmation dialog before execution.
+// ============================================================
+async function deleteMyResearchData(){
+  // Use built-in confirm() fallback to showToast prompt; TWA blocks alert() but
+  // confirm() is generally allowed by Chrome Custom Tabs / WebView.
+  const ok = confirm(
+    'Delete all your research data?\n\n' +
+    'This will permanently erase your assessment records, urge log entries, ' +
+    'weekly check-ins, and feedback from our research database. Your ' +
+    'in-app personal history on this device will also be cleared. ' +
+    'This action cannot be undone.\n\n' +
+    'You can continue using the app — but your data will no longer contribute to research.'
+  );
+  if(!ok) return;
+
+  // 1. Lock all future writes locally
+  localStorage.setItem('pause_research_withdrawn', JSON.stringify({
+    timestamp: new Date().toISOString(),
+    reason: 'user_requested_deletion'
+  }));
+
+  // 2. Delete from Supabase (only if signed in)
+  if(currentUser && currentUser.id){
+    const uid = currentUser.id;
+    try {
+      await Promise.allSettled([
+        sb.from('Assessments').delete().eq('user_id', uid),
+        sb.from('UrgeLog').delete().eq('user_id', uid),
+        sb.from('WeeklyCheckin').delete().eq('user_id', uid),
+        sb.from('Feedback').delete().eq('user_id', uid),
+        sb.from('Logbook').delete().eq('user_id', uid),
+        sb.from('Profiles').delete().eq('user_id', uid)
+      ]);
+    } catch(e){ console.warn('Supabase deletion error:', e); }
+  }
+
+  // 3. Clear local research-history copies (keep app-shell prefs)
+  try {
+    localStorage.removeItem('pauseV2History');
+    localStorage.removeItem('pause_last_assessment_id');
+    localStorage.removeItem('pause_urge_log');
+    localStorage.removeItem('pauseLogbook');
+    localStorage.removeItem('pause_weekly_checkin');
+    localStorage.removeItem('moodLog');
+    localStorage.removeItem('screenTimeLog');
+  } catch(e){}
+
+  showToast('🔒 Your research data has been deleted. Thank you for participating.');
+  setTimeout(() => { try { location.reload(); } catch(e){} }, 1800);
 }
 
 // ============================================================
