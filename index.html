@@ -796,12 +796,12 @@
         <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px">⚠️ Clinical Disclaimer</div>
         <p style="font-size:12px;line-height:1.7;color:#92400e;margin:0">PAUSE App is a <strong>screening and education tool only</strong>. It does NOT provide a clinical diagnosis, prescribe treatment, or replace consultation with a qualified medical professional. It is NOT an emergency service.</p>
       </div>
-      <a href="terms.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:#0f2d5e;text-decoration:none;padding:10px;background:rgba(15,45,94,0.06);border-radius:8px;margin-bottom:10px">📄 Read Full Terms &amp; Conditions →</a>
-      <a href="privacy-policy.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:#0f2d5e;text-decoration:none;padding:10px;background:rgba(15,45,94,0.06);border-radius:8px">🔒 Read Privacy Policy →</a>
+      <a href="terms.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:var(--accent2);text-decoration:none;padding:10px;background:rgba(96,179,255,0.10);border-radius:8px;margin-bottom:10px">📄 Read Full Terms &amp; Conditions →</a>
+      <a href="privacy-policy.html" target="_blank" style="display:block;text-align:center;font-size:12px;font-weight:600;color:var(--accent2);text-decoration:none;padding:10px;background:rgba(96,179,255,0.10);border-radius:8px">🔒 Read Privacy Policy →</a>
 
       <!-- IEC §13 / DPDP §5 transparency notice: explicitly explain what happens to the Google email -->
-      <div style="background:rgba(46,116,181,0.07);border-left:3px solid #2e74b5;border-radius:0 10px 10px 0;padding:12px 14px;margin-top:12px">
-        <div style="font-size:11.5px;font-weight:700;color:#0f2d5e;margin-bottom:5px">📧 What happens to your Google email?</div>
+      <div style="background:rgba(46,116,181,0.10);border-left:3px solid var(--accent2);border-radius:0 10px 10px 0;padding:12px 14px;margin-top:12px">
+        <div style="font-size:11.5px;font-weight:700;color:var(--accent2);margin-bottom:5px">📧 What happens to your Google email?</div>
         <p style="font-size:11.5px;line-height:1.65;color:var(--text);margin:0">If you sign in with Google, your <strong>email is stored only in our authentication system</strong> — its sole purpose is to let you keep your progress across devices. Your email is <strong>NEVER linked to your assessment scores</strong>. Research data, if you consent below, is identified only by an anonymous ID generated for you at sign-up.</p>
       </div>
     </div>
@@ -813,13 +813,13 @@
            explicit, recorded decision on research participation. Neither button
            is pre-selected. Both outcomes allow the user to use the app; only
            "Yes" writes research data to Supabase. -->
-      <div style="background:rgba(15,45,94,0.04);border-left:3px solid #0f2d5e;padding:12px 12px 14px;border-radius:0 10px 10px 0">
+      <div style="background:rgba(96,179,255,0.06);border-left:3px solid var(--accent2);padding:12px 12px 14px;border-radius:0 10px 10px 0">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Research participation — please choose Yes or No</div>
-        <p style="font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 12px">By tapping <strong>Yes</strong> or <strong>No</strong> below, you confirm that you are 18 years or older, that you have read and accepted our <a href="terms.html" target="_blank" style="color:#0f2d5e;font-weight:700;text-decoration:underline">Terms &amp; Conditions</a> and <a href="privacy-policy.html" target="_blank" style="color:#0f2d5e;font-weight:700;text-decoration:underline">Privacy Policy</a>, and that you understand PAUSE is a screening and education tool — NOT a diagnosis, treatment, or emergency service.<br><br>
+        <p style="font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 12px">By tapping <strong>Yes</strong> or <strong>No</strong> below, you confirm that you are 18 years or older, that you have read and accepted our <a href="terms.html" target="_blank" style="color:var(--accent2);font-weight:700;text-decoration:underline">Terms &amp; Conditions</a> and <a href="privacy-policy.html" target="_blank" style="color:var(--accent2);font-weight:700;text-decoration:underline">Privacy Policy</a>, and that you understand PAUSE is a screening and education tool — NOT a diagnosis, treatment, or emergency service.<br><br>
         May your de-identified PAUSE responses contribute to community-medicine research and publications during the 24-month IEC approval period? You may withdraw at any time using the in-app "Delete my research data" button. <strong style="color:var(--text)">Your responses help build the first Indian dataset on adult digital wellness.</strong></p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div id="rcYes" class="consent-choice" onclick="selectResearchConsent('yes')" style="text-align:center;padding:14px 8px;border:2px solid #d4dbe5;background:#fff;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">✅ Yes, include my data</div>
-          <div id="rcNo"  class="consent-choice" onclick="selectResearchConsent('no')"  style="text-align:center;padding:14px 8px;border:2px solid #d4dbe5;background:#fff;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">❌ No</div>
+          <div id="rcYes" class="consent-choice" onclick="selectResearchConsent('yes')" style="text-align:center;padding:14px 8px;border:2px solid var(--border);background:rgba(255,255,255,0.04);border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">✅ Yes, include my data</div>
+          <div id="rcNo"  class="consent-choice" onclick="selectResearchConsent('no')"  style="text-align:center;padding:14px 8px;border:2px solid var(--border);background:rgba(255,255,255,0.04);border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">❌ No</div>
         </div>
       </div>
 

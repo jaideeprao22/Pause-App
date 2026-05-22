@@ -1203,13 +1203,16 @@ function selectResearchConsent(value){
   _researchConsentChoice = value;
   const yesEl = document.getElementById('rcYes');
   const noEl  = document.getElementById('rcNo');
+  // Colors chosen so they render correctly in BOTH light and dark themes:
+  // rgba backgrounds give a soft tint on either theme background; we do NOT
+  // override the text colour (var(--text) adapts to the active theme).
   if(yesEl){
-    if(value === 'yes'){ yesEl.style.borderColor = '#27ae60'; yesEl.style.background = 'rgba(39,174,96,0.10)'; yesEl.style.color = '#1e6f3e'; }
-    else { yesEl.style.borderColor = '#d4dbe5'; yesEl.style.background = '#fff'; yesEl.style.color = 'var(--text)'; }
+    if(value === 'yes'){ yesEl.style.borderColor = '#2ecc71'; yesEl.style.background = 'rgba(46,204,113,0.22)'; }
+    else { yesEl.style.borderColor = ''; yesEl.style.background = 'rgba(255,255,255,0.04)'; }
   }
   if(noEl){
-    if(value === 'no'){ noEl.style.borderColor = '#c0392b'; noEl.style.background = 'rgba(192,57,43,0.08)'; noEl.style.color = '#922b1f'; }
-    else { noEl.style.borderColor = '#d4dbe5'; noEl.style.background = '#fff'; noEl.style.color = 'var(--text)'; }
+    if(value === 'no'){ noEl.style.borderColor = '#e74c3c'; noEl.style.background = 'rgba(231,76,60,0.22)'; }
+    else { noEl.style.borderColor = ''; noEl.style.background = 'rgba(255,255,255,0.04)'; }
   }
   const err = document.getElementById('termsError');
   if(err) err.style.display = 'none';
@@ -1281,8 +1284,10 @@ function openModal(id){
     _researchConsentChoice = null;
     const yesEl = document.getElementById('rcYes');
     const noEl  = document.getElementById('rcNo');
+    // Reset inline styles to '' so the original CSS-variable-based styling
+    // (theme-adaptive border + background) takes over again.
     [yesEl, noEl].forEach(el => {
-      if(el){ el.style.borderColor = '#d4dbe5'; el.style.background = '#fff'; el.style.color = 'var(--text)'; el.style.outline = ''; }
+      if(el){ el.style.borderColor = ''; el.style.background = 'rgba(255,255,255,0.04)'; el.style.outline = ''; }
     });
     const err = document.getElementById('termsError');
     if(err) err.style.display = 'none';
