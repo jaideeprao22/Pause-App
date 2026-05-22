@@ -807,24 +807,23 @@
     </div>
 
     <div style="flex-shrink:0">
-      <!-- TICK 1 of 2: TERMS & CONDITIONS — MANDATORY -->
-      <div class="terms-box" style="margin-top:0">
-        <input type="checkbox" id="termsCheckbox"/>
-        <label for="termsCheckbox">
-          <strong>Required.</strong> I have read and accept the Terms &amp; Conditions and the Privacy Policy of the PAUSE App.
-        </label>
+      <!-- SINGLE MANDATORY ACTIVE CHOICE — Yes/No for research participation.
+           IEC §13 architecture: picking either option constitutes (a) acceptance
+           of the Terms & Conditions and Privacy Policy linked above, and (b) an
+           explicit, recorded decision on research participation. Neither button
+           is pre-selected. Both outcomes allow the user to use the app; only
+           "Yes" writes research data to Supabase. -->
+      <div style="background:rgba(15,45,94,0.04);border-left:3px solid #0f2d5e;padding:12px 12px 14px;border-radius:0 10px 10px 0">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Research participation — please choose Yes or No</div>
+        <p style="font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 12px">By tapping <strong>Yes</strong> or <strong>No</strong> below, you confirm that you are 18 years or older, that you have read and accepted our <a href="terms.html" target="_blank" style="color:#0f2d5e;font-weight:700;text-decoration:underline">Terms &amp; Conditions</a> and <a href="privacy-policy.html" target="_blank" style="color:#0f2d5e;font-weight:700;text-decoration:underline">Privacy Policy</a>, and that you understand PAUSE is a screening and education tool — NOT a diagnosis, treatment, or emergency service.<br><br>
+        May your de-identified PAUSE responses contribute to community-medicine research and publications during the 24-month IEC approval period? You may withdraw at any time using the in-app "Delete my research data" button. <strong style="color:var(--text)">Your responses help build the first Indian dataset on adult digital wellness.</strong></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div id="rcYes" class="consent-choice" onclick="selectResearchConsent('yes')" style="text-align:center;padding:14px 8px;border:2px solid #d4dbe5;background:#fff;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">✅ Yes, include my data</div>
+          <div id="rcNo"  class="consent-choice" onclick="selectResearchConsent('no')"  style="text-align:center;padding:14px 8px;border:2px solid #d4dbe5;background:#fff;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">❌ No</div>
+        </div>
       </div>
 
-      <!-- TICK 2 of 2: RESEARCH CONSENT — OPTIONAL, NEVER PRE-FILLED -->
-      <div class="terms-box" style="margin-top:8px;background:rgba(15,45,94,0.04);border-left:3px solid #0f2d5e;padding:10px 12px;border-radius:0 10px 10px 0">
-        <input type="checkbox" id="researchConsentCheckbox"/>
-        <label for="researchConsentCheckbox">
-          <strong>Optional — contribute to research.</strong> I confirm that I am 18 years of age or older; I have read and understood the participant information above; I understand that PAUSE is a screening and education tool and is NOT diagnosis, treatment, or emergency care; I voluntarily agree that my de-identified PAUSE responses may be used for research and publications during the 24-month IEC approval period; and I understand that I may withdraw future research use at any time by contacting the study team or using the in-app "Delete my research data" button.
-        </label>
-      </div>
-      <p style="font-size:10.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0;font-style:italic">If you do not tick the research box, you can still use all educational and self-screening features of the app — no research data will be stored.</p>
-
-      <div class="terms-error" id="termsError">⚠️ You must accept the Terms &amp; Conditions to continue.</div>
+      <div class="terms-error" id="termsError">⚠️ Please choose Yes or No to continue.</div>
       <button class="btn-primary" onclick="acceptTermsAndLogin()" style="margin-top:8px">Continue →</button>
       <button class="btn-ghost" onclick="closeModal('termsModal')" style="margin-top:6px">Cancel</button>
     </div>

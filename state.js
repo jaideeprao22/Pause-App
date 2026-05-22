@@ -1009,13 +1009,13 @@ async function saveToSupabase(){
 
   // Read the active research-consent value recorded at signup (never pre-filled, never assumed)
   let researchConsented = false;
-  let consentVersion = '2.3';
+  let consentVersion = '2.5';
   let consentTimestamp = null;
   try {
     const rc = JSON.parse(localStorage.getItem('pause_research_consent') || 'null');
     if(rc && rc.consented === true){
       researchConsented = true;
-      consentVersion = rc.consent_version || '2.3';
+      consentVersion = rc.consent_version || '2.5';
       consentTimestamp = rc.timestamp || null;
     }
   } catch(e){}
@@ -1193,40 +1193,68 @@ function openLoginFlow(){
   }
 }
 
+// Active research-consent choice tracker (set by clicking one of the two cards
+// in the T&C modal; null until user actively picks Yes or No). The IEC §13
+// architecture requires an ACTIVE choice — silent skipping is not consent and
+// not refusal; it is no record at all, and we will not let the flow proceed.
+let _researchConsentChoice = null;
+
+function selectResearchConsent(value){
+  _researchConsentChoice = value;
+  const yesEl = document.getElementById('rcYes');
+  const noEl  = document.getElementById('rcNo');
+  if(yesEl){
+    if(value === 'yes'){ yesEl.style.borderColor = '#27ae60'; yesEl.style.background = 'rgba(39,174,96,0.10)'; yesEl.style.color = '#1e6f3e'; }
+    else { yesEl.style.borderColor = '#d4dbe5'; yesEl.style.background = '#fff'; yesEl.style.color = 'var(--text)'; }
+  }
+  if(noEl){
+    if(value === 'no'){ noEl.style.borderColor = '#c0392b'; noEl.style.background = 'rgba(192,57,43,0.08)'; noEl.style.color = '#922b1f'; }
+    else { noEl.style.borderColor = '#d4dbe5'; noEl.style.background = '#fff'; noEl.style.color = 'var(--text)'; }
+  }
+  const err = document.getElementById('termsError');
+  if(err) err.style.display = 'none';
+}
+
 function acceptTermsAndLogin(){
-  const cbTerms = document.getElementById('termsCheckbox');
-  const cbResearch = document.getElementById('researchConsentCheckbox');
   const err = document.getElementById('termsError');
 
-  // T&C tick is MANDATORY (gates app use)
-  if(!cbTerms || !cbTerms.checked){
-    if(err){ err.textContent = '⚠️ You must accept the Terms & Conditions to continue.'; err.style.display = 'block'; }
-    if(cbTerms){ cbTerms.style.outline = '3px solid #c0392b'; setTimeout(() => { if(cbTerms) cbTerms.style.outline = ''; }, 2000); }
+  // SINGLE mandatory active choice. Picking either Yes or No constitutes:
+  //   (a) acceptance of the Terms & Conditions and Privacy Policy (which are
+  //       linked above the choice and identical in either path), AND
+  //   (b) an explicit, recorded decision on research participation.
+  // Silent skipping is NOT acceptable — IEC §13 + DPDP §6 require an active,
+  // informed choice. Both Yes and No allow continued app use; only Yes writes
+  // research data to Supabase.
+  if(_researchConsentChoice !== 'yes' && _researchConsentChoice !== 'no'){
+    if(err){ err.textContent = '⚠️ Please choose Yes or No to continue.'; err.style.display = 'block'; }
+    ['rcYes', 'rcNo'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el){ el.style.outline = '3px solid #c0392b'; setTimeout(() => { if(el) el.style.outline = ''; }, 1800); }
+    });
     return;
   }
   if(err) err.style.display = 'none';
 
-  // Store T&C acceptance
+  // T&C acceptance is IMPLICIT in selecting either Yes or No (both paths agree
+  // to the same standard terms; only research outcome differs). Record it.
   localStorage.setItem('pause_terms_accepted', JSON.stringify({
     accepted: true, timestamp: new Date().toISOString(), version: '1.0'
   }));
 
-  // Research consent is SEPARATE and OPTIONAL — record true OR false based on active selection
-  // Never pre-filled, never default. If unticked, research_consent stays false and the app
-  // is still fully usable (no Supabase Assessments rows are written).
-  const researchConsented = !!(cbResearch && cbResearch.checked);
+  // Record the EXPLICIT research consent decision (Yes or No). Both outcomes are
+  // valid and both let the user continue using the app. Only "yes" writes
+  // research data to Supabase (enforced in saveToSupabase()).
+  const researchConsented = (_researchConsentChoice === 'yes');
   localStorage.setItem('pause_research_consent', JSON.stringify({
     consented: researchConsented,
+    decision: _researchConsentChoice,           // explicit 'yes' or 'no' — never blank
     timestamp: new Date().toISOString(),
-    consent_version: '2.3'
+    consent_version: '2.5'
   }));
 
-  // If user actively declined research, set the withdrawal flag so existing
-  // localStorage-based withdrawal checks in saveToSupabase, saveUrgeLog, etc. all respect this.
   if(!researchConsented){
     localStorage.setItem('pause_research_withdrawn', JSON.stringify({timestamp:new Date().toISOString(), reason:'declined_at_signup'}));
   } else {
-    // If a previous decline existed but user is now consenting fresh, clear it
     localStorage.removeItem('pause_research_withdrawn');
   }
 
@@ -1246,12 +1274,16 @@ function openModal(id){
   const sheet = el.querySelector('.modal-sheet, .modal-card');
   if(sheet) sheet.scrollTop = 0;
 
-  // Reset T&C and Research-Consent checkboxes every time terms modal opens
+  // Reset the Yes/No research-consent choice every time terms modal opens
+  // (no T&C checkbox to reset — T&C acceptance is now implicit in the Yes/No choice)
   if(id === 'termsModal'){
-    const cb = document.getElementById('termsCheckbox');
-    if(cb) cb.checked = false;
-    const cbR = document.getElementById('researchConsentCheckbox');
-    if(cbR) cbR.checked = false;
+    // Clear active research-consent choice (force user to actively pick again)
+    _researchConsentChoice = null;
+    const yesEl = document.getElementById('rcYes');
+    const noEl  = document.getElementById('rcNo');
+    [yesEl, noEl].forEach(el => {
+      if(el){ el.style.borderColor = '#d4dbe5'; el.style.background = '#fff'; el.style.color = 'var(--text)'; el.style.outline = ''; }
+    });
     const err = document.getElementById('termsError');
     if(err) err.style.display = 'none';
   }
@@ -1299,7 +1331,7 @@ function checkReConsentNeeded(){
 
 function acceptReConsent(){
   localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({
-    timestamp: new Date().toISOString(), consent_version:'2.3'
+    timestamp: new Date().toISOString(), consent_version:'2.5'
   }));
   closeModal('reConsentModal'); // BUG16 FIX: close first so toast appears above, not under overlay
   showToast('Thank you for confirming — your research participation continues. 🙏');
@@ -1309,7 +1341,7 @@ function declineReConsent(){
   // User withdraws — clear research data flag, keep app usable
   localStorage.setItem('pause_research_withdrawn', JSON.stringify({timestamp:new Date().toISOString()}));
   // BUG14 FIX: reset re-consent clock so modal doesn't re-fire every session after withdrawal
-  localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), consent_version:'2.3'}));
+  localStorage.setItem('pause_terms_reconfirmed', JSON.stringify({timestamp:new Date().toISOString(), consent_version:'2.5'}));
   closeModal('reConsentModal'); // BUG16 FIX: close modal BEFORE showToast so toast isn't hidden under overlay
   showToast('Understood. Your data will no longer be shared for research.');
 }
