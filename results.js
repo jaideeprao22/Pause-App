@@ -1,12 +1,56 @@
 // ============================================================
 // RESULTS
 // ============================================================
+
+// IEC umbrella protocol §7 safety-net pathway: if ANY completed scale returns
+// a "Severe" band, surface a non-pathologising banner pointing the user to
+// professional help. Tele-MANAS (14416) is highlighted as a free, 24×7,
+// government-of-India first step. Banner is hidden when no scale is Severe.
+function renderSafetyNetBanner(){
+  const el = document.getElementById('safetyNetBanner');
+  if(!el) return;
+  // Collect all disorders with a recorded (non-skipped) score that is Severe.
+  const severe = DISORDERS.filter(d => {
+    if(disorderScores[d.id] === undefined) return false;
+    if(typeof skippedModules !== 'undefined' && skippedModules.has(d.id)) return false;
+    const lvl = getLevel(d, disorderScores[d.id]);
+    return lvl && lvl.label === 'Severe';
+  });
+  if(severe.length === 0){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  // Build a list of severe areas (e.g. "Cyberchondria, Social Media")
+  const areas = severe.map(d => d.name).join(', ');
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="margin:12px 0 14px;padding:16px;background:linear-gradient(135deg,rgba(255,71,87,0.18),rgba(192,57,43,0.12));border:1.5px solid rgba(255,71,87,0.55);border-radius:14px">
+      <div style="font-size:14px;font-weight:800;color:#ff6b7a;margin-bottom:8px">🩺 We want to make sure you have support</div>
+      <p style="font-size:12.5px;line-height:1.6;color:var(--text);margin:0 0 10px">
+        Your score on <strong>${areas}</strong> is in the higher-severity range. This is a screening result — <strong>not a clinical diagnosis</strong> — but speaking with a qualified mental-health professional can help you understand what these patterns mean for you and what (if anything) to do next.
+      </p>
+      <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:11px 13px;margin:8px 0">
+        <div style="font-size:11.5px;font-weight:700;color:var(--accent2);margin-bottom:6px">📞 Easy first step — free, 24×7, confidential</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--text)">
+          <strong>Tele-MANAS</strong> (Government of India): <a href="tel:14416" style="color:var(--accent2);font-weight:800;text-decoration:none">14416</a><br>
+          Or speak to a doctor, counsellor, or GP you trust.
+        </div>
+      </div>
+      <p style="font-size:11px;line-height:1.55;color:var(--muted);margin:6px 0 0;font-style:italic">
+        PAUSE is a screening and education tool only. It is not a diagnosis, treatment, or emergency service. If you are in immediate distress, please call a helpline now or go to your nearest hospital.
+      </p>
+    </div>`;
+}
+
 function renderResults(){
   if(dwsScore !== null){
     const s = getDWSStatus(dwsScore);
     document.getElementById('resultDWSNum').textContent = dwsScore;
     document.getElementById('resultDWSStatus').textContent = s.status;
   }
+  // IEC §7 safety-net: render conditional referral banner if any scale is Severe
+  renderSafetyNetBanner();
   const tags = document.getElementById('shareTags');
   const topDisorder = Object.entries(disorderScores).sort((a,b) => {
     const da=DISORDERS.find(d=>d.id===a[0]), db=DISORDERS.find(d=>d.id===b[0]);

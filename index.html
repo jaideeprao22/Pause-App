@@ -164,6 +164,9 @@
     <div class="share-status" id="resultDWSStatus">--</div>
     <div class="share-tags" id="shareTags"></div>
   </div>
+  <!-- IEC protocol §7 safety net: populated conditionally by renderSafetyNetBanner()
+       in results.js when ANY scale is in the Severe band. Hidden otherwise. -->
+  <div id="safetyNetBanner" style="display:none"></div>
   <div class="tabs">
     <button class="tab active" data-tab="disorders" onclick="switchResultTab('disorders')">Your Results</button>
     <button class="tab" data-tab="impact" onclick="switchResultTab('impact')">Health Impact</button>
