@@ -5,7 +5,7 @@ const CACHE_NAME = 'pause-app-v15-iec-consent-split';
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
-// On GitHub Pages at jaideeprao22.github.io/Pause-App/, BASE = '/Pause-App/'
+// On pause.jaideeprao.com, BASE auto-resolves to '/'
 const BASE = self.location.pathname.replace(/sw\.js$/, '');
 
 const PRECACHE_ASSETS = [
