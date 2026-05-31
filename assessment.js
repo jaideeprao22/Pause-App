@@ -408,6 +408,27 @@ function showSkipLogicScreener(){
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
         <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
+          <input type="checkbox" id="skip_cyberchondria" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">🔍 I search health info online</div>
+            <div style="font-size:11px;color:var(--muted)">Symptoms, illnesses, treatments, medical news</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
+          <input type="checkbox" id="skip_socialmedia" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">📱 I use social media</div>
+            <div style="font-size:11px;color:var(--muted)">Instagram, Facebook, WhatsApp, X, etc.</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
+          <input type="checkbox" id="skip_shortform" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:var(--text)">🎬 I watch short videos</div>
+            <div style="font-size:11px;color:var(--muted)">Instagram Reels, YouTube Shorts</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg);border-radius:12px;cursor:pointer;border:1px solid var(--border)">
           <input type="checkbox" id="skip_gaming" checked style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">
           <div style="flex:1">
             <div style="font-size:14px;font-weight:600;color:var(--text)">🎮 I play video games</div>
@@ -440,7 +461,7 @@ function showSkipLogicScreener(){
 
 function _proceedToFullAssessment(){
   // Collect unchecked modules → skip them
-  ['gaming','ai','workaddiction'].forEach(id => {
+  ['cyberchondria','socialmedia','shortform','gaming','ai','workaddiction'].forEach(id => {
     const cb = document.getElementById('skip_' + id);
     if(cb && !cb.checked) skippedModules.add(id);
   });

@@ -65,12 +65,12 @@ const DISORDERS = [
     items:6,
     maxScore:30,
     questions:[
-      {t:"How often in the past year have you spent a lot of time thinking about social media or planning to use it?", hint:"e.g. thinking about what others have posted, planning what you'll post next, or looking forward to checking social media"},
-      {t:"How often in the past year have you felt an urge to use social media more and more?"},
-      {t:"How often in the past year have you used social media to forget about personal problems?"},
-      {t:"How often in the past year have you tried to cut down on social media use without success?"},
-      {t:"How often in the past year have you become restless or troubled if you were unable to use social media?"},
-      {t:"How often in the past year have you used social media so much that it has had a negative impact on your job or studies?"}
+      {t:"How often in the past year have you spent a lot of time thinking about social media or planning to use it?", hint:"e.g. thinking about what others have posted, planning what you'll post next, or looking forward to checking social media. If you never do this, choose 'Very Rarely' — it's the lowest option."},
+      {t:"How often in the past year have you felt an urge to use social media more and more?", hint:"If you never do this, choose 'Very Rarely' — it's the lowest option."},
+      {t:"How often in the past year have you used social media to forget about personal problems?", hint:"If you never do this, choose 'Very Rarely' — it's the lowest option."},
+      {t:"How often in the past year have you tried to cut down on social media use without success?", hint:"If you never do this, choose 'Very Rarely' — it's the lowest option."},
+      {t:"How often in the past year have you become restless or troubled if you were unable to use social media?", hint:"If you never do this, choose 'Very Rarely' — it's the lowest option."},
+      {t:"How often in the past year have you used social media so much that it has had a negative impact on your job or studies?", hint:"If you never do this, choose 'Very Rarely' — it's the lowest option."}
     ],
     options:["Very Rarely","Rarely","Sometimes","Often","Very Often"],
     optionValues:[1,2,3,4,5],
@@ -88,18 +88,30 @@ const DISORDERS = [
     color:'#ff4757',
     bg:'rgba(255,71,87,0.1)',
     scale:'SVAS-6',
-    scaleRef:'Zhang et al., 2022 · Short-Form Video Addiction Scale',
+    scaleRef:'Katsiroumpa, Konstantakopoulou, Moisoglou, Galani, Tsiachri & Galanis · Short-Videos Addiction Scale (SVAS-6) · Archives of Hellenic Medicine, 2026 (in press), used with permission',
     items:6,
     maxScore:30,
+    // ============================================================
+    // SVAS-6 — Short-Videos Addiction Scale (Katsiroumpa et al.)
+    // Ref: Archives of Hellenic Medicine, 2026 (in press).
+    // Senior author Petros Galanis. Official English version used
+    // VERBATIM with the author's written permission.
+    // One-factor, 6 items — one per addiction component:
+    //   salience (1), mood modification (2), tolerance (3),
+    //   withdrawal (4), conflict (5), relapse (6).
+    // 5-point FREQUENCY scale, 1 (very rarely) to 5 (very often).
+    // Recall window: the past 12 months. Score range 6-30.
+    // Validated cut-off for problematic short-video use: total >= 15.
+    // ============================================================
     questions:[
-      {t:"I spend more time watching short videos (TikTok, Reels, Shorts) than I intend to."},
-      {t:"I feel restless or irritable when I cannot watch short videos."},
-      {t:"I have tried to reduce my short video watching but failed."},
-      {t:"Short video watching has negatively affected my work, study, or relationships."},
-      {t:"I use short videos to escape problems or relieve negative feelings."},
-      {t:"I continue watching short videos despite knowing it is harming me."}
+      {t:"I think about short-videos even when I am not watching them", hint:"Short-videos = Instagram Reels, YouTube Shorts and similar. Answer thinking about the last 12 months."},
+      {t:"I see short-videos as a get away from my problems and my thoughts"},
+      {t:"I have had difficulties stopping myself from watching short-videos"},
+      {t:"I feel sad when I cannot see short-videos for some time"},
+      {t:"I am unable to concentrate on my work/study because of spending time due watching short-videos"},
+      {t:"I experience anxiety when I cannot watch short-videos, which diminishes after I begin watching them"}
     ],
-    options:["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"],
+    options:["Very Rarely","Rarely","Sometimes","Often","Very Often"],
     optionValues:[1,2,3,4,5],
     levels:[
       {min:6,max:12,label:'Low Risk',color:'#2ecc71',bg:'rgba(46,204,113,0.1)',desc:'Your short video consumption is within healthy limits.'},
