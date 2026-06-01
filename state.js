@@ -267,12 +267,11 @@ function renderAccountSection(){
       <!-- IEC §13: Data-Principal Rights (DPDP Act §6 erasure right + grievance contact) -->
       <div style="margin-top:18px;padding:14px;background:rgba(192,57,43,0.06);border-left:3px solid #c0392b;border-radius:0 10px 10px 0">
         <div style="font-size:12px;font-weight:700;color:#c0392b;margin-bottom:6px">🔒 Your Data Rights</div>
-        <p style="font-size:11.5px;color:var(--muted);line-height:1.6;margin:0 0 10px">Under the DPDP Act, 2023 you may withdraw research consent and request permanent deletion of your research data at any time. Deletion is processed within 30 days. Already-published aggregate results cannot identify you and cannot be retracted.</p>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.6;margin:0 0 10px">Under the DPDP Act, 2023 you may withdraw research consent and request permanent deletion of your research data at any time. To request deletion, use the feedback form below and choose the "🗑️ Delete my data" category — your request is processed within a reasonable time. Already-published aggregate results cannot identify you and cannot be retracted.</p>
         ${withdrawn
           ? '<p style="font-size:11px;color:#c0392b;font-weight:700;margin:0 0 8px">Status: Research participation withdrawn.</p>'
           : ''}
-        <button class="btn-ghost" style="color:#c0392b;font-weight:700;font-size:12px;width:100%;padding:10px;border:1px solid #c0392b;border-radius:8px" onclick="deleteMyResearchData()">🗑️ Delete my research data</button>
-        <p style="font-size:10.5px;color:var(--muted);margin:10px 0 0;line-height:1.55">For privacy queries, grievance, or to contact the Principal Investigator: <a href="mailto:jaideeprao22@gmail.com" style="color:#0f2d5e;font-weight:700">jaideeprao22@gmail.com</a></p>
+        <p style="font-size:10.5px;color:var(--muted);margin:0;line-height:1.55">For privacy queries or grievance, please use the feedback form below.</p>
       </div>`;
   } else {
     el.innerHTML = `
@@ -1352,58 +1351,11 @@ function declineReConsent(){
 }
 
 // ============================================================
-// IEC §13: Delete-My-Research-Data (DPDP Act §6 erasure right)
-// Permanently removes the user's research records from Supabase
-// and locks future writes. Confirmation dialog before execution.
+// IEC: Data deletion is request-based (DPDP Act §6 erasure right).
+// Users request deletion via the feedback form (category
+// "Data deletion request"); the investigator verifies and
+// processes the deletion within 30 days. No instant self-deletion.
 // ============================================================
-async function deleteMyResearchData(){
-  // Use built-in confirm() fallback to showToast prompt; TWA blocks alert() but
-  // confirm() is generally allowed by Chrome Custom Tabs / WebView.
-  const ok = confirm(
-    'Delete all your research data?\n\n' +
-    'This will permanently erase your assessment records, urge log entries, ' +
-    'weekly check-ins, and feedback from our research database. Your ' +
-    'in-app personal history on this device will also be cleared. ' +
-    'This action cannot be undone.\n\n' +
-    'You can continue using the app — but your data will no longer contribute to research.'
-  );
-  if(!ok) return;
-
-  // 1. Lock all future writes locally
-  localStorage.setItem('pause_research_withdrawn', JSON.stringify({
-    timestamp: new Date().toISOString(),
-    reason: 'user_requested_deletion'
-  }));
-
-  // 2. Delete from Supabase (only if signed in)
-  if(currentUser && currentUser.id){
-    const uid = currentUser.id;
-    try {
-      await Promise.allSettled([
-        sb.from('Assessments').delete().eq('user_id', uid),
-        sb.from('UrgeLog').delete().eq('user_id', uid),
-        sb.from('WeeklyCheckin').delete().eq('user_id', uid),
-        sb.from('Feedback').delete().eq('user_id', uid),
-        sb.from('Logbook').delete().eq('user_id', uid),
-        sb.from('Profiles').delete().eq('user_id', uid)
-      ]);
-    } catch(e){ console.warn('Supabase deletion error:', e); }
-  }
-
-  // 3. Clear local research-history copies (keep app-shell prefs)
-  try {
-    localStorage.removeItem('pauseV2History');
-    localStorage.removeItem('pause_last_assessment_id');
-    localStorage.removeItem('pause_urge_log');
-    localStorage.removeItem('pauseLogbook');
-    localStorage.removeItem('pause_weekly_checkin');
-    localStorage.removeItem('moodLog');
-    localStorage.removeItem('screenTimeLog');
-  } catch(e){}
-
-  showToast('🔒 Your research data has been deleted. Thank you for participating.');
-  setTimeout(() => { try { location.reload(); } catch(e){} }, 1800);
-}
 
 // ============================================================
 // FEATURE1: Urge Journal
