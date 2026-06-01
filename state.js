@@ -416,8 +416,7 @@ function saveProfile(){
   if(!profileSelections.chronic_illness){   _highlightProfileField('chronicIllnessOptions',  'Chronic illness question'); return; }
   if(!profileSelections.physical_activity){ _highlightProfileField('physicalActivityOptions','Physical activity level');  return; }
   if(!profileSelections.prev_detox_attempt){_highlightProfileField('prevDetoxOptions',       'Digital detox question');   return; }
-  if(!profileSelections.followup_consent){  _highlightProfileField('followupConsentOptions', 'Follow-up consent');        return; }
-  // profileReferral is intentionally optional — no validation
+  // Follow-up consent and referral questions removed — not collected.
 
   userProfile = {
     age,
@@ -445,8 +444,8 @@ function saveProfile(){
     chronic_illness:    profileSelections.chronic_illness,
     physical_activity:  profileSelections.physical_activity,
     prev_detox_attempt: profileSelections.prev_detox_attempt,
-    referral_source:    document.getElementById('profileReferral').value || null,
-    followup_consent:   profileSelections.followup_consent === 'Yes',
+    referral_source:    null,
+    followup_consent:   null,
     terms_version:      '1.0',
     createdAt:          new Date().toISOString()
   };
