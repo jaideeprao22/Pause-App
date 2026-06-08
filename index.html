@@ -358,7 +358,7 @@
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- FEEDBACK SECTION                                           -->
   <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="card" style="margin-bottom:12px">
+  <div class="card" id="contact" style="margin-bottom:12px">
     <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">💬 We'd Love to Hear From You</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Found something that could be better? Have a suggestion? Every message goes directly to our team and genuinely helps improve this tool for everyone.</p>
 
@@ -383,7 +383,6 @@
         <button class="form-option" onclick="selectFeedbackCategory('Feature request',this)">💡 Feature</button>
         <button class="form-option" onclick="selectFeedbackCategory('General feedback',this)">💬 General</button>
         <button class="form-option" onclick="selectFeedbackCategory('Research query',this)">🔬 Research</button>
-        <button class="form-option" onclick="selectFeedbackCategory('Data deletion request',this)">🗑️ Delete my data</button>
       </div>
     </div>
 
@@ -1318,6 +1317,25 @@
         <button class="form-option" onclick="selectOption('prev_detox_attempt','No',this)">No</button>
       </div>
     </div>
+    <div class="form-group">
+      <label class="form-label">Can we email you personalised wellness tips based on your results?</label>
+      <div class="form-options" id="followupConsentOptions">
+        <button class="form-option" onclick="selectOption('followup_consent','Yes',this)">Yes, please!</button>
+        <button class="form-option" onclick="selectOption('followup_consent','No',this)">No thanks</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">How did you hear about PAUSE App? <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <select class="form-input" id="profileReferral">
+        <option value="">Prefer not to say</option>
+        <option value="Doctor/Healthcare provider">Doctor / Healthcare provider</option>
+        <option value="Friend/Family">Friend / Family</option>
+        <option value="Social media">Social media</option>
+        <option value="Play Store search">Play Store search</option>
+        <option value="Research/Academic">Research / Academic context</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
 
     <button class="btn-primary" onclick="saveProfile()">Save &amp; Continue →</button>
   </div>
@@ -1742,6 +1760,16 @@ document.addEventListener('DOMContentLoaded', function(){
   setTimeout(()=>{ if(typeof checkWeeklyCheckin==='function') checkWeeklyCheckin(); },8000);
   // BUG20 FIX: defer renderHomeDisorders so nav.js loadScores() can populate disorderScores first
   setTimeout(()=>{ if(typeof renderHomeDisorders==='function') renderHomeDisorders(); },200);
+  // Deep-link: arriving via #contact opens the About page and scrolls to the feedback form
+  if(location.hash === '#contact'){
+    setTimeout(function(){
+      if(typeof showScreen==='function') showScreen('screen-about');
+      setTimeout(function(){
+        var c=document.getElementById('contact');
+        if(c) c.scrollIntoView({behavior:'smooth',block:'start'});
+      },300);
+    },150);
+  }
 });
 </script>
 
