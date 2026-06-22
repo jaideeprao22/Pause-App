@@ -822,6 +822,17 @@
           <div id="rcYes" class="consent-choice" onclick="selectResearchConsent('yes')" style="text-align:center;padding:14px 8px;border:2px solid var(--border);background:rgba(255,255,255,0.04);border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">✅ Yes, include my data</div>
           <div id="rcNo"  class="consent-choice" onclick="selectResearchConsent('no')"  style="text-align:center;padding:14px 8px;border:2px solid var(--border);background:rgba(255,255,255,0.04);border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--text);transition:all 0.15s ease">❌ No</div>
         </div>
+
+        <!-- OPTIONAL STUDY / COLLABORATION CODE — only relevant if "Yes".
+             If a student was given a code by their college, they enter it here
+             so their de-identified data is tagged to that cohort. Validated
+             live against the StudyCodes table in Supabase; blank is allowed. -->
+        <div id="studyCodeWrap" style="margin-top:14px">
+          <label class="form-label" style="font-size:12px;font-weight:700;color:var(--text)">Study / collaboration code <span style="color:var(--muted);font-weight:500">(optional)</span></label>
+          <input type="text" id="studyCodeInput" class="form-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. MNR2026 — leave blank if you don't have one" oninput="onStudyCodeInput(this)" style="text-transform:uppercase;letter-spacing:0.05em;margin-top:6px">
+          <div id="studyCodeMsg" style="font-size:11px;margin-top:5px;min-height:14px;line-height:1.4"></div>
+          <p style="font-size:10.5px;color:var(--muted);line-height:1.5;margin:4px 0 0">Only enter a code if your college or researcher gave you one. It simply groups your responses with your cohort — it is never shown to anyone else.</p>
+        </div>
       </div>
 
       <div class="terms-error" id="termsError">⚠️ Please choose Yes or No to continue.</div>
@@ -1531,6 +1542,11 @@
         <option value="Canada">Canada</option>
         <option value="Other">Other</option>
       </select>
+    </div>
+    <div class="edit-profile-row" id="editStudyCodeRow" style="display:none">
+      <label>Study / Collaboration Code <span style="text-transform:none;font-weight:500;color:var(--muted)">(optional)</span></label>
+      <input type="text" id="editStudyCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. MNR2026 — leave blank if none" oninput="onEditStudyCodeInput(this)" style="text-transform:uppercase;letter-spacing:0.05em">
+      <div id="editStudyCodeMsg" style="font-size:11px;margin-top:5px;min-height:14px;line-height:1.4"></div>
     </div>
     <div class="edit-profile-row">
       <label>Primary Device</label>

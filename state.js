@@ -515,10 +515,30 @@ function openEditProfile(){
   sv('editGovtDepartment',userProfile.govt_department);
   sv('editOtherOrg',      userProfile.other_org);
   showEditOccupationBranch(userProfile.occupation);
+
+  // Study-code row: show ONLY to users who consented to research. Pre-fill with
+  // their current code (if any) so they can see/correct it. A student who forgot
+  // to enter it at sign-in can add it here — no logout needed.
+  const scRow = document.getElementById('editStudyCodeRow');
+  const scInput = document.getElementById('editStudyCode');
+  const scMsg = document.getElementById('editStudyCodeMsg');
+  let _consented = false;
+  try { const rc = JSON.parse(localStorage.getItem('pause_research_consent') || 'null'); _consented = !!(rc && rc.consented === true); } catch(e){}
+  if(scRow){ scRow.style.display = _consented ? 'block' : 'none'; }
+  if(scInput){
+    const existing = _getStoredStudyCode() || '';
+    scInput.value = existing;
+    scInput.style.borderColor = '';
+    _editStudyCode = existing || null;
+    _editStudyCodeValid = true;
+    _editStudyCodeChecking = false;
+  }
+  if(scMsg){ scMsg.textContent = ''; }
+
   openModal('editProfileModal');
 }
 
-function saveEditProfile(){
+async function saveEditProfile(){
   const _highlightEdit = (id, name) => _highlightProfileField(id, name);
   const _val = id => (document.getElementById(id)?.value || '').trim();
 
@@ -535,6 +555,27 @@ function saveEditProfile(){
   if(!_val('editActivity')){   _highlightEdit('editActivity',   'Physical activity level'); return; }
   if(!_val('editHealth')){     _highlightEdit('editHealth',     'Overall health rating'); return; }
   if(!_val('editChronic')){    _highlightEdit('editChronic',    'Chronic illness question'); return; }
+
+  // Study code (only present for research participants). If a non-blank code is
+  // typed it must match an active code; blank is fine. Run a final check if one
+  // is still pending.
+  const scInput = document.getElementById('editStudyCode');
+  const scRowVisible = document.getElementById('editStudyCodeRow')?.style.display !== 'none';
+  if(scInput && scRowVisible){
+    const raw = (scInput.value || '').trim().toUpperCase();
+    if(raw !== '' && (_editStudyCodeChecking || _editStudyCode !== raw)){
+      const result = await _lookupStudyCode(raw);
+      if(result === undefined){ _editStudyCode = null; _editStudyCodeValid = true; }
+      else if(result === null){ _editStudyCode = null; _editStudyCodeValid = false; }
+      else { _editStudyCode = raw; _editStudyCodeValid = true; }
+    }
+    if(!_editStudyCodeValid){
+      const scMsg = document.getElementById('editStudyCodeMsg');
+      if(scMsg){ scMsg.textContent = '⚠️ Please fix or clear the study code before saving.'; scMsg.style.color = '#e74c3c'; }
+      if(scInput){ scInput.style.outline = '3px solid #c0392b'; scInput.focus(); setTimeout(() => { if(scInput) scInput.style.outline = ''; }, 1800); }
+      return;
+    }
+  }
 
   // --- Occupation-conditional validation (only validates the visible branch) ---
   if(occupation === 'Student'){
@@ -591,6 +632,12 @@ function saveEditProfile(){
   ) || null;
 
   userProfile.updatedAt = new Date().toISOString();
+
+  // Persist study code (if the row was shown) so it tags Profiles + future
+  // Assessments via _getStoredStudyCode().
+  if(document.getElementById('editStudyCodeRow')?.style.display !== 'none'){
+    _setStoredStudyCode(_editStudyCode || null);
+  }
 
   // --- Persist locally ---
   if(currentUser){
@@ -662,6 +709,7 @@ async function syncProfileToSupabase(){
       prev_detox_attempt: userProfile.prev_detox_attempt || null,
       referral_source:    userProfile.referral_source    || null,
       followup_consent:   typeof userProfile.followup_consent === 'boolean' ? userProfile.followup_consent : null,
+      study_code:         _getStoredStudyCode(),
       terms_version:      userProfile.terms_version      || '1.0',
       updated_at:         new Date().toISOString()
     }, { onConflict: 'user_id' });
@@ -1054,7 +1102,8 @@ async function saveToSupabase(){
       // Research meta
       prev_detox_attempt: userProfile.prev_detox_attempt || null,
       referral_source:    userProfile.referral_source || null,
-      followup_consent:   userProfile.followup_consent || null
+      followup_consent:   userProfile.followup_consent || null,
+      study_code:         _getStoredStudyCode()
     }).select('id').single();
 
     // Store row ID so Stage 2 post-assessment UPDATE can target the correct row
@@ -1197,6 +1246,141 @@ function openLoginFlow(){
 // not refusal; it is no record at all, and we will not let the flow proceed.
 let _researchConsentChoice = null;
 
+// ------------------------------------------------------------
+// STUDY / COLLABORATION CODE
+// Validated LIVE against the Supabase `StudyCodes` table (columns:
+// code [pk], label, active). Blank is allowed (no cohort). Stored uppercased.
+// _studyCodeValid gates the Continue button only when a NON-BLANK code is
+// typed — a blank field is always allowed.
+//
+// To add a cohort: insert a row in StudyCodes from the Supabase dashboard.
+// To close enrolment: set that row's `active` to false. No app release needed.
+// ------------------------------------------------------------
+let _studyCode = null;        // final accepted code (uppercased) or null
+let _studyCodeValid = true;   // true when field is blank OR matches an active code
+let _studyCodeChecking = false;
+let _studyCodeDebounce = null;
+
+async function _lookupStudyCode(code){
+  // Returns the label string if the code exists AND is active, else null.
+  try {
+    const { data, error } = await sb
+      .from('StudyCodes')
+      .select('code,label,active')
+      .eq('code', code)
+      .eq('active', true)
+      .maybeSingle();
+    if(error){ console.warn('StudyCode lookup error:', error); return undefined; } // undefined = lookup failed
+    return data ? (data.label || code) : null; // null = not found / inactive
+  } catch(e){ console.warn('StudyCode lookup error:', e); return undefined; }
+}
+
+function onStudyCodeInput(el){
+  const raw = (el.value || '').trim().toUpperCase();
+  el.value = raw; // keep field visually uppercased
+  const msg = document.getElementById('studyCodeMsg');
+
+  if(raw === ''){
+    _studyCode = null; _studyCodeValid = true; _studyCodeChecking = false;
+    if(_studyCodeDebounce){ clearTimeout(_studyCodeDebounce); }
+    if(msg){ msg.textContent = ''; }
+    el.style.borderColor = '';
+    return;
+  }
+
+  // While we wait for the debounced network check, treat as not-yet-valid so a
+  // fast tapper can't slip an unverified code through.
+  _studyCode = null; _studyCodeValid = false; _studyCodeChecking = true;
+  if(msg){ msg.textContent = 'Checking…'; msg.style.color = 'var(--muted)'; }
+  el.style.borderColor = '';
+
+  if(_studyCodeDebounce){ clearTimeout(_studyCodeDebounce); }
+  _studyCodeDebounce = setTimeout(async () => {
+    const result = await _lookupStudyCode(raw);
+    // Ignore if the field changed while we were waiting
+    if((el.value || '').trim().toUpperCase() !== raw) return;
+    _studyCodeChecking = false;
+    if(result === undefined){
+      // Network/RLS failure — don't hard-block; allow but warn.
+      _studyCode = null; _studyCodeValid = true;
+      if(msg){ msg.textContent = '⚠️ Could not verify code (offline?). You may continue.'; msg.style.color = '#d97706'; }
+      el.style.borderColor = '#d97706';
+    } else if(result === null){
+      _studyCode = null; _studyCodeValid = false;
+      if(msg){ msg.textContent = '⚠️ Code not recognised. Check with your college, or leave blank.'; msg.style.color = '#e74c3c'; }
+      el.style.borderColor = '#e74c3c';
+    } else {
+      _studyCode = raw; _studyCodeValid = true;
+      if(msg){ msg.textContent = '✅ ' + result; msg.style.color = '#2ecc71'; }
+      el.style.borderColor = '#2ecc71';
+    }
+  }, 450);
+}
+
+function _getStoredStudyCode(){
+  // Single source of truth: the consent record written at sign-in.
+  try {
+    const rc = JSON.parse(localStorage.getItem('pause_research_consent') || 'null');
+    if(rc && rc.consented === true && rc.study_code){ return rc.study_code; }
+  } catch(e){}
+  return null;
+}
+
+// Persist a study code chosen AFTER sign-in (via Edit Profile) back into the
+// consent record, so future assessments get tagged too. Only meaningful when
+// the user has consented to research.
+function _setStoredStudyCode(code){
+  try {
+    const rc = JSON.parse(localStorage.getItem('pause_research_consent') || 'null');
+    if(rc && rc.consented === true){
+      rc.study_code = code || null;
+      localStorage.setItem('pause_research_consent', JSON.stringify(rc));
+    }
+  } catch(e){}
+}
+
+// Edit-modal study-code validation. Mirrors onStudyCodeInput but targets the
+// edit-* fields and updates _editStudyCode / _editStudyCodeValid.
+let _editStudyCode = null;
+let _editStudyCodeValid = true;
+let _editStudyCodeChecking = false;
+let _editStudyCodeDebounce = null;
+
+function onEditStudyCodeInput(el){
+  const raw = (el.value || '').trim().toUpperCase();
+  el.value = raw;
+  const msg = document.getElementById('editStudyCodeMsg');
+  if(raw === ''){
+    _editStudyCode = null; _editStudyCodeValid = true; _editStudyCodeChecking = false;
+    if(_editStudyCodeDebounce){ clearTimeout(_editStudyCodeDebounce); }
+    if(msg){ msg.textContent = ''; }
+    el.style.borderColor = '';
+    return;
+  }
+  _editStudyCode = null; _editStudyCodeValid = false; _editStudyCodeChecking = true;
+  if(msg){ msg.textContent = 'Checking…'; msg.style.color = 'var(--muted)'; }
+  el.style.borderColor = '';
+  if(_editStudyCodeDebounce){ clearTimeout(_editStudyCodeDebounce); }
+  _editStudyCodeDebounce = setTimeout(async () => {
+    const result = await _lookupStudyCode(raw);
+    if((el.value || '').trim().toUpperCase() !== raw) return;
+    _editStudyCodeChecking = false;
+    if(result === undefined){
+      _editStudyCode = null; _editStudyCodeValid = true;
+      if(msg){ msg.textContent = '⚠️ Could not verify code (offline?). You may still save.'; msg.style.color = '#d97706'; }
+      el.style.borderColor = '#d97706';
+    } else if(result === null){
+      _editStudyCode = null; _editStudyCodeValid = false;
+      if(msg){ msg.textContent = '⚠️ Code not recognised. Check with your college, or leave blank.'; msg.style.color = '#e74c3c'; }
+      el.style.borderColor = '#e74c3c';
+    } else {
+      _editStudyCode = raw; _editStudyCodeValid = true;
+      if(msg){ msg.textContent = '✅ ' + result; msg.style.color = '#2ecc71'; }
+      el.style.borderColor = '#2ecc71';
+    }
+  }, 450);
+}
+
 function selectResearchConsent(value){
   _researchConsentChoice = value;
   const yesEl = document.getElementById('rcYes');
@@ -1216,7 +1400,7 @@ function selectResearchConsent(value){
   if(err) err.style.display = 'none';
 }
 
-function acceptTermsAndLogin(){
+async function acceptTermsAndLogin(){
   const err = document.getElementById('termsError');
 
   // SINGLE mandatory active choice. Picking either Yes or No constitutes:
@@ -1236,6 +1420,27 @@ function acceptTermsAndLogin(){
   }
   if(err) err.style.display = 'none';
 
+  // Study code: if a non-blank code was typed, it MUST match an active code.
+  // Blank is always fine. If a check is still in flight, run it now and wait.
+  const scEl = document.getElementById('studyCodeInput');
+  if(scEl){
+    const raw = (scEl.value || '').trim().toUpperCase();
+    if(raw !== '' && (_studyCodeChecking || _studyCode !== raw)){
+      const scMsg = document.getElementById('studyCodeMsg');
+      if(scMsg){ scMsg.textContent = 'Checking…'; scMsg.style.color = 'var(--muted)'; }
+      const result = await _lookupStudyCode(raw);
+      if(result === undefined){ _studyCode = null; _studyCodeValid = true; }       // network fail → allow
+      else if(result === null){ _studyCode = null; _studyCodeValid = false; }       // unknown → block
+      else { _studyCode = raw; _studyCodeValid = true; if(scMsg){ scMsg.textContent = '✅ ' + result; scMsg.style.color = '#2ecc71'; } }
+    }
+  }
+  if(!_studyCodeValid){
+    const scMsg = document.getElementById('studyCodeMsg');
+    if(scMsg){ scMsg.textContent = '⚠️ Please fix or clear the study code before continuing.'; scMsg.style.color = '#e74c3c'; }
+    if(scEl){ scEl.style.outline = '3px solid #c0392b'; scEl.focus(); setTimeout(() => { if(scEl) scEl.style.outline = ''; }, 1800); }
+    return;
+  }
+
   // T&C acceptance is IMPLICIT in selecting either Yes or No (both paths agree
   // to the same standard terms; only research outcome differs). Record it.
   localStorage.setItem('pause_terms_accepted', JSON.stringify({
@@ -1249,6 +1454,7 @@ function acceptTermsAndLogin(){
   localStorage.setItem('pause_research_consent', JSON.stringify({
     consented: researchConsented,
     decision: _researchConsentChoice,           // explicit 'yes' or 'no' — never blank
+    study_code: researchConsented ? (_studyCode || null) : null, // cohort tag, only when consented
     timestamp: new Date().toISOString(),
     consent_version: '2.5'
   }));
@@ -1289,6 +1495,14 @@ function openModal(id){
     });
     const err = document.getElementById('termsError');
     if(err) err.style.display = 'none';
+
+    // Reset study-code field + trackers each time the modal opens
+    _studyCode = null; _studyCodeValid = true; _studyCodeChecking = false;
+    if(_studyCodeDebounce){ clearTimeout(_studyCodeDebounce); }
+    const scEl = document.getElementById('studyCodeInput');
+    if(scEl){ scEl.value = ''; scEl.style.borderColor = ''; scEl.style.outline = ''; }
+    const scMsg = document.getElementById('studyCodeMsg');
+    if(scMsg){ scMsg.textContent = ''; }
   }
 
   // Re-render Google sign-in button each time loginModal opens.
