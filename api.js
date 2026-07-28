@@ -7,10 +7,13 @@
 // the row ownership itself. The only secret the browser ever holds is the
 // user's own session token.
 //
-// ⚠️ SET THIS after deploying the proxy (proxy/ in this repo → its own Vercel
-// project). It is a public URL, not a secret.
+// ⚠️ DELIBERATELY EMPTY. Set this to the proxy's deployment URL (public, not a
+// secret) only once the Google identity-linking question is settled — see
+// proxy/README.md "Auth is unresolved". While it is empty every cloud call
+// short-circuits to a clean error and the app runs local-only, which is the
+// correct behaviour for a build that must not talk to the new backend yet.
 // ============================================================
-const PAUSE_API_BASE = 'https://pause-proxy.vercel.app';
+const PAUSE_API_BASE = '';
 
 const PAUSE_TOKEN_KEY = 'pause_session_token';
 
@@ -29,6 +32,11 @@ const PauseAPI = (() => {
   // shape the previous database client used to hand back, and no call site has to
   // reason about HTTP status codes.
   async function call(path, { method = 'GET', body, auth = true, timeoutMs = 15000 } = {}){
+    // Not configured yet — fail fast and locally rather than firing requests at
+    // a relative path on the GitHub Pages origin, which would 404 as HTML.
+    if(!PAUSE_API_BASE){
+      return { data: null, error: { message: 'Cloud sync is not configured yet.', status: 0 } };
+    }
     const headers = {};
     if(body !== undefined) headers['Content-Type'] = 'application/json';
     if(auth){
