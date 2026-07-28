@@ -56,9 +56,9 @@
 <h3>3.1 What we collect when you use the App for personal screening</h3>
 <table>
   <tr><th>Category</th><th>Examples</th><th>Where it is stored</th></tr>
-  <tr><td>Authentication identifier</td><td>Google account email (only if you choose Google Sign-In to sync progress across devices)</td><td>Supabase auth table — kept logically separate from research data</td></tr>
-  <tr><td>App functional data</td><td>Questionnaire responses, scores, app version, screen-time log entries, journal entries, mood check-ins, badges, challenge progress</td><td>Locally on your device (browser localStorage); also on the Supabase backend if you signed in</td></tr>
-  <tr><td>Operational data</td><td>App version, consent version, timestamps of consent and submission</td><td>On your device and, with your consent, on the Supabase backend</td></tr>
+  <tr><td>Authentication identifier</td><td>Google account email (only if you choose Google Sign-In to sync progress across devices). We never receive or store a password.</td><td>Backend authentication table — kept logically separate from research data</td></tr>
+  <tr><td>App functional data</td><td>Questionnaire responses, scores, app version, screen-time log entries, journal entries, mood check-ins, badges, challenge progress</td><td>Locally on your device (browser localStorage); also on the study backend if you signed in</td></tr>
+  <tr><td>Operational data</td><td>App version, consent version, timestamps of consent and submission</td><td>On your device and, with your consent, on the study backend</td></tr>
 </table>
 
 <h3>3.2 What we additionally collect <em>only if you consent to research use ("Yes, include my data")</em></h3>
@@ -94,7 +94,7 @@
 </ul>
 
 <h2>6. Where your data is stored</h2>
-<p>App data and the research dataset are stored on <strong>Supabase</strong> (PostgreSQL) under the Principal Investigator's account, with TLS encryption in transit and at rest, row-level security policies, and monthly access-log review. Depending on the Supabase region selected, the underlying servers may be located outside India. Cross-border transfer is permitted under the DPDP Act for jurisdictions not specifically notified as restricted by the Central Government; the Principal Investigator monitors the notified list and will migrate the hosting region if the position changes.</p>
+<p>App data and the research dataset are stored in a <strong>self-hosted PostgreSQL database</strong> operated under the Principal Investigator's control, with TLS encryption in transit and at rest and monthly access-log review. The App never connects to the database directly: all access passes through a dedicated access-control service that authenticates you and restricts every read and write to your own records. Depending on the hosting region in use, the underlying servers may be located outside India. Cross-border transfer is permitted under the DPDP Act for jurisdictions not specifically notified as restricted by the Central Government; the Principal Investigator monitors the notified list and will migrate the hosting region if the position changes.</p>
 
 <h2>7. How long we keep your data</h2>
 <ul>
@@ -119,7 +119,7 @@
 <p>The App does <strong>not</strong> use cookies for tracking, third-party advertising trackers, or behavioural analytics SDKs (e.g. no Google Analytics, no Facebook Pixel, no advertising IDs). The only persistent storage used on your device is the browser's localStorage for App functionality and offline use.</p>
 
 <h2>9. Security</h2>
-<p>All data is transmitted over HTTPS (TLS 1.2 or higher). The Supabase backend enforces row-level security so that one user cannot read another user's records. Administrative access is restricted to the Principal Investigator. We review access logs monthly. Any data breach with risk to participant safety or privacy will be reported to the Institutional Ethics Committee and, where required by the DPDP Rules, 2025, to the Data Protection Board of India.</p>
+<p>All data is transmitted over HTTPS (TLS 1.2 or higher). The App holds no database credential. Every request is checked by an access-control service that verifies your session, determines your identity on the server, and permits access only to records belonging to you — so one user cannot read another user's records. Administrative access is restricted to the Principal Investigator. We review access logs monthly. Any data breach with risk to participant safety or privacy will be reported to the Institutional Ethics Committee and, where required by the DPDP Rules, 2025, to the Data Protection Board of India.</p>
 
 <h2>10. Children's data</h2>
 <p>The App is intended for adults 18 years and older. We do not knowingly collect personal data from children or adolescents below 18. If you believe a person under 18 has provided personal data through the App, please contact us immediately and we will delete that data.</p>

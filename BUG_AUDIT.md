@@ -5,6 +5,12 @@ Branch: claude/compassionate-mestorf-3a694c
 Scope: every JS file + index.html. No fixes applied.
 Sort order: severity (CRITICAL → HIGH → MEDIUM → LOW), then ID.
 
+> **Historical document.** This audit was written in May 2026 against the
+> previous hosted-Postgres backend, before the migration to self-hosted Postbase
+> behind the PAUSE proxy. Findings are preserved verbatim; only the former
+> vendor's name and since-renamed function identifiers have been updated so the
+> references still resolve. BUG-038 is superseded — see its entry.
+
 Severity legend
 - **CRITICAL** — crashes, data loss, or wrong stored data
 - **HIGH** — broken feature or wrong-output for a primary user flow
@@ -22,10 +28,10 @@ Severity legend
 **Proposed fix:** In `finishAssessment`, when assessMode==='quick', call `dwsScore = calculateDWS()` (no impactOnly) so the saved DWS reflects all data the history snapshot contains. This also fixes Known Bug #1 ("Quick Scan not calculating DWS composite score") — the M1 FIX comment is wrong; staleness is already surfaced via the home-screen recheck label.
 **Files touched:** assessment.js
 
-### BUG-002 ✅ FIXED (skip-when-empty patch only; full v1.1 merge still TODO) — `loadAllUserDataFromSupabase` blindly overwrites local data with remote on every login
+### BUG-002 ✅ FIXED (skip-when-empty patch only; full v1.1 merge still TODO) — `loadAllUserDataFromCloud` blindly overwrites local data with remote on every login
 **File:** [state.js:790-877](state.js#L790)
 **Severity:** CRITICAL (offline data loss for users who journal/log/assess BEFORE signing in)
-**Description:** The function replaces `pauseV2History`, `pauseLogbook`, `moodLog`, `screenTimeLog`, `pause_urge_log`, `pause_weekly_checkin`, and challenge state with whatever supabase returns — without merging by timestamp. The TODO comment at line 718-723 acknowledges this. Any data created during a guest/offline session is destroyed on login.
+**Description:** The function replaces `pauseV2History`, `pauseLogbook`, `moodLog`, `screenTimeLog`, `pause_urge_log`, `pause_weekly_checkin`, and challenge state with whatever the backend returns — without merging by timestamp. The TODO comment at line 718-723 acknowledges this. Any data created during a guest/offline session is destroyed on login.
 **Proposed fix:** Per-table merge by `created_at`/`recorded_at` — keep the union, prefer newer rows. Minimum viable: skip overwrite when remote array is empty AND local is non-empty.
 **Files touched:** state.js
 
@@ -45,8 +51,8 @@ Severity legend
 
 ### BUG-005 — `disorderScores` mutation in `loadSavedScores` reassigns the binding, severing live references in other modules at boot
 **File:** [app.js:47-49](app.js#L47), [state.js:802-804](state.js#L802)
-**Severity:** CRITICAL (subtle — manifests when supabase load completes after the first home render)
-**Description:** `loadSavedScores()` does `disorderScores = saved.disorder || {}`. So does `loadAllUserDataFromSupabase`. Because these globals are `let`-declared in state.js, reassignment is module-scoped and *does* propagate — but only if every reader resolves the identifier at call time. The risk is that any closure that captured `disorderScores` directly at a previous tick (e.g. in the `Object.keys(disorderScores).length` checks in render functions) sees stale data. In practice the renders re-read each call so this stays latent — but the `delete` semantics differ: a fresh `{}` won't preserve any in-memory keys set between localStorage write and login fetch.
+**Severity:** CRITICAL (subtle — manifests when the cloud load completes after the first home render)
+**Description:** `loadSavedScores()` does `disorderScores = saved.disorder || {}`. So does `loadAllUserDataFromCloud`. Because these globals are `let`-declared in state.js, reassignment is module-scoped and *does* propagate — but only if every reader resolves the identifier at call time. The risk is that any closure that captured `disorderScores` directly at a previous tick (e.g. in the `Object.keys(disorderScores).length` checks in render functions) sees stale data. In practice the renders re-read each call so this stays latent — but the `delete` semantics differ: a fresh `{}` won't preserve any in-memory keys set between localStorage write and login fetch.
 **Proposed fix:** Mutate-in-place: `Object.keys(disorderScores).forEach(k => delete disorderScores[k]); Object.assign(disorderScores, saved.disorder || {});` (and same for `impactScores`). Avoids any closure pitfalls.
 **Files touched:** app.js, state.js
 
@@ -82,16 +88,16 @@ Severity legend
 **Proposed fix:** Add `document.addEventListener('visibilitychange', () => { if(document.hidden && isRecording) stopRecording(); })` in logbook.js, and call `stopRecording()` from `nav.js showScreen` when leaving `screen-logbook`.
 **Files touched:** logbook.js, nav.js
 
-### BUG-010 ✅ FIXED — Supabase `Profiles` upsert sends 23 always-null fields when called pre-profile
+### BUG-010 ✅ FIXED — `Profiles` upsert sends 23 always-null fields when called pre-profile
 **File:** [state.js:605-643](state.js#L605)
 **Severity:** HIGH (creates a Profiles row full of NULLs on first login if user dismisses the profile modal — pollutes research data)
-**Description:** `syncProfileToSupabase()` is called from `saveProfile` (real data) AND from `saveEditProfile`. But it's also called via `handleUser → loadAllUserDataFromSupabase → finally` paths in some edge cases. If `userProfile` is `{}`, every field sent is null, but `terms_version: '1.0'` and `updated_at` are always set, so the upsert succeeds and creates a useless row.
-**Proposed fix:** Guard `if(!userProfile.age) return;` at the top of `syncProfileToSupabase`. (Age is the cheapest required field.)
+**Description:** `syncProfileToCloud()` is called from `saveProfile` (real data) AND from `saveEditProfile`. But it's also called via `handleUser → loadAllUserDataFromCloud → finally` paths in some edge cases. If `userProfile` is `{}`, every field sent is null, but `terms_version: '1.0'` and `updated_at` are always set, so the upsert succeeds and creates a useless row.
+**Proposed fix:** Guard `if(!userProfile.age) return;` at the top of `syncProfileToCloud`. (Age is the cheapest required field.)
 **Files touched:** state.js
 
 ### BUG-011 ✅ FIXED — `progressHistory` element accessed without null guard
 **File:** [progress.js:209-213](progress.js#L209)
-**Severity:** HIGH (TypeError if DOM hasn't rendered the screen yet — happens during the supabase post-login re-render burst)
+**Severity:** HIGH (TypeError if DOM hasn't rendered the screen yet — happens during the post-login re-render burst)
 **Description:** `const el = document.getElementById('progressHistory'); if(!history.length){ el.innerHTML=...}` — `el` may be null. The `if(!history.length)` block accesses `el.innerHTML` unguarded.
 **Proposed fix:** `if(!el) return;` immediately after the getElementById. Same defensive pattern used elsewhere in the file.
 **Files touched:** progress.js
@@ -154,7 +160,7 @@ Severity legend
 
 ### BUG-020 — `selectAnswer` auto-advance can fire `finishAssessment` twice if user taps Finish manually then auto-advance fires
 **File:** [assessment.js:261-271](assessment.js#L261)
-**Severity:** MEDIUM (rare but reproducible: user selects last-question answer → 300ms timer → user taps Finish → both fire `finishAssessment` → score may save twice → duplicate Supabase Assessments row)
+**Severity:** MEDIUM (rare but reproducible: user selects last-question answer → 300ms timer → user taps Finish → both fire `finishAssessment` → score may save twice → duplicate Assessments row)
 **Description:** `_autoAdvanceTimer` is cleared in `nextQuestion()` (line 275) but `nextQuestion` calls `finishAssessment()` immediately when on last question (line 278). Then when the timer fires (already cleared), the callback is gone, so it shouldn't fire. Wait — clearTimeout DOES cancel. Re-reading: `nextQuestion` clears the timer FIRST (line 275), then runs. So if user clicks Next after selectAnswer, the timer is cleared. OK, not a bug. **Downgrade to LOW** — but I'll mark it as "verify" because the same path with a delayed render could double-fire.
 **Update after re-check:** the H3 FIX is correct. NOT A BUG. Removing.
 
@@ -260,10 +266,14 @@ Severity legend
 **Severity:** LOW (unreachable because the onclick is on an element inside the same banner — the banner is guaranteed to exist when the click fires)
 **Proposed fix:** None.
 
-### BUG-038 — `data.js` SUPABASE_KEY exposes a publishable key in the client bundle (intentional for Supabase, but worth noting)
-**File:** [data.js:5](data.js#L5)
-**Severity:** LOW (publishable keys are designed to be public; not a vulnerability per Supabase docs — note only)
-**Proposed fix:** None.
+### BUG-038 ✅ SUPERSEDED — `data.js` embedded a database key in the client bundle
+**File:** `data.js:5` (removed)
+**Severity at the time:** LOW (the key was a publishable one, designed to be public, and the backend enforced row-level security behind it — note only)
+**Resolution:** Obsolete as of the Postbase migration. The new backend does not
+enforce row-level security, so a browser-held key would no longer be merely
+noteworthy — it would be a full database compromise. `data.js` now holds no
+credential at all; the service key lives only in the proxy's Vercel
+environment, and the browser holds nothing but the user's own session token.
 
 ### BUG-039 — `acceptReConsent`/`declineReConsent` toast called BEFORE element exists in some paths
 **File:** [state.js:1173-1183](state.js#L1173)
@@ -292,5 +302,5 @@ Severity legend
 
 ## OUT OF SCOPE (per user instructions)
 - Scroll/overscroll/backdrop-filter CSS — never touched.
-- Supabase schema changes — none of the proposed fixes require them.
+- Database schema changes — none of the proposed fixes require them.
 - New bugs found during fix work get added here, not fixed in the current cycle.

@@ -1,10 +1,6 @@
 // ============================================================
-// SUPABASE INIT
-// ============================================================
-const SUPABASE_URL = 'https://qwcnoosblqdwbgntixnk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_URueIVja3Rfu3eSt_iLaDA_SMlLvl9L';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+// Cloud access lives in api.js (PauseAPI), which talks to the PAUSE proxy.
+// No database URL or key is held in the browser any more.
 // ============================================================
 // DATA
 // ============================================================

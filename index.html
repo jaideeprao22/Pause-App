@@ -15,7 +15,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -813,7 +812,7 @@
            of the Terms & Conditions and Privacy Policy linked above, and (b) an
            explicit, recorded decision on research participation. Neither button
            is pre-selected. Both outcomes allow the user to use the app; only
-           "Yes" writes research data to Supabase. -->
+           "Yes" writes research data to the cloud. -->
       <div style="background:rgba(96,179,255,0.06);border-left:3px solid var(--accent2);padding:12px 12px 14px;border-radius:0 10px 10px 0">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">Research participation — please choose Yes or No</div>
         <p style="font-size:11.5px;line-height:1.6;color:var(--muted);margin:0 0 12px">By tapping <strong>Yes</strong> or <strong>No</strong> below, you confirm that you are 18 years or older, that you have read and accepted our <a href="terms.html" target="_blank" style="color:var(--accent2);font-weight:700;text-decoration:underline">Terms &amp; Conditions</a> and <a href="privacy-policy.html" target="_blank" style="color:var(--accent2);font-weight:700;text-decoration:underline">Privacy Policy</a>, and that you understand PAUSE is a screening and education tool — NOT a diagnosis, treatment, or emergency service.<br><br>
@@ -826,7 +825,7 @@
         <!-- OPTIONAL STUDY / COLLABORATION CODE — only relevant if "Yes".
              If a student was given a code by their college, they enter it here
              so their de-identified data is tagged to that cohort. Validated
-             live against the StudyCodes table in Supabase; blank is allowed. -->
+             live against the StudyCodes table via the proxy; blank is allowed. -->
         <div id="studyCodeWrap" style="margin-top:14px">
           <label class="form-label" style="font-size:12px;font-weight:700;color:var(--text)">Study / collaboration code <span style="color:var(--muted);font-weight:500">(optional)</span></label>
           <input type="text" id="studyCodeInput" class="form-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. MNR2026 — leave blank if you don't have one" oninput="onStudyCodeInput(this)" style="text-transform:uppercase;letter-spacing:0.05em;margin-top:6px">
@@ -848,10 +847,30 @@
     <div class="modal-handle"></div>
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-size:36px;margin-bottom:8px">👋</div>
-      <div class="modal-title" style="margin-bottom:4px">Welcome — you're all set!</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">Sign in with Google to save your progress and sync your data across devices. It only takes a moment.</p>
+      <div class="modal-title" style="margin-bottom:4px" id="authTitle">Welcome — you're all set!</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6" id="authSubtitle">Sign in with Google to save your progress and sync your data across devices. It only takes a moment.</p>
     </div>
     <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
+    <div id="authError" style="display:none;font-size:12px;color:#c0392b;margin-bottom:10px;line-height:1.5"></div>
+
+    <!-- Password sign-in is disabled for this project — every migrated account
+         is Google-only, with no password hash — so the proxy returns 501 for it.
+         Kept behind PASSWORD_AUTH_ENABLED (state.js) as an additive path only. -->
+    <div id="passwordAuthForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label" for="authEmail">Email</label>
+        <input type="email" class="form-input" id="authEmail" autocomplete="email" inputmode="email" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="authPassword">Password</label>
+        <input type="password" class="form-input" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters"/>
+      </div>
+      <button class="btn-primary" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
+      <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-top:12px" id="authToggleText">
+        New to PAUSE? <a href="#" onclick="setAuthMode('signup');return false" style="color:var(--accent);font-weight:700">Create an account</a>
+      </p>
+    </div>
+
     <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">We only use Google to verify your identity. We never access your Google contacts, emails, or any other data.</p>
     <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Go back</button>
   </div>
@@ -1753,6 +1772,7 @@
 
 
 
+<script src="api.js" defer></script>
 <script src="data.js" defer></script>
 <script src="state.js" defer></script>
 <script src="badges.js" defer></script>

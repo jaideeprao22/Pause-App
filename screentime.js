@@ -10,7 +10,7 @@ function saveScreenTime(hours){
   else log.unshift({date: today, hours});
   if(log.length > 30) log.splice(30);
   localStorage.setItem('screenTimeLog', JSON.stringify(log));
-  if(typeof saveScreenTimeToSupabase === 'function') saveScreenTimeToSupabase(today, hours);
+  if(typeof saveScreenTimeToCloud === 'function') saveScreenTimeToCloud(today, hours);
   renderScreenTimeSection();
 }
 
@@ -68,13 +68,13 @@ function renderResearchConsent(){
 function toggleResearchConsent(){
   const checked = document.getElementById('researchConsentCheck')?.checked;
   localStorage.setItem('researchConsent', checked ? 'true' : 'false');
-  if(checked && currentUser) saveResearchConsentToSupabase();
+  if(checked && currentUser) saveResearchConsentToCloud();
 }
 
-async function saveResearchConsentToSupabase(){
-  if(!currentUser || typeof sb === 'undefined') return;
+async function saveResearchConsentToCloud(){
+  if(!currentUser || typeof PauseAPI === 'undefined') return;
   try {
-    await sb.from('Assessments').update({research_consent: true}).eq('user_id', currentUser.id);
+    await PauseAPI.assessments.grantResearchConsent();
   } catch(e){ console.log('Consent save error:', e); }
 }
 

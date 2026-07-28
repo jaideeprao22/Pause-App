@@ -221,7 +221,8 @@
     <h2>How we keep your data safe 🔐</h2>
     <p>We take the responsibility of holding your information very seriously. Here is what we have done to protect it:</p>
     <ul class="promise-list">
-      <li>All data is stored on <strong>Supabase</strong> — a secure, modern cloud database with full encryption in transit and at rest</li>
+      <li>All data is stored in a <strong>secure PostgreSQL database we operate ourselves</strong>, with full encryption in transit and at rest</li>
+      <li>The app itself holds no database password — every request goes through a separate access-control service that confirms who you are and only ever returns your own records</li>
       <li>Your assessment scores are stored separately from your email address — they cannot be linked back to you in any published analysis</li>
       <li>Your daily logbook, personal journal entries, and badges stay on your device only — we never see them</li>
       <li>Only the Principal Investigator has access to the anonymised research dataset</li>

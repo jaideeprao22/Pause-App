@@ -1,7 +1,7 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v15-iec-consent-split';
+const CACHE_NAME = 'pause-app-v17-postbase-proxy-google';
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
@@ -15,6 +15,7 @@ const PRECACHE_ASSETS = [
   BASE + 'privacy-policy.html',
   BASE + 'style.css',
   BASE + 'manifest.json',
+  BASE + 'api.js',
   BASE + 'data.js',
   BASE + 'state.js',
   BASE + 'badges.js',
@@ -79,9 +80,11 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
   if (!req.url.startsWith(self.location.origin)) return;
 
-  // Skip Supabase, Google APIs, and external CDNs — let them go to network
+  // Skip fonts and external CDNs — let them go to network.
+  // API traffic is already excluded by the same-origin guard above (the proxy
+  // lives on another origin), and must never be cached: responses are
+  // per-user and authenticated.
   const skipPatterns = [
-    'supabase.co',
     'googleapis.com',
     'accounts.google.com',
     'fonts.googleapis.com',
@@ -127,7 +130,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// ─── BACKGROUND SYNC (for Supabase syncing when back online) ────────────────
+// ─── BACKGROUND SYNC (for cloud syncing when back online) ───────────────────
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-assessments') {
     console.log('[SW] Background sync triggered');

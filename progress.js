@@ -254,7 +254,7 @@ function _loadActivePack(){
 function _saveActivePack(pack){
   try { localStorage.setItem(CHALLENGE_PACK_KEY, JSON.stringify(pack)); }
   catch(e){ /* quota/unavailable — fail silently, pack will regenerate next render */ }
-  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+  if(typeof saveChallengeStateToCloud === 'function') saveChallengeStateToCloud();
 }
 
 function _disorderTipObj(disorderId, idx){
@@ -554,7 +554,7 @@ function renderChallenge(){
     localStorage.setItem('challengeWeekStart', now.toString());
     localStorage.setItem('currentWeekNum', '1');
     localStorage.setItem('challengeWeeksCompleted', '0');
-    if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+    if(typeof saveChallengeStateToCloud === 'function') saveChallengeStateToCloud();
   } else if(sevenDaysPassed){
     // BUG-003 FIX: lenient policy — only auto-reset when the previous week was
     // actually completed. For incomplete weeks, keep the existing pack and
@@ -571,7 +571,7 @@ function renderChallenge(){
       localStorage.setItem('weekJustReset', 'completed');
       prevPackForRegen = _loadActivePack();
       didReset = true;
-      if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+      if(typeof saveChallengeStateToCloud === 'function') saveChallengeStateToCloud();
     }
   }
 
@@ -631,7 +631,7 @@ function renderChallenge(){
     // sets in this file. localStorage coerces numbers to strings anyway, but
     // mixing styles invites future code that does typeof / strict-equal checks.
     localStorage.setItem('maxChallengeStreak', completed.length.toString());
-    if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+    if(typeof saveChallengeStateToCloud === 'function') saveChallengeStateToCloud();
   }
 
   const el = document.getElementById('challengeList');
@@ -800,7 +800,7 @@ function toggleChallenge(idx){
     completed.splice(pos, 1);
   }
   localStorage.setItem('pauseChallenge', JSON.stringify(completed));
-  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+  if(typeof saveChallengeStateToCloud === 'function') saveChallengeStateToCloud();
   renderChallenge();
   checkAndAwardBadges();
 }
@@ -840,7 +840,7 @@ function _doResetChallenge(){
   const prev = _loadActivePack();
   const fresh = _generateChallengePack(prev);
   _saveActivePack(fresh);
-  if(typeof saveChallengeStateToSupabase === 'function') saveChallengeStateToSupabase();
+  if(typeof saveChallengeStateToCloud === 'function') saveChallengeStateToCloud();
   const modal = document.getElementById('_resetChallengeOverlay');
   if(modal) modal.remove();
   renderChallenge();
@@ -1072,11 +1072,10 @@ function submitWeeklyCheckin(){
   if(bar) bar.style.width = '100%';
 
   if(currentUser){
-    sb.from('WeeklyCheckin').insert({
-      user_id: currentUser.id,
+    PauseAPI.weekly.create({
       ..._wcAnswers,
       checked_at: data.lastShown
-    }).then(()=>{}).catch(()=>{});
+    }).catch(()=>{});
   }
   setTimeout(() => {
     closeModal('weeklyCheckinModal');
