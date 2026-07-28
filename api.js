@@ -7,11 +7,11 @@
 // the row ownership itself. The only secret the browser ever holds is the
 // user's own session token.
 //
-// ⚠️ DELIBERATELY EMPTY. Set this to the proxy's deployment URL (public, not a
-// secret) only once the Google identity-linking question is settled — see
-// proxy/README.md "Auth is unresolved". While it is empty every cloud call
-// short-circuits to a clean error and the app runs local-only, which is the
-// correct behaviour for a build that must not talk to the new backend yet.
+// ⚠️ EMPTY UNTIL THE PROXY IS DEPLOYED. Set this to the proxy's Vercel URL —
+// public, not a secret. Step-by-step: proxy/VERCEL-SETUP.md, Part 7.
+// While it is empty every cloud call short-circuits to a clean local error
+// rather than firing requests at the Pages origin, so this branch must not be
+// merged to main before it is filled in.
 // ============================================================
 const PAUSE_API_BASE = '';
 

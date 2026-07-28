@@ -28,11 +28,17 @@ RLS used to.
 ## Deploying
 
 Its own Vercel project (free/Hobby tier is enough), **not** the one serving the
-PWA.
+PWA. Importing the same repository is fine — `proxy/` is self-contained, so
+Vercel treats it as the whole project and never sees the PWA.
+
+**Click-by-click for a non-coder: `VERCEL-SETUP.md`.**
 
 1. New Vercel project → import this repository.
 2. Set **Root Directory** to `proxy`.
-3. Environment variables (Production **and** Preview):
+3. Set **Production Branch** to the branch the proxy lives on. It is not on
+   `main` yet, and `main` must not be merged until `PAUSE_API_BASE` is filled
+   in — merging first publishes an app that cannot reach any backend.
+4. Environment variables (Production **and** Preview):
 
    | Name | Value |
    | --- | --- |
@@ -40,9 +46,11 @@ PWA.
    | `POSTBASE_PROJECT_ID` | `04a46c89-2217-4449-ae7f-57a4c479b988` |
    | `POSTBASE_URL` | `https://db.clinoble.com` |
    | `ALLOWED_ORIGIN` | `https://pause.jaideeprao.com` |
-   | `GOOGLE_CLIENT_ID` | `857927388938-…apps.googleusercontent.com` (audience check) |
+   | `GOOGLE_CLIENT_ID` | `857927388938-3rn4ejm805kukp10cerh4f7oakseejgn.apps.googleusercontent.com` |
 
-4. Deploy, then set `PAUSE_API_BASE` at the top of `api.js` in the PWA to the
+   Do **not** set `POSTBASE_PASSWORD_AUTH_ENABLED` — password auth is off.
+
+5. Deploy, then set `PAUSE_API_BASE` at the top of `api.js` in the PWA to the
    deployment URL and push. That URL is public — it is not a secret.
 
 `vercel.json` pins the region to `bom1` (Mumbai), next to the users.
