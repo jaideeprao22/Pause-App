@@ -45,7 +45,7 @@ Other: `index.html`, `manifest.json`, `style.css`, `privacy-policy.html`, `terms
 
 Module-global vars at top: `currentScreen`, `screenHistory`, `assessMode`, `singleDisorderIdx`, `allQuestions`/`allAnswers`/`currentQIdx`/`questionMeta` (in-progress run), `disorderScores`/`impactScores`/`dwsScore` (last completed), `currentUser`, `userProfile`, `profileSelections`.
 
-Also defines: `window.AppGrades` (canonical grade store, key `pause_grades`), `showToast()`, email/password auth against the proxy (`initAuth`/`submitAuth`/`handleUser`/`handleLogout`), profile save + edit + cloud sync, Stage 2 post-assessment research data, feedback submission, T&C / login flow, `openModal`/`closeModal`, 90-day re-consent, Urge Journal.
+Also defines: `window.AppGrades` (canonical grade store, key `pause_grades`), `showToast()`, Google auth via the proxy (`initAuth`/`handleGoogleCredential`/`handleUser`/`handleLogout`), profile save + edit + cloud sync, Stage 2 post-assessment research data, feedback submission, T&C / login flow, `openModal`/`closeModal`, 90-day re-consent, Urge Journal.
 
 ## The 6 scales (data-driven from `DISORDERS` in data.js)
 
@@ -96,7 +96,8 @@ Dispatched by `assessMode`. All share one renderer (`renderQuestion`).
 - **`premium-motions.js`** is not in the `index.html` script list — verify wiring before relying on its FX.
 - **Tables** reachable through the proxy: `Assessments`, `ChallengeState`, `Feedback`, `MoodLog`, `Profiles`, `ScreenTime`, `WeeklyCheckin`, `logbook`, and `StudyCodes` (public read, active rows only). Migration SQL is in comments inside `state.js`.
 - **`UrgeLog` is device-local.** It was not part of the Postbase migration and has no authorization policy, so the proxy exposes no endpoint for it and the urge journal does not sync across devices. Add the table + policy, then a handler in `proxy/api/data/[resource].js`, to restore sync.
-- **Auth is email + password.** Google Sign-In was removed with the migration: the backend's auth surface is `/token` + `/signup` with bcrypt, and there is no ID-token grant to forward a Google credential to.
+- **Auth is Google Sign-In**, exchanged through the proxy. Password sign-in is disabled for this project (all migrated accounts are Google-only, no password hash); the proxy returns 501 and the form is hidden behind `PASSWORD_AUTH_ENABLED` in `state.js`.
+- **Identity link is asserted on every sign-in.** `accounts` has PK `(provider, provider_account_id)` seeded from the Google subject IDs carried over in the migration, so a sub maps to exactly one migrated UUID. The proxy re-checks that on each sign-in and refuses with 409 rather than signing someone into an app that looks wiped.
 - **Feedback requires sign-in.** The `Feedback` insert policy is owner-scoped, so there is no anonymous submission path any more — relevant because that form is also the DPDP grievance/data-deletion channel.
 
 ## Deployment

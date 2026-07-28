@@ -122,18 +122,85 @@ function showToast(msg, duration=3000){
 }
 
 // ============================================================
-// AUTH — email + password against the PAUSE proxy
+// AUTH — Google Sign-In, exchanged through the PAUSE proxy
 //
-// Google Sign-In was removed with the Postbase migration: the backend's auth
-// surface (/token, /signup, bcrypt) is email + password only, and there is no
-// ID-token grant to forward a Google credential to. Existing accounts sign in
-// with the password migrated across from the old backend.
+// The browser gets a Google ID token from Google Identity Services and hands it
+// to the proxy, which verifies it, exchanges it with Postbase for a session,
+// and asserts the resolved user is the migrated one before returning. The
+// service key stays server-side; the browser only ever holds its own token.
+//
+// Password sign-in is disabled for this project (every migrated account is
+// Google-only, with no password hash) and the proxy returns 501 for it. The
+// form below stays in the tree behind this flag in case it is ever enabled.
 // ============================================================
+const GOOGLE_CLIENT_ID = '857927388938-3rn4ejm805kukp10cerh4f7oakseejgn.apps.googleusercontent.com';
+const PASSWORD_AUTH_ENABLED = false;
+let googleSignInInitialized = false;
+
 function initAuth(){
+  if(window.google){
+    initGoogleSignIn();
+  } else {
+    window.addEventListener('load', () => {
+      if(window.google) initGoogleSignIn();
+    });
+    setTimeout(() => { if(window.google && !googleSignInInitialized) initGoogleSignIn(); }, 2000);
+  }
   PauseAPI.auth.restore().then(({ user }) => {
     if(user) handleUser(user);
     else handleLogout();
   });
+}
+
+function initGoogleSignIn(){
+  if(googleSignInInitialized) return;
+  googleSignInInitialized = true;
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+  _renderGoogleButton();
+}
+
+function _renderGoogleButton(){
+  const btnEl = document.getElementById('googleSignInBtn');
+  if(!btnEl) return;
+  // BUG-006 FIX: clear-and-rerender is a documented GIS workaround for stale
+  // iframe state when a tab is backgrounded then re-foregrounded. GIS may throw
+  // or log a multi-init warning on rerender; swallow it so nothing surfaces.
+  btnEl.innerHTML = '';
+  try {
+    google.accounts.id.renderButton(btnEl, {
+      theme:'outline', size:'large', width:320,
+      text:'continue_with', shape:'rectangular'
+    });
+  } catch(e){ /* GIS rerender warning — expected, intentionally swallowed */ }
+}
+
+async function handleGoogleCredential(response){
+  // T&C is enforced at termsModal before loginModal is ever shown.
+  // Safety net: if consent missing, redirect back to terms.
+  if(!localStorage.getItem('pause_terms_accepted')){
+    closeModal('loginModal');
+    setTimeout(() => openModal('termsModal'), 250);
+    return;
+  }
+  _authError('');
+  const { user, error } = await PauseAPI.auth.signInWithGoogle(response.credential);
+
+  if(error || !user){
+    // A 409 means the proxy refused because this Google account is not linked
+    // to its migrated user — surfacing that verbatim matters, because the
+    // alternative is signing someone into an app that looks wiped.
+    console.error('Auth error:', error);
+    _authError(error?.message || 'Login failed — please try again.');
+    return;
+  }
+  closeModal('loginModal');
+  handleUser(user);
 }
 
 function _authBusy(busy, label){
@@ -1529,6 +1596,10 @@ function openModal(id){
     const pw = document.getElementById('authPassword');
     if(pw) pw.value = '';
     if(typeof setAuthMode === 'function') setAuthMode('signin');
+    _authError('');
+    const pwForm = document.getElementById('passwordAuthForm');
+    if(pwForm) pwForm.style.display = PASSWORD_AUTH_ENABLED ? 'block' : 'none';
+    if(window.google && googleSignInInitialized) _renderGoogleButton();
   }
 }
 function closeModal(id){

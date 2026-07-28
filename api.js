@@ -82,6 +82,19 @@ const PauseAPI = (() => {
     setToken,
 
     auth: {
+      // The Google credential is the ID token from Google Identity Services.
+      // The proxy verifies it (including audience), exchanges it for a Postbase
+      // session, and asserts the resolved user is the migrated one before
+      // handing anything back.
+      async signInWithGoogle(credential){
+        const { data: d, error } = await call('/api/auth/google', {
+          method: 'POST', auth: false, body: { credential }
+        });
+        if(error) return { user: null, error };
+        setToken(d.token);
+        return { user: d.user, error: null };
+      },
+
       async signIn(email, password){
         const { data: d, error } = await call('/api/auth/signin', {
           method: 'POST', auth: false, body: { email, password }

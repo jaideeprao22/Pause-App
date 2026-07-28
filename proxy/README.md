@@ -40,6 +40,7 @@ PWA.
    | `POSTBASE_PROJECT_ID` | `04a46c89-2217-4449-ae7f-57a4c479b988` |
    | `POSTBASE_URL` | `https://db.clinoble.com` |
    | `ALLOWED_ORIGIN` | `https://pause.jaideeprao.com` |
+   | `GOOGLE_CLIENT_ID` | `857927388938-…apps.googleusercontent.com` (audience check) |
 
 4. Deploy, then set `PAUSE_API_BASE` at the top of `api.js` in the PWA to the
    deployment URL and push. That URL is public — it is not a secret.
@@ -75,8 +76,9 @@ the two can't get crossed.
 
 | Method + path | Table | Scope |
 | --- | --- | --- |
-| `POST /api/auth/signin` | — | **disabled (501)** — see below |
-| `POST /api/auth/signup` | — | **disabled (501)** — see below |
+| `POST /api/auth/google` | `accounts` (read) | verifies the ID token, exchanges it, asserts the identity link |
+| `POST /api/auth/signin` | — | **disabled (501)** — password auth is off |
+| `POST /api/auth/signup` | — | **disabled (501)** — password auth is off |
 | `GET /api/auth/session` | — | re-validates the caller's token |
 | `POST /api/auth/signout` | — | forwards to Postbase `/logout` |
 | `GET`/`PUT /api/data/profile` | Profiles | owner |
@@ -91,43 +93,55 @@ the two can't get crossed.
 | `POST /api/data/feedback` | Feedback | owner (insert only) |
 | `GET /api/data/study-code?code=` | StudyCodes | public, `active = true` only |
 
-## Auth is unresolved — do not cut over
+## Auth
 
-Password auth is **disabled** on this Postbase project, and all nine migrated
-users are Google-only (`encrypted_password` null/empty for every one). The
-`signin`/`signup` endpoints therefore return `501 password_auth_disabled` unless
-`POSTBASE_PASSWORD_AUTH_ENABLED=true` is set. They are kept only as an additive
-path if password auth is ever turned on upstream.
+**Google Sign-In only.** Password auth is disabled for this project — every
+migrated account is Google-only, with no password hash — so `signin`/`signup`
+return `501 password_auth_disabled` unless `POSTBASE_PASSWORD_AUTH_ENABLED=true`.
+They stay in the tree as an additive path if that ever changes.
 
-Route enumeration against the live backend shows **no OAuth endpoint** in the
-documented auth surface. Only `token`, `signup`, `logout`, `session` and `user`
-exist; `authorize`, `callback`, `google` and `oauth/google` all return the same
-500 as a deliberately bogus path, i.e. they are an erroring catch-all:
+`POST /api/auth/google` takes the Google credential (the ID token from Google
+Identity Services) and does three things:
 
-```
-405 GET  token      (exists, wrong method)      500 GET/POST authorize
-401 POST token      {"error":"Missing API key"} 500 GET/POST google
-401 POST signup     {"error":"Missing API key"} 500 GET/POST oauth/google
-200 GET  session    {"session":null}            500 GET/POST totallybogusroute123
-```
+**1. Verifies the ID token locally**, before it goes anywhere: signature against
+Google's JWKS, issuer, expiry, and — the one that matters most — `aud` against
+`GOOGLE_CLIENT_ID`. Without the audience check, an ID token minted for *any
+other* Google application could be replayed here and would look like a valid
+sign-in. Upstream probably checks it too; we cannot see that code, so it gets
+checked on our side regardless.
 
-So a Google sign-in must flow through `/token` with some provider payload whose
-shape is not documented. **Two things must be measured before any wiring:**
+**2. Exchanges it with Postbase `/token`.** Which payload shape `/token` accepts
+for a Google credential is the one part of the contract not readable off the
+schema. Pin it with `POSTBASE_GOOGLE_GRANT` (`idToken` | `id_token` | `token` |
+`credential` | `grantType`); unpinned, the proxy tries them in order on the first
+sign-in per instance and logs the winner. `scripts/probe-auth.mjs --allow-live`
+determines it without needing a valid credential, by reading validation errors.
 
-1. Which payload shape `/token` accepts for Google.
-2. Whether a Google sign-in **links to the existing migrated user row** (same
-   UUID) or **creates a new user with a new UUID**. Every PAUSE row is keyed to
-   the migrated UUID — if Google mints a new id, users sign in to an empty app
-   while their history sits in the database under the old id.
+**3. Asserts the resolved user is the migrated one.** This is the regression
+test for the whole orphaning class of bug, and it runs on every sign-in.
 
-`scripts/probe-auth.mjs` answers both. Phase A is read-only and needs just the
-service key; Phase B performs one real Google sign-in and is opt-in, because if
-the answer to (2) is "creates a new user" then running it creates the duplicate.
-Phase A snapshots the auth table first so that duplicate can be identified.
+### The assertion
 
-```
-POSTBASE_SERVICE_KEY=... POSTBASE_PROJECT_ID=... node scripts/probe-auth.mjs
-```
+`accounts` has `PRIMARY KEY (provider, provider_account_id)` and is seeded from
+the Google subject IDs carried over in the migration, so a given Google sub maps
+to exactly one migrated `user_id` — enforced by the database. Every PAUSE row is
+keyed to that UUID.
+
+The proxy does not take that on trust. After the exchange it looks up
+`accounts` by the *verified* sub and refuses the sign-in with `409
+identity_not_linked` unless the row exists **and** its `user_id` equals the id
+`/token` returned. It fails in both directions that matter:
+
+| Condition | Meaning | Result |
+| --- | --- | --- |
+| no `accounts` row for the sub | sub was never seeded; Postbase minted or will mint a fresh user | refused |
+| `row.user_id` ≠ returned id | the exchange resolved to the wrong user | refused |
+| `accounts` unreadable | cannot verify, so cannot proceed | refused |
+
+Refusing is deliberate. Signing someone into an app whose history has silently
+orphaned looks exactly like data loss, and the user cannot tell the difference —
+an error message they can report is strictly better. `accounts` is deliberately
+**not** in `lib/tables.js`, so it can never be reached through `/api/data/*`.
 
 ## Authorization
 

@@ -1,7 +1,7 @@
 // PAUSE App — Service Worker v3
 // FIX 2: Proper offline support — cache-first with network fallback
 
-const CACHE_NAME = 'pause-app-v16-postbase-proxy';
+const CACHE_NAME = 'pause-app-v17-postbase-proxy-google';
 
 // All files to pre-cache at install time
 // NH2 FIX: derive base path from SW location so caching works on any subdirectory.
@@ -86,6 +86,7 @@ self.addEventListener('fetch', event => {
   // per-user and authenticated.
   const skipPatterns = [
     'googleapis.com',
+    'accounts.google.com',
     'fonts.googleapis.com',
     'fonts.gstatic.com',
     'cdn.jsdelivr.net',

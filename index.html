@@ -16,6 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <!-- FIX 2: Offline banner styles -->
 <style>
 #offline-banner{display:none;background:#c0392b;color:#fff;text-align:center;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;position:sticky;top:0;z-index:9999;letter-spacing:0.01em}
@@ -845,27 +847,31 @@
     <div class="modal-handle"></div>
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-size:36px;margin-bottom:8px">👋</div>
-      <div class="modal-title" style="margin-bottom:4px" id="authTitle">Welcome back</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6" id="authSubtitle">Sign in to save your progress and sync your data across devices.</p>
+      <div class="modal-title" style="margin-bottom:4px" id="authTitle">Welcome — you're all set!</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6" id="authSubtitle">Sign in with Google to save your progress and sync your data across devices. It only takes a moment.</p>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="authEmail">Email</label>
-      <input type="email" class="form-input" id="authEmail" autocomplete="email" inputmode="email" placeholder="you@example.com"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="authPassword">Password</label>
-      <input type="password" class="form-input" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters"/>
-    </div>
-    <!-- Password sign-in is disabled on the backend and every migrated account
-         is Google-only. Sign-in is being rebuilt around Google OAuth; this form
-         is inert until then and the proxy returns 501 for it. -->
-    <div class="notice blue" style="margin-bottom:12px;font-size:12px">🔧 Sign-in is being migrated to the new backend. Google sign-in returns shortly — password sign-in is not enabled for this project.</div>
+    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
     <div id="authError" style="display:none;font-size:12px;color:#c0392b;margin-bottom:10px;line-height:1.5"></div>
-    <button class="btn-primary" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
-    <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-top:12px" id="authToggleText">
-      New to PAUSE? <a href="#" onclick="setAuthMode('signup');return false" style="color:var(--accent);font-weight:700">Create an account</a>
-    </p>
-    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">We use your email only to sign you in and to contact you about your data rights. Your password is stored as a salted hash and is never visible to us.</p>
+
+    <!-- Password sign-in is disabled for this project — every migrated account
+         is Google-only, with no password hash — so the proxy returns 501 for it.
+         Kept behind PASSWORD_AUTH_ENABLED (state.js) as an additive path only. -->
+    <div id="passwordAuthForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label" for="authEmail">Email</label>
+        <input type="email" class="form-input" id="authEmail" autocomplete="email" inputmode="email" placeholder="you@example.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="authPassword">Password</label>
+        <input type="password" class="form-input" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters"/>
+      </div>
+      <button class="btn-primary" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
+      <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-top:12px" id="authToggleText">
+        New to PAUSE? <a href="#" onclick="setAuthMode('signup');return false" style="color:var(--accent);font-weight:700">Create an account</a>
+      </p>
+    </div>
+
+    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">We only use Google to verify your identity. We never access your Google contacts, emails, or any other data.</p>
     <button class="btn-ghost" onclick="closeModal('loginModal')" style="margin-top:4px">← Go back</button>
   </div>
 </div>

@@ -24,4 +24,5 @@ module.exports = {
   // rather than crashing the whole bundle at import time.
   serviceKey: () => required('POSTBASE_SERVICE_KEY'),
   projectId: () => required('POSTBASE_PROJECT_ID'),
+  googleClientId: () => required('GOOGLE_CLIENT_ID'),
 };
