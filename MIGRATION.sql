@@ -1,6 +1,6 @@
 -- ============================================================
 -- PAUSE App — IEC §13 compliance migration
--- Run ONCE in Supabase Dashboard → SQL Editor before deploying
+-- Run ONCE against the Postbase database before deploying
 -- the updated app code (state.js v IEC).
 -- ============================================================
 

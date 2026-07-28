@@ -127,7 +127,7 @@ function saveLogEntry(){
   else entries.unshift(entry);
   localStorage.setItem('pauseLogbook', JSON.stringify(entries));
 
-  saveLogToSupabase(entry);
+  saveLogToCloud(entry);
 
   showToast('✅ Entry saved!');
   _logbookClearOnRender = true;
@@ -135,12 +135,11 @@ function saveLogEntry(){
   _logbookClearOnRender = false;
 }
 
-async function saveLogToSupabase(entry){
-  if(!currentUser || typeof sb === 'undefined') return;
+async function saveLogToCloud(entry){
+  if(!currentUser || typeof PauseAPI === 'undefined') return;
   try {
-    await sb.from('logbook').upsert({
+    await PauseAPI.logbook.save({
       id: entry.id,
-      user_id: currentUser.id,
       date: entry.date,
       prompt: entry.prompt,
       text: entry.text,

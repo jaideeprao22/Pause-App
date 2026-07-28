@@ -1,0 +1,12 @@
+{
+  "name": "pause-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless proxy holding the Postbase service key for the PAUSE PWA.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

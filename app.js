@@ -57,7 +57,7 @@ function loadSavedScores(){
 
 // BUG3 FIX: Split into two functions.
 // saveScoresLocal() — localStorage + AppGrades only. Safe to call on every answer (partial progress).
-// saveScores()      — also adds a history entry + syncs to Supabase. Called ONLY when assessment is fully complete.
+// saveScores()      — also adds a history entry + syncs to the cloud. Called ONLY when assessment is fully complete.
 function saveScoresLocal(){
   localStorage.setItem('pauseV2Scores', JSON.stringify({disorder:disorderScores, impact:impactScores, dws:dwsScore, hws:hwsScore}));
   if(window.AppGrades){
@@ -74,12 +74,12 @@ function saveScoresLocal(){
 
 function saveScores(){
   saveScoresLocal();
-  // History entry + Supabase sync — only runs when a full assessment is finished
+  // History entry + cloud sync — only runs when a full assessment is finished
   const history = safeJsonParse('pauseV2History', []);
   history.unshift({dws:dwsScore, hws:hwsScore, disorder:{...disorderScores}, impact:{...impactScores}, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
   if(history.length > 20) history.splice(20);
   localStorage.setItem('pauseV2History', JSON.stringify(history));
-  saveToSupabase();
+  saveAssessmentToCloud();
 }
 
 // ============================================================

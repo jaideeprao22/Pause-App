@@ -6,9 +6,22 @@ Single-page PWA/TWA for digital wellness screening. Vanilla JS, no build step. R
 
 `index.html` is the shell — every screen and modal is a section in one HTML file. Scripts load with `defer` in dependency order at the bottom of `index.html`. No bundler, no framework.
 
-## File split (17 JS files, load order matters)
+## Backend
 
-1. `data.js` — Supabase client init; the 6 `DISORDERS`, 4 `IMPACT_MODULES`, `CHALLENGES`, `BADGES`.
+The app is a static site and holds **no database credential**. All cloud reads
+and writes go through the PAUSE proxy (`proxy/` in this repo, deployed as its
+own Vercel project), which holds the Postbase service key, validates the user's
+session token, derives their user id server-side, and scopes every query to it.
+Postbase does *not* enforce row-level security — the proxy is the only thing
+standing between one user's rows and another's, so its allow-lists
+(`proxy/lib/tables.js`) and ownership filters (`proxy/lib/db.js`) are
+load-bearing. See `proxy/README.md`.
+
+## File split (18 JS files, load order matters)
+
+0. `api.js` — `PauseAPI`: the only module that talks to the network. Holds the
+   proxy base URL (public, not a secret) and the user's session token.
+1. `data.js` — the 6 `DISORDERS`, 4 `IMPACT_MODULES`, `CHALLENGES`, `BADGES`.
 2. `state.js` — Global mutable state + auth + profile + feedback + modals + urge log (kitchen-sink).
 3. `badges.js` — Badge stats from history; awards/checks badges.
 4. `notifications.js` — Daily notification toggle + scheduling.
@@ -32,7 +45,7 @@ Other: `index.html`, `manifest.json`, `style.css`, `privacy-policy.html`, `terms
 
 Module-global vars at top: `currentScreen`, `screenHistory`, `assessMode`, `singleDisorderIdx`, `allQuestions`/`allAnswers`/`currentQIdx`/`questionMeta` (in-progress run), `disorderScores`/`impactScores`/`dwsScore` (last completed), `currentUser`, `userProfile`, `profileSelections`.
 
-Also defines: `window.AppGrades` (canonical grade store, key `pause_grades`), `showToast()`, full Supabase auth (`initAuth`/`handleUser`/`handleLogout`), profile save + edit + Supabase sync, Stage 2 post-assessment research data, feedback submission, T&C / login flow, `openModal`/`closeModal`, 90-day re-consent, Urge Journal.
+Also defines: `window.AppGrades` (canonical grade store, key `pause_grades`), `showToast()`, email/password auth against the proxy (`initAuth`/`submitAuth`/`handleUser`/`handleLogout`), profile save + edit + cloud sync, Stage 2 post-assessment research data, feedback submission, T&C / login flow, `openModal`/`closeModal`, 90-day re-consent, Urge Journal.
 
 ## The 6 scales (data-driven from `DISORDERS` in data.js)
 
@@ -81,7 +94,10 @@ Dispatched by `assessMode`. All share one renderer (`renderQuestion`).
 - **Safari date parsing**: history entries use `en-IN` locale strings; `weekly.js` has a manual parser because `new Date("26 Apr 2026")` fails on WebKit.
 - **`alert()` blocked in TWA WebView** — always use `showToast()` instead.
 - **`premium-motions.js`** is not in the `index.html` script list — verify wiring before relying on its FX.
-- **Supabase tables** referenced: `Assessments`, `Profiles`, `UrgeLog`, `WeeklyCheckin`, `Feedback`. Migration SQL is in comments inside `state.js`.
+- **Tables** reachable through the proxy: `Assessments`, `ChallengeState`, `Feedback`, `MoodLog`, `Profiles`, `ScreenTime`, `WeeklyCheckin`, `logbook`, and `StudyCodes` (public read, active rows only). Migration SQL is in comments inside `state.js`.
+- **`UrgeLog` is device-local.** It was not part of the Postbase migration and has no authorization policy, so the proxy exposes no endpoint for it and the urge journal does not sync across devices. Add the table + policy, then a handler in `proxy/api/data/[resource].js`, to restore sync.
+- **Auth is email + password.** Google Sign-In was removed with the migration: the backend's auth surface is `/token` + `/signup` with bcrypt, and there is no ID-token grant to forward a Google credential to.
+- **Feedback requires sign-in.** The `Feedback` insert policy is owner-scoped, so there is no anonymous submission path any more — relevant because that form is also the DPDP grievance/data-deletion channel.
 
 ## Deployment
 

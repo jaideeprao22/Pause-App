@@ -122,50 +122,52 @@ function showToast(msg, duration=3000){
 }
 
 // ============================================================
-// SUPABASE AUTH
+// AUTH — email + password against the PAUSE proxy
+//
+// Google Sign-In was removed with the Postbase migration: the backend's auth
+// surface (/token, /signup, bcrypt) is email + password only, and there is no
+// ID-token grant to forward a Google credential to. Existing accounts sign in
+// with the password migrated across from the old backend.
 // ============================================================
-const GOOGLE_CLIENT_ID = '857927388938-3rn4ejm805kukp10cerh4f7oakseejgn.apps.googleusercontent.com';
-let googleSignInInitialized = false;
-
 function initAuth(){
-  if(window.google){
-    initGoogleSignIn();
-  } else {
-    window.addEventListener('load', () => {
-      if(window.google) initGoogleSignIn();
-    });
-    setTimeout(() => { if(window.google && !googleSignInInitialized) initGoogleSignIn(); }, 2000);
-  }
-  sb.auth.getSession().then(({data:{session}}) => {
-    if(session) handleUser(session.user);
-  });
-  sb.auth.onAuthStateChange((event, session) => {
-    if(session) handleUser(session.user);
+  PauseAPI.auth.restore().then(({ user }) => {
+    if(user) handleUser(user);
     else handleLogout();
   });
 }
 
-function initGoogleSignIn(){
-  if(googleSignInInitialized) return;
-  googleSignInInitialized = true;
-
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleGoogleCredential,
-    auto_select: false,
-    cancel_on_tap_outside: true
-  });
-
-  const btnEl = document.getElementById('googleSignInBtn');
-  if(btnEl && !btnEl.hasChildNodes()){
-    google.accounts.id.renderButton(btnEl, {
-      theme:'outline', size:'large', width:320,
-      text:'continue_with', shape:'rectangular'
-    });
-  }
+function _authBusy(busy, label){
+  const btn = document.getElementById('authSubmitBtn');
+  if(btn){ btn.disabled = busy; btn.textContent = busy ? 'Please wait…' : label; }
 }
 
-async function handleGoogleCredential(response){
+function _authError(msg){
+  const el = document.getElementById('authError');
+  if(el){ el.textContent = msg || ''; el.style.display = msg ? 'block' : 'none'; }
+}
+
+// The login sheet doubles as sign-up; this flips the copy and the submit path.
+let _authMode = 'signin';
+
+function setAuthMode(mode){
+  _authMode = mode === 'signup' ? 'signup' : 'signin';
+  const isSignup = _authMode === 'signup';
+  const t = document.getElementById('authTitle');
+  const s = document.getElementById('authSubtitle');
+  const b = document.getElementById('authSubmitBtn');
+  const g = document.getElementById('authToggleText');
+  if(t) t.textContent = isSignup ? 'Create your account' : "Welcome back";
+  if(s) s.textContent = isSignup
+    ? 'Choose a password of at least 8 characters. Your email is only used to sign you in.'
+    : 'Sign in to save your progress and sync your data across devices.';
+  if(b) b.textContent = isSignup ? 'Create account' : 'Sign in';
+  if(g) g.innerHTML = isSignup
+    ? `Already have an account? <a href="#" onclick="setAuthMode('signin');return false" style="color:var(--accent);font-weight:700">Sign in</a>`
+    : `New to PAUSE? <a href="#" onclick="setAuthMode('signup');return false" style="color:var(--accent);font-weight:700">Create an account</a>`;
+  _authError('');
+}
+
+async function submitAuth(){
   // T&C is enforced at termsModal before loginModal is ever shown.
   // Safety net: if consent missing, redirect back to terms.
   if(!localStorage.getItem('pause_terms_accepted')){
@@ -173,12 +175,29 @@ async function handleGoogleCredential(response){
     setTimeout(() => openModal('termsModal'), 250);
     return;
   }
-  const {data, error} = await sb.auth.signInWithIdToken({
-    provider:'google',
-    token: response.credential
-  });
-  if(error){ console.error('Auth error:', error); showToast('Login failed — please try again.'); return; }
+  const email = (document.getElementById('authEmail')?.value || '').trim();
+  const password = document.getElementById('authPassword')?.value || '';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ _authError('Please enter a valid email address.'); return; }
+  if(password.length < 8){ _authError('Password must be at least 8 characters.'); return; }
+
+  _authError('');
+  const label = _authMode === 'signup' ? 'Create account' : 'Sign in';
+  _authBusy(true, label);
+
+  const { user, error } = _authMode === 'signup'
+    ? await PauseAPI.auth.signUp(email, password)
+    : await PauseAPI.auth.signIn(email, password);
+
+  _authBusy(false, label);
+
+  if(error || !user){
+    _authError(error?.message || 'Sign-in failed — please try again.');
+    return;
+  }
+  const pwEl = document.getElementById('authPassword');
+  if(pwEl) pwEl.value = '';
   closeModal('loginModal');
+  handleUser(user);
 }
 
 async function handleUser(user){
@@ -187,7 +206,7 @@ async function handleUser(user){
   const avatar = document.getElementById('userAvatar');
   if(avatar){
     avatar.style.display = 'flex';
-    avatar.textContent = user.email.charAt(0).toUpperCase();
+    avatar.textContent = (user.email || '?').charAt(0).toUpperCase();
   }
   renderLoginBanner();
   renderAccountSection();
@@ -201,10 +220,10 @@ async function handleUser(user){
     // Migrate old key to new if needed
     localStorage.setItem('pause_profile_' + user.id, JSON.stringify(userProfile));
   }
-  // FIX B: pull every per-user data type from Supabase, then re-render.
+  // FIX B: pull every per-user data type from the cloud, then re-render.
   // After this resolves, if there's still no profile (neither local nor remote),
   // open the profile modal so the user fills it in.
-  loadAllUserDataFromSupabase(user.id).finally(() => {
+  loadAllUserDataFromCloud(user.id).finally(() => {
     if(!userProfile || !userProfile.age){
       setTimeout(() => openModal('profileModal'), 800);
     }
@@ -228,8 +247,8 @@ function handleLogout(){
 }
 
 async function logoutUser(){
-  await sb.auth.signOut();
-  if(window.google) google.accounts.id.disableAutoSelect();
+  await PauseAPI.auth.signOut();
+  handleLogout();
   // Do NOT clear AppGrades on logout — user may re-login immediately
   // and CBT modules should remain personalised to their last assessment
   closeModal('userModal');
@@ -453,7 +472,7 @@ function saveProfile(){
   if(currentUser){
     // L3 FIX: write only the canonical key — handleUser() already migrates old pauseProfile_ key on login
     localStorage.setItem('pause_profile_' + currentUser.id, JSON.stringify(userProfile));
-    syncProfileToSupabase(); // FIX B: was previously only called from saveEditProfile
+    syncProfileToCloud(); // FIX B: was previously only called from saveEditProfile
   } else {
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile)); // BUG5 FIX: persist for guests
   }
@@ -646,8 +665,8 @@ async function saveEditProfile(){
     localStorage.setItem('pause_profile_guest', JSON.stringify(userProfile));
   }
 
-  // --- Sync to Supabase (logged-in users only) ---
-  syncProfileToSupabase();
+  // --- Sync to the cloud (logged-in users only) ---
+  syncProfileToCloud();
 
   closeModal('editProfileModal');
   showToast('✅ Profile updated!');
@@ -655,11 +674,11 @@ async function saveEditProfile(){
 }
 
 // ============================================================
-// PROFILE SYNC TO SUPABASE
+// PROFILE SYNC TO THE CLOUD
 // Syncs edited profile fields independently of assessment saves.
-// Requires a 'Profiles' table in Supabase — see migration note below.
+// Requires a 'Profiles' table on the backend — see migration note below.
 //
-// SQL to run once in Supabase SQL Editor:
+// SQL to run once against the Postbase database:
 //   CREATE TABLE IF NOT EXISTS "Profiles" (
 //     user_id uuid PRIMARY KEY REFERENCES auth.users(id),
 //     age int, gender text, occupation text, country text,
@@ -672,7 +691,7 @@ async function saveEditProfile(){
 //   CREATE POLICY "Users manage own profile" ON "Profiles"
 //     USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 // ============================================================
-async function syncProfileToSupabase(){
+async function syncProfileToCloud(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
   // BUG-010 FIX: don't create an empty Profiles row if the user hasn't filled
@@ -680,8 +699,9 @@ async function syncProfileToSupabase(){
   // means userProfile is uninitialised. Sync runs again after saveProfile/saveEditProfile.
   if(!userProfile || !userProfile.age) return;
   try {
-    const { error } = await sb.from('Profiles').upsert({
-      user_id:            currentUser.id,
+    // user_id is deliberately absent — the proxy derives it from the caller's
+    // token. Sending one would be ignored and stripped server-side.
+    const { error } = await PauseAPI.profile.save({
       age:                userProfile.age                || null,
       gender:             userProfile.gender             || null,
       education:          userProfile.education          || null,
@@ -710,9 +730,8 @@ async function syncProfileToSupabase(){
       referral_source:    userProfile.referral_source    || null,
       followup_consent:   typeof userProfile.followup_consent === 'boolean' ? userProfile.followup_consent : null,
       study_code:         _getStoredStudyCode(),
-      terms_version:      userProfile.terms_version      || '1.0',
-      updated_at:         new Date().toISOString()
-    }, { onConflict: 'user_id' });
+      terms_version:      userProfile.terms_version      || '1.0'
+    });
     if(error){ console.warn('Profile sync error:', error); _showSyncErrorToast(); }
   } catch(e){ console.warn('Profile sync error:', e); _showSyncErrorToast(); }
 }
@@ -730,37 +749,33 @@ function _showSyncErrorToast(){
   showToast("Couldn't sync to cloud — your data is saved locally only.", 4500);
 }
 
-async function saveMoodToSupabase(date, value){
+async function saveMoodToCloud(date, value){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
   try {
-    const { error } = await sb.from('MoodLog').upsert({
-      user_id: currentUser.id, date, value, recorded_at: new Date().toISOString()
-    }, { onConflict: 'user_id,date' });
+    const { error } = await PauseAPI.mood.save(date, value);
     if(error){ console.warn('Mood sync error:', error); _showSyncErrorToast(); }
   } catch(e){ console.warn('Mood sync error:', e); _showSyncErrorToast(); }
 }
 
-async function deleteMoodFromSupabase(date){
+async function deleteMoodFromCloud(date){
   if(!currentUser) return;
   try {
-    const { error } = await sb.from('MoodLog').delete().eq('user_id', currentUser.id).eq('date', date);
+    const { error } = await PauseAPI.mood.remove(date);
     if(error){ console.warn('Mood delete error:', error); _showSyncErrorToast(); }
   } catch(e){ console.warn('Mood delete error:', e); _showSyncErrorToast(); }
 }
 
-async function saveScreenTimeToSupabase(date, hours){
+async function saveScreenTimeToCloud(date, hours){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
   try {
-    const { error } = await sb.from('ScreenTime').upsert({
-      user_id: currentUser.id, date, hours, recorded_at: new Date().toISOString()
-    }, { onConflict: 'user_id,date' });
+    const { error } = await PauseAPI.screentime.save(date, hours);
     if(error){ console.warn('ScreenTime sync error:', error); _showSyncErrorToast(); }
   } catch(e){ console.warn('ScreenTime sync error:', e); _showSyncErrorToast(); }
 }
 
-async function saveChallengeStateToSupabase(){
+async function saveChallengeStateToCloud(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return;
   try {
@@ -770,23 +785,21 @@ async function saveChallengeStateToSupabase(){
     const ms = parseInt(localStorage.getItem('maxChallengeStreak')   || '0', 10);
     const pack      = safeJsonParse('currentChallengePack', null);
     const completed = safeJsonParse('pauseChallenge', []);
-    const { error } = await sb.from('ChallengeState').upsert({
-      user_id:           currentUser.id,
+    const { error } = await PauseAPI.challenge.save({
       week_start:        ws || null,
       current_week_num:  wn,
       weeks_completed:   wc,
       max_streak:        ms,
       current_pack:      pack,
-      completed_indices: completed,
-      updated_at:        new Date().toISOString()
-    }, { onConflict: 'user_id' });
+      completed_indices: completed
+    });
     if(error){ console.warn('Challenge sync error:', error); _showSyncErrorToast(); }
   } catch(e){ console.warn('Challenge sync error:', e); _showSyncErrorToast(); }
 }
 
 // ============================================================
 // FIX B: ON-LOGIN FETCH
-// Pulls every per-user data type we sync to Supabase, writes it back into
+// Pulls every per-user data type we sync to the cloud, writes it back into
 // localStorage + in-memory state, and re-renders dependent views. Idempotent
 // — safe to call multiple times. Falls through silently on any per-table
 // failure so a single missing table doesn't block the rest.
@@ -797,7 +810,7 @@ async function saveChallengeStateToSupabase(){
 // The right fix is to merge the two by per-row timestamp / created_at, keeping
 // whichever side is newer. Deferred to v1.1 to keep this change focused.
 // ============================================================
-function _profileFromSupabaseRow(row){
+function _profileFromCloudRow(row){
   return {
     age:                row.age,
     gender:             row.gender,
@@ -832,7 +845,7 @@ function _profileFromSupabaseRow(row){
   };
 }
 
-// PERSONALIZATION-V2: defensive validator for incoming Supabase packs.
+// PERSONALIZATION-V2: defensive validator for incoming remote packs.
 // Any pack that claims metaVersion 2 must have a 6-element disorderOrder
 // array, a string startedAt, and (if present) a string impactModule.
 // Legacy packs with no metaVersion field are accepted unconditionally
@@ -848,39 +861,45 @@ function _isValidPack(p){
   return true;
 }
 
-async function loadAllUserDataFromSupabase(userId){
+// Each entry resolves to a plain { data, error } pair. `userId` is no longer
+// used to scope anything — the proxy derives ownership from the session token —
+// but it is still the key for the per-user localStorage namespace.
+async function loadAllUserDataFromCloud(userId){
   if(!userId) return;
 
-  const results = await Promise.allSettled([
-    sb.from('Profiles').select('*').eq('user_id', userId).maybeSingle(),
-    sb.from('Assessments').select('*').eq('user_id', userId).order('created_at', { ascending:false }).limit(20),
-    sb.from('UrgeLog').select('*').eq('user_id', userId).order('logged_at', { ascending:false }).limit(200),
-    sb.from('logbook').select('*').eq('user_id', userId).order('created_at', { ascending:false }).limit(200),
-    sb.from('WeeklyCheckin').select('*').eq('user_id', userId).order('checked_at', { ascending:false }).limit(1),
-    sb.from('MoodLog').select('*').eq('user_id', userId).order('date', { ascending:false }).limit(60),
-    sb.from('ScreenTime').select('*').eq('user_id', userId).order('date', { ascending:false }).limit(30),
-    sb.from('ChallengeState').select('*').eq('user_id', userId).maybeSingle()
+  const unwrap = (promise, key) => promise.then(
+    ({ data, error }) => ({ data: error ? null : (data ? data[key] : null), error: error || null }),
+    (e) => ({ data: null, error: e })
+  );
+
+  const [profileR, assessR, logR, weeklyR, moodR, stR, chR] = await Promise.all([
+    unwrap(PauseAPI.profile.get(),      'profile'),
+    unwrap(PauseAPI.assessments.list(), 'assessments'),
+    unwrap(PauseAPI.logbook.list(),     'entries'),
+    unwrap(PauseAPI.weekly.latest(),    'checkin'),
+    unwrap(PauseAPI.mood.list(),        'moods'),
+    unwrap(PauseAPI.screentime.list(),  'entries'),
+    unwrap(PauseAPI.challenge.get(),    'state')
   ]);
-  const [profileR, assessR, urgeR, logR, weeklyR, moodR, stR, chR] = results;
 
   // ---- Profile: only adopt remote if local missing/empty (local is most up-to-date if present) ----
   try {
-    if(profileR.status === 'fulfilled' && profileR.value && !profileR.value.error && profileR.value.data){
+    if(!profileR.error && profileR.data){
       const localRaw = localStorage.getItem('pause_profile_' + userId);
       const localEmpty = !localRaw || (() => { try { const p = JSON.parse(localRaw); return !p || !p.age; } catch(e){ return true; } })();
       if(localEmpty){
-        userProfile = _profileFromSupabaseRow(profileR.value.data);
+        userProfile = _profileFromCloudRow(profileR.data);
         localStorage.setItem('pause_profile_' + userId, JSON.stringify(userProfile));
       }
-    } else if(profileR.status === 'fulfilled' && profileR.value && profileR.value.error){
-      console.warn('Profile fetch error:', profileR.value.error); _showSyncErrorToast();
+    } else if(profileR.error){
+      console.warn('Profile fetch error:', profileR.error); _showSyncErrorToast();
     }
   } catch(e){ console.warn('Profile fetch error:', e); _showSyncErrorToast(); }
 
   // ---- Assessments → rebuild pauseV2History + latest snapshot ----
   try {
-    if(assessR.status === 'fulfilled' && assessR.value && !assessR.value.error && Array.isArray(assessR.value.data) && assessR.value.data.length){
-      const rows = assessR.value.data;
+    if(!assessR.error && Array.isArray(assessR.data) && assessR.data.length){
+      const rows = assessR.data;
       const history = rows.map(r => ({
         dws:      r.dws_score,
         hws:      r.hws_score,
@@ -896,7 +915,7 @@ async function loadAllUserDataFromSupabase(userId){
         if(typeof dwsScore       !== 'undefined') dwsScore       = (latest.dws ?? null);
         if(typeof hwsScore       !== 'undefined') hwsScore       = (latest.hws ?? null);
         if(typeof saveScoresLocal === 'function') saveScoresLocal();
-        // FIX (May 2026): refresh UI after async Supabase sync. Without this,
+        // FIX (May 2026): refresh UI after the async cloud sync. Without this,
         // the home pills stayed stuck at the initial "--" placeholder while
         // the modal (which reads the live globals at click-time) showed the
         // actual loaded score — causing a confusing desync where the pill
@@ -905,31 +924,21 @@ async function loadAllUserDataFromSupabase(userId){
         if(typeof updateHWSDisplay      === 'function') updateHWSDisplay();
         if(typeof renderHomeDisorders   === 'function') renderHomeDisorders();
       }
-    } else if(assessR.status === 'fulfilled' && assessR.value && assessR.value.error){
-      console.warn('Assessments fetch error:', assessR.value.error); _showSyncErrorToast();
+    } else if(assessR.error){
+      console.warn('Assessments fetch error:', assessR.error); _showSyncErrorToast();
     }
   } catch(e){ console.warn('Assessments fetch error:', e); _showSyncErrorToast(); }
 
   // ---- UrgeLog ----
-  // BUG-002 FIX: require remote array to be non-empty before overwriting local.
-  // Stops a fresh-login wipeout of locally-created entries when the remote
-  // table has no data yet for this user. Full timestamp-merge is still TODO v1.1.
-  try {
-    if(urgeR.status === 'fulfilled' && urgeR.value && !urgeR.value.error && Array.isArray(urgeR.value.data) && urgeR.value.data.length){
-      const log = urgeR.value.data.map(r => ({
-        date: r.logged_at || new Date().toISOString(),
-        disorder: r.disorder, trigger: r.trigger, resisted: !!r.resisted,
-        id: r.id || Date.now()
-      }));
-      localStorage.setItem(URGE_LOG_KEY, JSON.stringify(log));
-    }
-  } catch(e){ console.warn('UrgeLog fetch error:', e); }
+  // No cloud sync: UrgeLog was not part of the Postbase migration and has no
+  // authorization policy to port, so the proxy has no endpoint for it and the
+  // urge journal is device-local until the table exists. See PR notes.
 
   // ---- Logbook ----
   try {
     // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
-    if(logR.status === 'fulfilled' && logR.value && !logR.value.error && Array.isArray(logR.value.data) && logR.value.data.length){
-      const entries = logR.value.data.map(r => ({
+    if(!logR.error && Array.isArray(logR.data) && logR.data.length){
+      const entries = logR.data.map(r => ({
         id:        String(r.id),
         date:      r.date,
         promptIdx: 0,
@@ -943,8 +952,8 @@ async function loadAllUserDataFromSupabase(userId){
 
   // ---- WeeklyCheckin (latest only) ----
   try {
-    if(weeklyR.status === 'fulfilled' && weeklyR.value && !weeklyR.value.error && Array.isArray(weeklyR.value.data) && weeklyR.value.data.length){
-      const r = weeklyR.value.data[0];
+    if(!weeklyR.error && weeklyR.data){
+      const r = weeklyR.data;
       localStorage.setItem('pause_weekly_checkin', JSON.stringify({
         lastShown: r.checked_at,
         responses: { q1: r.q1, q2: r.q2, q3: r.q3 }
@@ -955,8 +964,8 @@ async function loadAllUserDataFromSupabase(userId){
   // ---- MoodLog ----
   try {
     // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
-    if(moodR.status === 'fulfilled' && moodR.value && !moodR.value.error && Array.isArray(moodR.value.data) && moodR.value.data.length){
-      const moodLog = moodR.value.data.map(r => ({ date: r.date, value: r.value }));
+    if(!moodR.error && Array.isArray(moodR.data) && moodR.data.length){
+      const moodLog = moodR.data.map(r => ({ date: r.date, value: r.value }));
       localStorage.setItem('moodLog', JSON.stringify(moodLog));
     }
   } catch(e){ console.warn('MoodLog fetch error:', e); }
@@ -964,16 +973,16 @@ async function loadAllUserDataFromSupabase(userId){
   // ---- ScreenTime ----
   try {
     // BUG-002 FIX: skip overwrite when remote is empty (preserve local entries).
-    if(stR.status === 'fulfilled' && stR.value && !stR.value.error && Array.isArray(stR.value.data) && stR.value.data.length){
-      const log = stR.value.data.map(r => ({ date: r.date, hours: r.hours }));
+    if(!stR.error && Array.isArray(stR.data) && stR.data.length){
+      const log = stR.data.map(r => ({ date: r.date, hours: r.hours }));
       localStorage.setItem('screenTimeLog', JSON.stringify(log));
     }
   } catch(e){ console.warn('ScreenTime fetch error:', e); }
 
   // ---- ChallengeState (single row) ----
   try {
-    if(chR.status === 'fulfilled' && chR.value && !chR.value.error && chR.value.data){
-      const r = chR.value.data;
+    if(!chR.error && chR.data){
+      const r = chR.data;
       if(r.week_start)                  localStorage.setItem('challengeWeekStart',     String(r.week_start));
       if(r.current_week_num != null)    localStorage.setItem('currentWeekNum',         String(r.current_week_num));
       if(r.weeks_completed != null)     localStorage.setItem('challengeWeeksCompleted',String(r.weeks_completed));
@@ -1021,7 +1030,7 @@ function showUserModal(){
 }
 
 // ============================================================
-// BUG14 FIX: Run these Supabase migrations before deploying new features
+// BUG14 FIX: Run these database migrations before deploying new features
 // ============================================================
 // -- UrgeLog table (Feature 1)
 // CREATE TABLE IF NOT EXISTS "UrgeLog" (
@@ -1047,9 +1056,9 @@ function showUserModal(){
 // ============================================================
 
 // ============================================================
-// SAVE TO SUPABASE
+// SAVE ASSESSMENT TO THE CLOUD
 // ============================================================
-async function saveToSupabase(){
+async function saveAssessmentToCloud(){
   if(!currentUser) return;
   if(localStorage.getItem('pause_research_withdrawn')) return; // BUG19 FIX: respect withdrawal
 
@@ -1069,8 +1078,9 @@ async function saveToSupabase(){
   if(!researchConsented) return;
 
   try {
-    const { data, error } = await sb.from('Assessments').insert({
-      user_id:            currentUser.id,
+    // user_id is omitted deliberately — the proxy stamps it from the caller's
+    // validated session token and ignores any id sent from the browser.
+    const { data, error } = await PauseAPI.assessments.create({
       // email REMOVED — IEC §13 identifier separation: name/email/phone not in research export.
       disorder_scores:    disorderScores,
       impact_scores:      impactScores,
@@ -1104,13 +1114,13 @@ async function saveToSupabase(){
       referral_source:    userProfile.referral_source || null,
       followup_consent:   userProfile.followup_consent || null,
       study_code:         _getStoredStudyCode()
-    }).select('id').single();
+    });
 
     // Store row ID so Stage 2 post-assessment UPDATE can target the correct row
     if(!error && data && data.id){
       localStorage.setItem('pause_last_assessment_id', data.id);
     }
-  } catch(e){ console.log('Supabase save error:', e); }
+  } catch(e){ console.log('Assessment save error:', e); }
 }
 
 // ============================================================
@@ -1138,9 +1148,9 @@ async function savePostAssessmentData(){
     try {
       const rowId = localStorage.getItem('pause_last_assessment_id');
       if(rowId){
-        await sb.from('Assessments').update(answers).eq('id', rowId);
+        await PauseAPI.assessments.saveAnswers(rowId, answers);
       }
-    } catch(e){ console.log('Stage 2 Supabase update error:', e); }
+    } catch(e){ console.log('Stage 2 update error:', e); }
   }
 
   closeModal('postAssessmentModal');
@@ -1182,6 +1192,18 @@ async function submitFeedback(){
     if(errEl){ errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; }
     return;
   }
+  // Feedback rows are owner-scoped on the new backend, so there is no
+  // anonymous insert path any more. Say so plainly rather than showing a
+  // success message for a submission that was never stored — this form is also
+  // the DPDP grievance and data-deletion channel.
+  if(!currentUser){
+    if(errEl){
+      errEl.textContent = 'Please sign in first — feedback is now linked to your account so we can respond and action data requests.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
   if(errEl) errEl.style.display = 'none';
 
   const submitBtn = document.getElementById('feedbackSubmitBtn');
@@ -1191,15 +1213,14 @@ async function submitFeedback(){
     rating:    feedbackRating || null,
     category:  feedbackCategory || 'General feedback',
     message:   msg,
-    contact_email: (document.getElementById('feedbackEmail')?.value || '').trim() || null,
-    user_id:   currentUser?.id || null,
+    contact_email: email || null,
     app_version: '5.0.1',
     created_at: new Date().toISOString()
   };
 
   let saved = false;
   try {
-    const { error } = await sb.from('Feedback').insert(payload);
+    const { error } = await PauseAPI.feedback.send(payload);
     if(!error) saved = true;
   } catch(e){ console.log('Feedback save error:', e); }
 
@@ -1248,12 +1269,12 @@ let _researchConsentChoice = null;
 
 // ------------------------------------------------------------
 // STUDY / COLLABORATION CODE
-// Validated LIVE against the Supabase `StudyCodes` table (columns:
+// Validated LIVE against the `StudyCodes` table via the proxy (columns:
 // code [pk], label, active). Blank is allowed (no cohort). Stored uppercased.
 // _studyCodeValid gates the Continue button only when a NON-BLANK code is
 // typed — a blank field is always allowed.
 //
-// To add a cohort: insert a row in StudyCodes from the Supabase dashboard.
+// To add a cohort: insert a row in StudyCodes on the backend.
 // To close enrolment: set that row's `active` to false. No app release needed.
 // ------------------------------------------------------------
 let _studyCode = null;        // final accepted code (uppercased) or null
@@ -1264,14 +1285,9 @@ let _studyCodeDebounce = null;
 async function _lookupStudyCode(code){
   // Returns the label string if the code exists AND is active, else null.
   try {
-    const { data, error } = await sb
-      .from('StudyCodes')
-      .select('code,label,active')
-      .eq('code', code)
-      .eq('active', true)
-      .maybeSingle();
+    const { data, error } = await PauseAPI.studyCode.check(code);
     if(error){ console.warn('StudyCode lookup error:', error); return undefined; } // undefined = lookup failed
-    return data ? (data.label || code) : null; // null = not found / inactive
+    return data && data.valid ? (data.label || code) : null; // null = not found / inactive
   } catch(e){ console.warn('StudyCode lookup error:', e); return undefined; }
 }
 
@@ -1409,7 +1425,7 @@ async function acceptTermsAndLogin(){
   //   (b) an explicit, recorded decision on research participation.
   // Silent skipping is NOT acceptable — IEC §13 + DPDP §6 require an active,
   // informed choice. Both Yes and No allow continued app use; only Yes writes
-  // research data to Supabase.
+  // research data to the cloud.
   if(_researchConsentChoice !== 'yes' && _researchConsentChoice !== 'no'){
     if(err){ err.textContent = '⚠️ Please choose Yes or No to continue.'; err.style.display = 'block'; }
     ['rcYes', 'rcNo'].forEach(id => {
@@ -1449,7 +1465,7 @@ async function acceptTermsAndLogin(){
 
   // Record the EXPLICIT research consent decision (Yes or No). Both outcomes are
   // valid and both let the user continue using the app. Only "yes" writes
-  // research data to Supabase (enforced in saveToSupabase()).
+  // research data to the cloud.(enforced in saveAssessmentToCloud()).
   const researchConsented = (_researchConsentChoice === 'yes');
   localStorage.setItem('pause_research_consent', JSON.stringify({
     consented: researchConsented,
@@ -1505,22 +1521,14 @@ function openModal(id){
     if(scMsg){ scMsg.textContent = ''; }
   }
 
-  // Re-render Google sign-in button each time loginModal opens.
-  // BUG-006 FIX: clear-and-rerender is a documented GIS workaround for stale
-  // iframe state when a tab is backgrounded then re-foregrounded. GIS may
-  // throw or log a multi-init warning on rerender; we wrap in try/catch so
-  // any thrown error doesn't surface to the user. Behaviour is preserved.
-  if(id === 'loginModal' && window.google && googleSignInInitialized){
-    const btnEl = document.getElementById('googleSignInBtn');
-    if(btnEl){
-      btnEl.innerHTML = ''; // clear stale iframe first
-      try {
-        google.accounts.id.renderButton(btnEl, {
-          theme:'outline', size:'large', width:320,
-          text:'continue_with', shape:'rectangular'
-        });
-      } catch(e){ /* GIS rerender warning — expected, intentionally swallowed */ }
-    }
+  // Reset the sign-in sheet each time it opens: back to sign-in mode, no stale
+  // error text, and never a password left sitting in the field.
+  // (This replaces the BUG-006 Google Identity Services re-render workaround —
+  // there is no third-party iframe to refresh any more.)
+  if(id === 'loginModal'){
+    const pw = document.getElementById('authPassword');
+    if(pw) pw.value = '';
+    if(typeof setAuthMode === 'function') setAuthMode('signin');
   }
 }
 function closeModal(id){
@@ -1586,13 +1594,8 @@ function logUrge(disorderId, trigger, resisted){
   });
   if(log.length>200) log.splice(200);
   localStorage.setItem(URGE_LOG_KEY, JSON.stringify(log));
-  // Save to Supabase if logged in
-  if(currentUser){
-    sb.from('UrgeLog').insert({
-      user_id:currentUser.id, disorder:disorderId,
-      trigger, resisted, logged_at:new Date().toISOString()
-    }).then(()=>{}).catch(()=>{});
-  }
+  // Device-local only: UrgeLog was not migrated to Postbase and has no
+  // authorization policy, so the proxy exposes no endpoint for it.
   renderUrgeJournal();
   closeModal('urgeLogModal');
   showToast(resisted?'✅ Well done resisting that urge! 💪':'📝 Urge logged — awareness is the first step.');
