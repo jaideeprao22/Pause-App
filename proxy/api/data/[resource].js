@@ -285,7 +285,7 @@ module.exports = async function handler(req, res) {
     return await fn(req, res, user);
   } catch (e) {
     if (e instanceof AuthError) return json(res, 401, { error: e.message });
-    if (e instanceof PostbaseError) {
+    if (e && e.isPostbaseError) {
       console.error(`[data:${name}] upstream ${e.status}:`, e.message);
       return json(res, 502, { error: 'Data service unavailable' });
     }

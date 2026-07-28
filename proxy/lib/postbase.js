@@ -5,9 +5,15 @@ const { POSTBASE_URL, serviceKey, projectId } = require('./config');
 // Bearer credential. Getting this backwards is the single easiest way to break
 // (or silently widen) access, so it lives in exactly one place.
 function headers(userToken) {
+  const key = serviceKey();
   const h = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${serviceKey()}`,
+    Authorization: `Bearer ${key}`,
+    // The OAuth routes document their service credential as `apikey` rather
+    // than `Authorization`. Sending both costs nothing and means one header
+    // convention across the whole surface — the alternative is a per-route
+    // rule that is easy to get subtly wrong.
+    apikey: key,
   };
   if (userToken) h['X-Postbase-Token'] = userToken;
   return h;
@@ -18,6 +24,10 @@ class PostbaseError extends Error {
     super((body && (body.error || body.message)) || `Postbase request failed (${status})`);
     this.status = status;
     this.body = body;
+    // Checked instead of `instanceof`: class identity is not guaranteed if this
+    // module is ever loaded through two paths, and misclassifying an upstream
+    // error as an internal one turns a clear 4xx into an opaque 500.
+    this.isPostbaseError = true;
   }
 }
 
@@ -77,6 +87,14 @@ async function query(descriptor, userToken) {
 const authBase = () => `/api/auth/v1/${projectId()}`;
 
 const auth = {
+  // OAuth lives under a nested /oauth/ prefix — NOT at the top level, and NOT
+  // on /token. A top-level probe for /authorize or /google returns the same 500
+  // as a bogus path, which is why they look absent. See AUTH-API.md.
+  //
+  // The field is `id_token`, snake_case. There is nothing to negotiate.
+  idTokenGrant: (provider, idToken) =>
+    request(`${authBase()}/oauth/id-token`, { body: { provider, id_token: idToken } }),
+
   signIn: (email, password) =>
     request(`${authBase()}/token`, { body: { email, password } }),
   signUp: (email, password) =>

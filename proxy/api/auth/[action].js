@@ -1,12 +1,14 @@
 const { handlePreflightAndOrigin } = require('../../lib/cors');
-const { auth, query, request, PostbaseError } = require('../../lib/postbase');
+const { auth, query, PostbaseError } = require('../../lib/postbase');
 const { bearerToken, invalidate } = require('../../lib/auth');
 const { verifyIdToken, GoogleTokenError } = require('../../lib/google');
-const { googleClientId, projectId } = require('../../lib/config');
+const { googleClientId } = require('../../lib/config');
 
-// Postbase returns camelCase and does not use access_token/refresh_token, but
-// the exact key holding the bearer value isn't pinned down by the spec. Pull it
-// out here so the browser has exactly one contract to code against.
+// Postbase's session is {accessToken, refreshToken, expiresAt, user}. Only the
+// access token is pulled out and handed to the browser — the refresh token
+// stays here and is discarded, so a stolen browser token cannot be traded up
+// for a long-lived one. Sessions therefore end at expiry and the user signs in
+// again; see README "Known gaps". The fallbacks are belt-and-braces.
 function extractToken(session) {
   if (!session || typeof session !== 'object') return null;
   for (const k of ['accessToken', 'token', 'sessionToken', 'jwt']) {
@@ -64,48 +66,26 @@ function passwordAuthGate(res) {
 // Google sign-in
 // ---------------------------------------------------------------------------
 
-// Which payload /token accepts for a Google credential is the one part of the
-// contract not readable off the schema. Pin it with POSTBASE_GOOGLE_GRANT once
-// known; unpinned, we try these in order on the first sign-in per instance and
-// log the winner so it can be pinned.
-const GRANT_SHAPES = {
-  idToken:   (t) => ({ provider: 'google', idToken: t }),
-  id_token:  (t) => ({ provider: 'google', id_token: t }),
-  token:     (t) => ({ provider: 'google', token: t }),
-  credential:(t) => ({ provider: 'google', credential: t }),
-  grantType: (t) => ({ grantType: 'id_token', provider: 'google', idToken: t }),
-};
-const GRANT_ORDER = ['idToken', 'id_token', 'token', 'credential', 'grantType'];
-
-let negotiatedGrant = process.env.POSTBASE_GOOGLE_GRANT || null;
-
-async function exchangeGoogleCredential(idToken) {
-  const tokenPath = `/api/auth/v1/${projectId()}/token`;
-
-  if (negotiatedGrant) {
-    const build = GRANT_SHAPES[negotiatedGrant];
-    if (!build) throw new Error(`POSTBASE_GOOGLE_GRANT is not a known shape: ${negotiatedGrant}`);
-    return request(tokenPath, { body: build(idToken) });
+// Postbase's documented failures for the id-token grant, mapped to something a
+// person can act on. Anything unrecognised falls through to a generic message
+// rather than leaking upstream wording.
+function describeGrantFailure(e) {
+  const raw = String((e && e.message) || '').toLowerCase();
+  if (raw.includes('nonce')) {
+    return { status: 401, error: 'Your sign-in could not be verified. Please try again.' };
   }
-
-  let lastError = null;
-  for (const name of GRANT_ORDER) {
-    try {
-      const payload = await request(tokenPath, { body: GRANT_SHAPES[name](idToken) });
-      if (payload && payload.session) {
-        negotiatedGrant = name;
-        console.warn(`[auth:google] /token accepted grant shape "${name}". Pin it with POSTBASE_GOOGLE_GRANT=${name}.`);
-        return payload;
-      }
-    } catch (e) {
-      lastError = e;
-      // A 4xx here means "this shape was understood but the credential was
-      // rejected" OR "this shape was not understood". We cannot tell them
-      // apart from one response, so keep trying the remaining shapes and let
-      // the last error stand if none work.
-    }
+  if (raw.includes('verification failed') || raw.includes('id_token')) {
+    return { status: 401, error: 'Google could not verify your sign-in. Please try again.' };
   }
-  throw lastError || new PostbaseError(502, { error: 'No supported Google grant shape' });
+  if (raw.includes('provider not enabled')) {
+    // A configuration fault, not a user fault — make that unmistakable in logs.
+    console.error('[auth:google] Google provider is not enabled on the Postbase project.');
+    return { status: 503, error: 'Google sign-in is not enabled right now. Please try again later.' };
+  }
+  if (raw.includes('no_email_from_provider')) {
+    return { status: 403, error: 'Your Google account did not share an email address, which PAUSE needs to identify you.' };
+  }
+  return null;
 }
 
 // THE ASSERTION.
@@ -157,7 +137,7 @@ async function assertLinkedToMigratedUser(sub, resolvedUserId) {
   if (match.user_id !== resolvedUserId) {
     console.error(
       `[auth:google] REGRESSION: google sub ${sub} is linked to user ${match.user_id}, ` +
-      `but /token resolved the session to ${resolvedUserId}. Refusing the sign-in.`
+      `but the id-token grant resolved the session to ${resolvedUserId}. Refusing the sign-in.`
     );
     throw new IdentityLinkError('Your sign-in resolved to the wrong account. Sign-in blocked as a precaution.');
   }
@@ -184,14 +164,24 @@ const ACTIONS = {
       return res.status(400).json({ error: 'A Google credential is required' });
     }
 
-    // Verified here, before the token goes anywhere — in particular `aud`, so a
-    // token minted for a different Google app cannot be replayed at this proxy.
+    // Defence in depth. Postbase verifies the token too — JWKS, issuer, and
+    // audience against its dashboard-configured client ID — but we check `aud`
+    // on our side as well, so a token minted for a different Google app is
+    // rejected here regardless of how upstream is configured.
     const claims = await verifyIdToken(credential, googleClientId());
     if (claims.email && !claims.emailVerified) {
       return res.status(403).json({ error: 'Your Google email address is not verified' });
     }
 
-    const payload = await exchangeGoogleCredential(credential);
+    let payload;
+    try {
+      payload = await auth.idTokenGrant('google', credential);
+    } catch (e) {
+      const mapped = (e && e.isPostbaseError) ? describeGrantFailure(e) : null;
+      if (mapped) return res.status(mapped.status).json({ error: mapped.error });
+      throw e;
+    }
+
     const out = shape(payload);
     if (!out.token || !out.user || !out.user.id) {
       return res.status(502).json({ error: 'Sign-in succeeded but no session was returned' });
@@ -274,7 +264,7 @@ module.exports = async function handler(req, res) {
     // silent empty app is exactly the failure we are guarding against.
     if (e instanceof GoogleTokenError) return res.status(401).json({ error: e.message });
     if (e instanceof IdentityLinkError) return res.status(409).json({ error: e.message, code: 'identity_not_linked' });
-    if (e instanceof PostbaseError) {
+    if (e && e.isPostbaseError) {
       // Upstream 4xx means bad credentials or a duplicate account — safe and
       // useful to surface. Anything else is ours to own, with detail kept out
       // of the response.

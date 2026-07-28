@@ -118,13 +118,24 @@ test('garbage is rejected without throwing something unhelpful', async () => {
 // The regression test for the whole orphaning class of bug. Exercised through
 // the handler with a stubbed upstream, so it covers the real code path.
 
-function loadHandler(queryImpl, requestImpl) {
+// Captures what the handler asks of the upstream, so the tests assert the real
+// route and payload rather than just the happy path.
+let lastGrant = null;
+
+function loadHandler(queryImpl, grantImpl) {
   for (const m of ['../lib/postbase', '../lib/auth', '../lib/db', '../api/auth/[action]']) {
     delete require.cache[require.resolve(m)];
   }
   const postbase = require('../lib/postbase');
   postbase.query = queryImpl;
-  postbase.request = requestImpl;
+  lastGrant = null;
+  postbase.auth = {
+    ...postbase.auth,
+    idTokenGrant: async (provider, idToken) => {
+      lastGrant = { provider, idToken };
+      return grantImpl(provider, idToken);
+    },
+  };
   return require('../api/auth/[action]');
 }
 
@@ -160,10 +171,82 @@ test('sign-in succeeds when the Google sub resolves to its linked migrated user'
     async () => sessionFor(MIGRATED_UUID)
   );
   const res = fakeRes();
-  await handler(googleReq(mintToken()), res);
+  const credential = mintToken();
+  await handler(googleReq(credential), res);
   assert.strictEqual(res.statusCode, 200);
   assert.strictEqual(res.body.user.id, MIGRATED_UUID);
   assert.strictEqual(res.body.token, 'session-token-abc');
+  // The id-token grant is used, with the credential passed through untouched.
+  assert.deepStrictEqual(lastGrant, { provider: 'google', idToken: credential });
+});
+
+test('the grant hits /oauth/id-token with snake_case id_token, not /token', async () => {
+  // Asserted against the real postbase.auth.idTokenGrant, not the stub, so the
+  // URL and body shape are covered rather than assumed.
+  for (const m of ['../lib/postbase']) delete require.cache[require.resolve(m)];
+  const postbase = require('../lib/postbase');
+
+  let seen = null;
+  const saved = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    seen = { url: String(url), body: JSON.parse(init.body), headers: init.headers };
+    return new Response(JSON.stringify(sessionFor(MIGRATED_UUID)), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    });
+  };
+  try {
+    await postbase.auth.idTokenGrant('google', 'the-credential');
+  } finally {
+    globalThis.fetch = saved;
+  }
+
+  assert.match(seen.url, /\/api\/auth\/v1\/test-project\/oauth\/id-token$/);
+  assert.deepStrictEqual(seen.body, { provider: 'google', id_token: 'the-credential' });
+  assert.ok(!('idToken' in seen.body), 'sent camelCase idToken instead of id_token');
+  assert.strictEqual(seen.headers.apikey, 'test-service-key');
+});
+
+test('the refresh token is never handed to the browser', async () => {
+  const handler = loadHandler(
+    async () => [{ user_id: MIGRATED_UUID, provider: 'google', provider_account_id: 'google-sub-1' }],
+    async () => ({
+      user: { id: MIGRATED_UUID, email: 'user@example.com' },
+      session: {
+        accessToken: 'session-token-abc',
+        refreshToken: 'refresh-token-SECRET',
+        expiresAt: '2026-08-01T00:00:00Z',
+      },
+    })
+  );
+  const res = fakeRes();
+  await handler(googleReq(mintToken()), res);
+  assert.strictEqual(res.statusCode, 200);
+  assert.ok(!JSON.stringify(res.body).includes('refresh-token-SECRET'));
+  assert.strictEqual(res.body.expiresAt, '2026-08-01T00:00:00Z');
+});
+
+test('documented grant failures map to actionable statuses', async () => {
+  const cases = [
+    ['id_token verification failed', 401],
+    ['nonce mismatch', 401],
+    ['Provider not enabled', 503],
+    ['no_email_from_provider', 403],
+  ];
+  for (const [upstream, expected] of cases) {
+    const handler = loadHandler(
+      async () => [{ user_id: MIGRATED_UUID, provider: 'google', provider_account_id: 'google-sub-1' }],
+      // Required lazily so this is the same module instance the handler holds.
+      async () => {
+        const { PostbaseError } = require('../lib/postbase');
+        throw new PostbaseError(upstream === 'Provider not enabled' ? 400 : 401, { error: upstream });
+      }
+    );
+    const res = fakeRes();
+    await handler(googleReq(mintToken()), res);
+    assert.strictEqual(res.statusCode, expected, `"${upstream}" -> ${res.statusCode}, expected ${expected}`);
+    assert.ok(!/verification failed|no_email_from_provider/.test(res.body.error),
+      'upstream wording leaked to the client');
+  }
 });
 
 test('REGRESSION: sign-in is refused when /token resolves to a different user id', async () => {

@@ -110,12 +110,10 @@ other* Google application could be replayed here and would look like a valid
 sign-in. Upstream probably checks it too; we cannot see that code, so it gets
 checked on our side regardless.
 
-**2. Exchanges it with Postbase `/token`.** Which payload shape `/token` accepts
-for a Google credential is the one part of the contract not readable off the
-schema. Pin it with `POSTBASE_GOOGLE_GRANT` (`idToken` | `id_token` | `token` |
-`credential` | `grantType`); unpinned, the proxy tries them in order on the first
-sign-in per instance and logs the winner. `scripts/probe-auth.mjs --allow-live`
-determines it without needing a valid credential, by reading validation errors.
+**2. Exchanges it** at `POST /api/auth/v1/{projectId}/oauth/id-token` with
+`{provider: "google", id_token: "<credential>"}`. Note `id_token`, snake_case.
+**Not** `/token` — that endpoint is password-only. See `AUTH-API.md` for the
+full surface and for why a top-level probe makes the OAuth routes look absent.
 
 **3. Asserts the resolved user is the migrated one.** This is the regression
 test for the whole orphaning class of bug, and it runs on every sign-in.
