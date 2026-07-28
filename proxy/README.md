@@ -75,8 +75,8 @@ the two can't get crossed.
 
 | Method + path | Table | Scope |
 | --- | --- | --- |
-| `POST /api/auth/signin` | — | forwards to Postbase `/token` |
-| `POST /api/auth/signup` | — | forwards to Postbase `/signup` |
+| `POST /api/auth/signin` | — | **disabled (501)** — see below |
+| `POST /api/auth/signup` | — | **disabled (501)** — see below |
 | `GET /api/auth/session` | — | re-validates the caller's token |
 | `POST /api/auth/signout` | — | forwards to Postbase `/logout` |
 | `GET`/`PUT /api/data/profile` | Profiles | owner |
@@ -90,6 +90,44 @@ the two can't get crossed.
 | `GET`/`PUT /api/data/challenge-state` | ChallengeState | owner |
 | `POST /api/data/feedback` | Feedback | owner (insert only) |
 | `GET /api/data/study-code?code=` | StudyCodes | public, `active = true` only |
+
+## Auth is unresolved — do not cut over
+
+Password auth is **disabled** on this Postbase project, and all nine migrated
+users are Google-only (`encrypted_password` null/empty for every one). The
+`signin`/`signup` endpoints therefore return `501 password_auth_disabled` unless
+`POSTBASE_PASSWORD_AUTH_ENABLED=true` is set. They are kept only as an additive
+path if password auth is ever turned on upstream.
+
+Route enumeration against the live backend shows **no OAuth endpoint** in the
+documented auth surface. Only `token`, `signup`, `logout`, `session` and `user`
+exist; `authorize`, `callback`, `google` and `oauth/google` all return the same
+500 as a deliberately bogus path, i.e. they are an erroring catch-all:
+
+```
+405 GET  token      (exists, wrong method)      500 GET/POST authorize
+401 POST token      {"error":"Missing API key"} 500 GET/POST google
+401 POST signup     {"error":"Missing API key"} 500 GET/POST oauth/google
+200 GET  session    {"session":null}            500 GET/POST totallybogusroute123
+```
+
+So a Google sign-in must flow through `/token` with some provider payload whose
+shape is not documented. **Two things must be measured before any wiring:**
+
+1. Which payload shape `/token` accepts for Google.
+2. Whether a Google sign-in **links to the existing migrated user row** (same
+   UUID) or **creates a new user with a new UUID**. Every PAUSE row is keyed to
+   the migrated UUID — if Google mints a new id, users sign in to an empty app
+   while their history sits in the database under the old id.
+
+`scripts/probe-auth.mjs` answers both. Phase A is read-only and needs just the
+service key; Phase B performs one real Google sign-in and is opt-in, because if
+the answer to (2) is "creates a new user" then running it creates the duplicate.
+Phase A snapshots the auth table first so that duplicate can be identified.
+
+```
+POSTBASE_SERVICE_KEY=... POSTBASE_PROJECT_ID=... node scripts/probe-auth.mjs
+```
 
 ## Authorization
 

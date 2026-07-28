@@ -41,9 +41,27 @@ function credentials(body) {
   return { email, password };
 }
 
+// Password auth is DISABLED on this Postbase project, and all nine migrated
+// users are Google-only with no password hash. These endpoints stay in the tree
+// because the code is correct and costs nothing to keep, but they are off
+// unless someone deliberately enables password auth upstream and flips this.
+// Default off — a sign-in path that cannot possibly succeed must fail loudly,
+// not look like a wrong password.
+const PASSWORD_AUTH_ENABLED = process.env.POSTBASE_PASSWORD_AUTH_ENABLED === 'true';
+
+function passwordAuthGate(res) {
+  if (PASSWORD_AUTH_ENABLED) return false;
+  res.status(501).json({
+    error: 'Password sign-in is disabled for this project. Sign in with Google.',
+    code: 'password_auth_disabled',
+  });
+  return true;
+}
+
 const ACTIONS = {
   async signin(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    if (passwordAuthGate(res)) return;
     const creds = credentials(req.body || {});
     if (creds.error) return res.status(400).json({ error: creds.error });
     const payload = await auth.signIn(creds.email, creds.password);
@@ -54,6 +72,7 @@ const ACTIONS = {
 
   async signup(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    if (passwordAuthGate(res)) return;
     const creds = credentials(req.body || {});
     if (creds.error) return res.status(400).json({ error: creds.error });
     const payload = await auth.signUp(creds.email, creds.password);

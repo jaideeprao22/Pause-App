@@ -856,6 +856,10 @@
       <label class="form-label" for="authPassword">Password</label>
       <input type="password" class="form-input" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters"/>
     </div>
+    <!-- Password sign-in is disabled on the backend and every migrated account
+         is Google-only. Sign-in is being rebuilt around Google OAuth; this form
+         is inert until then and the proxy returns 501 for it. -->
+    <div class="notice blue" style="margin-bottom:12px;font-size:12px">🔧 Sign-in is being migrated to the new backend. Google sign-in returns shortly — password sign-in is not enabled for this project.</div>
     <div id="authError" style="display:none;font-size:12px;color:#c0392b;margin-bottom:10px;line-height:1.5"></div>
     <button class="btn-primary" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
     <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-top:12px" id="authToggleText">
