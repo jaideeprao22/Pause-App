@@ -13,7 +13,7 @@
 // rather than firing requests at the Pages origin, so this branch must not be
 // merged to main before it is filled in.
 // ============================================================
-const PAUSE_API_BASE = '';
+const PAUSE_API_BASE = 'https://pauseapp1.vercel.app';
 
 const PAUSE_TOKEN_KEY = 'pause_session_token';
 
